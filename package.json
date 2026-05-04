@@ -1,25 +1,20 @@
 {
-  "name": "metrovoley-tracker",
-  "version": "2.0.0",
-  "description": "Real-time volleyball match tracker with analytics",
-  "main": "index.js",
+  "name": "voleyinsight",
+  "version": "2.6.0",
+  "description": "Sistema de análisis de partidos de voleibol",
+  "main": "server-api.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node --watch index.js",
-    "test": "node --test src/tests/**/*.test.js",
-    "test:watch": "node --test --watch src/tests/**/*.test.js",
-    "watch": "node watch-live.js",
-    "full": "npm run start & npm run watch"
+    "start": "node server-api.js",
+    "tracker": "node index.js"
   },
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
-    "socket.io": "^4.8.3",
-    "socket.io-client": "^4.8.3"
+    "socket.io": "^4.7.2"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0"
+    "nodemon": "^3.1.0"
   },
   "engines": {
     "node": ">=18.0.0"
