@@ -1,0 +1,310 @@
+class ReporteGenerator {
+    static generarHTML(d) {
+        const { 
+            homeTeam, awayTeam, homeScore, awayScore, fechaHora, 
+            homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, 
+            homeBreaks, awayBreaks, totalPoints, homeClutchPct, 
+            homePhaseEff, awayPhaseEff, setsHtml, 
+            scoreChartImage, momentumChartImage, runsChartImage, phaseChartImage, 
+            breakPointsHtml, timelineHtml, interpretationsHtml, recommendationsHtml, 
+            tablaLocal, tablaVisitante,
+            eficienciaPorSet = [],
+            localPorSet = {},
+            visitantePorSet = {}
+        } = d;
+        
+        return `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>${homeTeam} vs ${awayTeam} - Reporte VoleyInsight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0a0c15 0%,#0f1119 100%);padding:16px;min-height:100vh;}
+        .container{max-width:1400px;margin:0 auto;background:#1a1f2e;border-radius:32px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);}
+        .header{background:linear-gradient(135deg,#1a1f2e 0%,#0f1119 100%);padding:30px 20px;text-align:center;border-bottom:1px solid rgba(102,126,234,0.2);position:relative;}
+        .header::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#667eea,#764ba2,#f43f5e);}
+        .header h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,#667eea,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;}
+        .score-container{display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap;}
+        .team-score{text-align:center;padding:12px 20px;background:rgba(255,255,255,0.03);border-radius:20px;}
+        .team-name{font-size:16px;font-weight:600;color:#9ca3af;}
+        .score-number{font-size:48px;font-weight:800;line-height:1;}
+        .vs-badge{font-size:18px;font-weight:700;background:linear-gradient(135deg,#667eea,#764ba2);padding:8px 20px;border-radius:60px;}
+        .date{font-size:12px;color:#6b7280;margin-top:16px;display:inline-block;background:rgba(255,255,255,0.03);padding:6px 12px;border-radius:40px;}
+        
+        /* Banner de instrucciones para guardar */
+        .save-banner{background:linear-gradient(135deg,#1e3a5f,#0f1119);margin:20px;padding:16px;border-radius:16px;border-left:4px solid #10b981;text-align:center;}
+        .save-banner p{color:#e5e7eb;font-size:14px;margin-bottom:8px;}
+        .save-banner kbd{background:#2d3748;padding:4px 8px;border-radius:6px;font-family:monospace;font-size:12px;margin:0 4px;}
+        .save-banner .mobile-save{display:none;}
+        @media (max-width:768px){.save-banner .desktop-save{display:none;}.save-banner .mobile-save{display:block;}}
+        
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;padding:24px;background:#0f1119;}
+        .stat-card{background:linear-gradient(135deg,#1a1f2e,#131724);border-radius:20px;padding:16px 12px;text-align:center;border:1px solid rgba(102,126,234,0.15);position:relative;}
+        .stat-number{position:absolute;top:8px;right:12px;font-size:10px;font-weight:700;color:#667eea;background:rgba(102,126,234,0.15);padding:2px 6px;border-radius:20px;}
+        .stat-value{font-size:32px;font-weight:800;background:linear-gradient(135deg,#667eea,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+        .stat-label{font-size:11px;font-weight:500;color:#9ca3af;margin-top:8px;text-transform:uppercase;}
+        .stat-tooltip{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(10px);background:#1a1f2e;color:#e5e7eb;padding:6px 10px;border-radius:12px;font-size:10px;white-space:nowrap;opacity:0;visibility:hidden;transition:all 0.2s;border:1px solid rgba(102,126,234,0.3);}
+        .stat-card:hover .stat-tooltip{opacity:1;visibility:visible;transform:translateY(0);}
+        
+        .section{margin:20px;padding:20px;background:#0f1119;border-radius:24px;border:1px solid rgba(102,126,234,0.1);}
+        .section-title{font-size:20px;font-weight:700;background:linear-gradient(135deg,#667eea,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid rgba(102,126,234,0.2);}
+        
+        .section p, .section div:not(.chart-container):not(.stat-card):not(.filtros-container) {color: #f3f4f6 !important;}
+        
+        #insightsList div, .insight-card,
+        #metricInterpretations div, #actionableRecommendations div {
+            color: #f3f4f6 !important;
+            background: rgba(15, 17, 25, 0.8) !important;
+            border-left: 3px solid #667eea !important;
+            padding: 12px !important;
+            margin-bottom: 8px !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+        }
+        
+        .timeline-text, .timeline-score {color: #e5e7eb !important;font-weight: 600 !important;}
+        .sets-container div span {color: #f3f4f6 !important;}
+        .phase-card .phase-value span {font-weight: 800 !important;}
+        .sets-container .text-white {color: #ffffff !important;}
+        .sets-container .text-gray-400 {color: #9ca3af !important;}
+        .sets-container .text-blue-400 {color: #60a5fa !important;}
+        .sets-container .text-red-400 {color: #f87171 !important;}
+        .clutch-fill {font-weight: 700 !important;}
+        
+        .sets-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;}
+        .chart-container{background:#1a1f2e;border-radius:16px;padding:16px;text-align:center;}
+        .chart-container img{max-width:100%;height:auto;border-radius:12px;}
+        
+        table{width:100%;border-collapse:collapse;background:#1a1f2e;border-radius:16px;overflow-x:auto;display:block;}
+        th{background:linear-gradient(135deg,#1a1f2e,#131724);padding:12px 8px;text-align:center;color:#9ca3af;font-weight:600;font-size:11px;text-transform:uppercase;border-bottom:1px solid #2d3748;}
+        td{padding:10px 8px;text-align:center;border-bottom:1px solid #1f2937;color:#e5e7eb;font-size:12px;background:#0f1119;}
+        tr:hover td{background:rgba(102,126,234,0.05);}
+        
+        .glosario{margin:20px;padding:20px;background:linear-gradient(135deg,#0f1119,#131724);border-radius:24px;border:1px solid rgba(102,126,234,0.3);position:relative;}
+        .glosario::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#667eea,#764ba2,#f43f5e);}
+        .glosario-title{font-size:20px;font-weight:800;background:linear-gradient(135deg,#667eea,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;text-align:center;}
+        .glosario-item{display:flex;gap:12px;margin-bottom:12px;padding:10px;background:rgba(255,255,255,0.02);border-radius:16px;}
+        .glosario-numero{font-weight:800;color:#667eea;min-width:40px;font-size:14px;}
+        .glosario-desc{color:#e5e7eb;font-size:12px;line-height:1.4;}
+        
+        .footer{text-align:center;padding:24px;background:#0f1119;border-top:1px solid rgba(102,126,234,0.1);color:#6b7280;font-size:12px;}
+        
+        @media (max-width:768px){
+            body{padding:12px;}
+            .section{margin:12px;padding:16px;}
+            .stats-grid{gap:10px;padding:16px;grid-template-columns:repeat(2,1fr);}
+            .stat-value{font-size:24px;}
+            .score-number{font-size:36px;}
+            .team-name{font-size:14px;}
+            .vs-badge{padding:6px 16px;font-size:14px;}
+            .section-title{font-size:18px;}
+            th,td{padding:8px 4px;font-size:10px;}
+            .glosario-item{flex-direction:column;gap:6px;}
+        }
+        @media print{
+            body{background:white;padding:0;}
+            .container{box-shadow:none;border-radius:0;}
+            .save-banner{display:none;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏐 VoleyInsight</h1>
+            <div class="score-container">
+                <div class="team-score"><div class="team-name">${homeTeam}</div><div class="score-number" style="color:#3b82f6;">${homeScore}</div></div>
+                <div class="vs-badge">VS</div>
+                <div class="team-score"><div class="team-name">${awayTeam}</div><div class="score-number" style="color:#ef4444;">${awayScore}</div></div>
+            </div>
+            <div class="date">📅 ${fechaHora}</div>
+        </div>
+        
+        <!-- BANNER DE INSTRUCCIONES PARA GUARDAR -->
+        <div class="save-banner">
+            <p>💾 <strong>¿Cómo guardar este reporte?</strong></p>
+            <p class="desktop-save">📌 En computadora: presioná <kbd>Ctrl + S</kbd> (Windows) o <kbd>Cmd + S</kbd> (Mac)</p>
+            <p class="mobile-save">📌 En celular: tocá los tres puntos <kbd>⋯</kbd> → <kbd>Descargar</kbd> o <kbd>Guardar página</kbd></p>
+            <p style="font-size:12px; margin-top:8px; color:#9ca3af;">✅ El archivo se guardará en tu dispositivo y podrás verlo cuando quieras</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeam}</div><div class="stat-tooltip">Puntos consecutivos sin que el rival anote</div></div>
+            <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeam}</div><div class="stat-tooltip">Puntos consecutivos sin que el rival anote</div></div>
+            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Rompes ${homeTeam}</div><div class="stat-tooltip">Puntos anotados sin estar sacando</div></div>
+            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Rompes ${awayTeam}</div><div class="stat-tooltip">Puntos anotados sin estar sacando</div></div>
+            <div class="stat-card"><div class="stat-number">(5)</div><div class="stat-value">${homeEfficiency}%</div><div class="stat-label">Eficiencia ${homeTeam}</div><div class="stat-tooltip">(Puntos propios / Puntos totales) × 100</div></div>
+            <div class="stat-card"><div class="stat-number">(6)</div><div class="stat-value">${awayEfficiency}%</div><div class="stat-label">Eficiencia ${awayTeam}</div><div class="stat-tooltip">(Puntos propios / Puntos totales) × 100</div></div>
+            <div class="stat-card"><div class="stat-number">(7)</div><div class="stat-value">${homeClutchPct}%</div><div class="stat-label">Bajo presión</div><div class="stat-tooltip">% de puntos en momentos críticos</div></div>
+            <div class="stat-card"><div class="stat-number">(8)</div><div class="stat-value">${totalPoints}</div><div class="stat-label">Puntos Totales</div><div class="stat-tooltip">Suma de puntos de ambos equipos</div></div>
+        </div>
+        
+        <div class="section"><div class="section-title">📊 SETS</div><div class="sets-container">${setsHtml}</div></div>
+        
+        <div class="section">
+            <div class="section-title">📈 EVOLUCIÓN DE EFICIENCIA POR SET</div>
+            <div class="chart-container">
+                <canvas id="eficienciaPorSetChart" style="max-height: 300px; width: 100%;"></canvas>
+            </div>
+        </div>
+        
+        <div class="section"><div class="section-title">📈 Evolución del Marcador</div><div class="chart-container">${scoreChartImage?`<img src="${scoreChartImage}" alt="Evolución del Marcador">`:'<div class="text-center text-gray-400 py-8">Gráfico no disponible</div>'}</div></div>
+        
+        <div class="section"><div class="section-title">⚡ Índice de Momentum <span style="font-size:12px;">(9)</span></div><div class="chart-container">${momentumChartImage?`<img src="${momentumChartImage}" alt="Índice de Momentum">`:'<div class="text-center text-gray-400 py-8">Gráfico no disponible</div>'}</div></div>
+        
+        <div class="section"><div class="section-title">🔥 Mapa de Rachas</div><div class="chart-container">${runsChartImage?`<img src="${runsChartImage}" alt="Mapa de Rachas">`:'<div class="text-center text-gray-400 py-8">Gráfico no disponible</div>'}</div></div>
+        
+        <div class="section">
+            <div class="section-title">🎯 Eficiencia por Fase <span style="font-size:12px;">(10,11,12)</span></div>
+            <div class="phase-container" style="display:flex;justify-content:space-around;gap:16px;flex-wrap:wrap;">
+                <div class="phase-card" style="flex:1;text-align:center;padding:16px;background:linear-gradient(135deg,#1a1f2e,#131724);border-radius:20px;">
+                    <div class="phase-value" style="font-size:28px;font-weight:800;display:flex;justify-content:center;gap:20px;">
+                        <span style="color:#3b82f6;">${homePhaseEff?.early||0}%</span>
+                        <span style="color:#ef4444;">${awayPhaseEff?.early||0}%</span>
+                    </div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:8px;">Early (puntos 1-10)</div>
+                </div>
+                <div class="phase-card" style="flex:1;text-align:center;padding:16px;background:linear-gradient(135deg,#1a1f2e,#131724);border-radius:20px;">
+                    <div class="phase-value" style="font-size:28px;font-weight:800;display:flex;justify-content:center;gap:20px;">
+                        <span style="color:#3b82f6;">${homePhaseEff?.mid||0}%</span>
+                        <span style="color:#ef4444;">${awayPhaseEff?.mid||0}%</span>
+                    </div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:8px;">Mid (puntos 11-20)</div>
+                </div>
+                <div class="phase-card" style="flex:1;text-align:center;padding:16px;background:linear-gradient(135deg,#1a1f2e,#131724);border-radius:20px;">
+                    <div class="phase-value" style="font-size:28px;font-weight:800;display:flex;justify-content:center;gap:20px;">
+                        <span style="color:#3b82f6;">${homePhaseEff?.late||0}%</span>
+                        <span style="color:#ef4444;">${awayPhaseEff?.late||0}%</span>
+                    </div>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:8px;">Late (puntos 21+)</div>
+                </div>
+            </div>
+            ${phaseChartImage?`<div class="chart-container" style="margin-top:16px;"><img src="${phaseChartImage}" alt="Eficiencia por Fase"></div>`:''}
+        </div>
+        
+        <div class="section">
+            <div class="section-title">💎 RENDIMIENTO BAJO PRESIÓN <span style="font-size:12px;">(7)</span></div>
+            <div class="clutch-bar" style="background:#1a1f2e;border-radius:60px;overflow:hidden;margin-bottom:16px;">
+                <div class="clutch-fill" style="width:${homeClutchPct}%;background:linear-gradient(90deg,#667eea,#764ba2);padding:12px 16px;text-align:center;color:white;font-weight:700;">${homeTeam} ${homeClutchPct}%</div>
+            </div>
+            <div class="clutch-bar" style="background:#1a1f2e;border-radius:60px;overflow:hidden;">
+                <div class="clutch-fill" style="width:${100-homeClutchPct}%;background:linear-gradient(90deg,#f43f5e,#e11d48);padding:12px 16px;text-align:center;color:white;font-weight:700;">${awayTeam} ${100-homeClutchPct}%</div>
+            </div>
+        </div>
+        
+        <div class="section"><div class="section-title">🔍 Puntos de Quiebre</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron rompes</div>'}</div></div>
+        
+        <div class="section"><div class="section-title">📖 Qué significan estos números</div><div>${interpretationsHtml||'<div class="text-gray-400 text-center py-4">Esperando datos...</div>'}</div></div>
+        
+        <div class="section"><div class="section-title">🎯 Qué cambiar para el próximo partido</div><div>${recommendationsHtml||'<div class="text-gray-400 text-center py-4">Esperando datos...</div>'}</div></div>
+        
+        <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
+        
+        <div class="section">
+            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:600px;">
+                    <thead>
+                        <tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>🎯 ACES</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr>
+                    </thead>
+                    <tbody>
+                        ${tablaLocal || '</td><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
+            <div style="overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;min-width:600px;">
+                    <thead>
+                        <tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>🎯 ACES</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr>
+                    </thead>
+                    <tbody>
+                        ${tablaVisitante || '<table><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}
+                    </tbody>
+                 Las
+            </div>
+        </div>
+        
+        <div class="glosario">
+            <div class="glosario-title">📖 GLOSARIO DE MÉTRICAS</div>
+            <div class="glosario-item"><div class="glosario-numero">(1)</div><div class="glosario-desc"><strong>🏆 RACHA MÁXIMA</strong><br>Puntos consecutivos del mismo equipo sin que el rival anote.<br>📊 >5 puntos = dominación momentánea | >8 = aplastante</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(2)</div><div class="glosario-desc"><strong>⚡ ROMPES (BREAKS)</strong><br>Puntos anotados sin estar sacando.<br>💪 Más rompes = mejor recepción y contraataque eficiente</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(3)</div><div class="glosario-desc"><strong>📊 EFICIENCIA GENERAL</strong><br>(Puntos propios / Puntos totales del partido) × 100.<br>📈 >55% = dominio absoluto | 45-55% = parejo | <45% = debilidad</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(4)</div><div class="glosario-desc"><strong>🎭 CLUTCH (Bajo presión)</strong><br>% de puntos en momentos críticos (set point o diferencia ≤2).<br>🏆 >60% = fortaleza mental</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(5)</div><div class="glosario-desc"><strong>🎯 EFICIENCIA DE SERVICIO</strong><br>(Aces - Errores de servicio) / Total de saques × 100.<br>🏐 >10% = excelente | 0% a 10% = regular | <0% = necesita mejorar</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(6)</div><div class="glosario-desc"><strong>📈 FASES DEL SET</strong><br>Early (puntos 1-10), Mid (puntos 11-20), Late (puntos 21+).<br>Analiza el rendimiento por momento del set.</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(7)</div><div class="glosario-desc"><strong>⚡ ÍNDICE DE MOMENTUM</strong><br>Diferencia de puntos en los últimos 5 puntos del partido.<br>Positivo = LOCAL domina | Negativo = VISITANTE domina</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(8)</div><div class="glosario-desc"><strong>🔍 PUNTOS DE QUIEBRE</strong><br>Puntos donde el equipo que recibe le rompe el saque al que saca.<br>Indicador clave de eficiencia en recepción y contraataque.</div></div>
+            <div class="glosario-item"><div class="glosario-numero">(9)</div><div class="glosario-desc"><strong>⏱️ TIMELINE</strong><br>Últimos 10 puntos del partido con dominancia por equipo.<br>Muestra quién viene dominando el cierre del partido.</div></div>
+        </div>
+        
+        <div class="footer">
+            <p>📊 Reporte generado automáticamente por <strong>VoleyInsight</strong> - Sistema de análisis profesional de voleibol</p>
+            <p style="margin-top:8px;">${fechaHora}</p>
+            <p style="margin-top:12px; font-size:11px; color:#4b5563;">💾 Este reporte se guarda en tu dispositivo. Para verlo sin internet, guardalo con Ctrl+S (Windows) o Cmd+S (Mac)</p>
+        </div>
+    </div>
+    
+    <script>
+        const eficienciaData = ${JSON.stringify(eficienciaPorSet)};
+        console.log('📊 Reporte - eficienciaData:', eficienciaData);
+
+        if (eficienciaData.length > 0) {
+            const canvas = document.getElementById('eficienciaPorSetChart');
+            if (canvas) {
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: eficienciaData.map(function(d) { return d.set; }),
+                        datasets: [
+                            {
+                                label: '${homeTeam}',
+                                data: eficienciaData.map(function(d) { return parseFloat(d.local); }),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59,130,246,0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#3b82f6'
+                            },
+                            {
+                                label: '${awayTeam}',
+                                data: eficienciaData.map(function(d) { return parseFloat(d.visitante); }),
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239,68,68,0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointRadius: 5,
+                                pointBackgroundColor: '#ef4444'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { labels: { color: '#fff' } },
+                            tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; } } }
+                        },
+                        scales: {
+                            y: { ticks: { color: '#9ca3af', callback: function(v) { return v + '%'; } }, min: 0, max: 100, grid: { color: '#1f2937' } },
+                            x: { ticks: { color: '#9ca3af' }, grid: { color: '#1f2937' } }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>`;
+    }
+}

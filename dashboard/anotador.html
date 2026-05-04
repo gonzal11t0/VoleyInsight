@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>VoleyInsight - Anotador</title>
+    <meta name="description" content="Anotador manual de voleibol. Registro rápido de puntos, jugadores y acciones con atajos de teclado.">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/x-icon" href="/dashboard/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .accion-rapida-btn { transition: all 0.2s ease; min-height: 70px; }
+        .accion-rapida-btn.seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; transform: scale(0.98); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+        .accion-rapida-btn:active { transform: scale(0.95); }
+        .jugador-btn.seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; }
+        .error-especial-btn { background: linear-gradient(135deg, #dc2626, #991b1b); transition: all 0.2s ease; }
+        .error-especial-btn.seleccionado { background: linear-gradient(135deg, #f59e0b, #ea580c) !important; transform: scale(0.98); box-shadow: 0 4px 15px rgba(245,158,11,0.4); }
+        @media (max-width: 640px) { .accion-rapida-btn { min-height: 65px; } .accion-rapida-btn span.text-2xl { font-size: 1.5rem; } }
+        .error-highlight { animation: errorFlash 0.5s ease-in-out; }
+        @keyframes errorFlash { 0%,100%{background-color:transparent;} 50%{background-color:rgba(239,68,68,0.3);} }
+        
+        .cancha-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .banco-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .banco-seccion { margin-bottom: 16px; }
+        .banco-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .banco-equipo-nombre.local { color: #93c5fd; }
+        .banco-equipo-nombre.visitante { color: #f9a8d4; }
+        .banco-badge { font-size: 10px; background: #1a1f2e; padding: 2px 8px; border-radius: 20px; color: #9ca3af; }
+        .serving-badge { margin-top: 8px; display: inline-block; background: #1e3a5f; padding: 4px 12px; border-radius: 60px; font-size: 11px; font-weight: 600; }
+        
+        /* Para que los botones no se muevan */
+        .jugador-btn, .banco-item {
+            transition: background 0.15s ease;
+            cursor: pointer;
+            min-width: 60px;
+        }
+        .seleccionado {
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+    <div id="pantallaConfig" class="max-w-2xl mx-auto p-4">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-6 text-center">
+            <h1 class="text-2xl font-bold">⚙️ VoleyInsight</h1>
+            <p class="text-sm">Configurá los equipos</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-800 rounded-2xl p-4">
+                <h2 class="text-xl font-bold mb-3 text-blue-400">🔵 LOCAL</h2>
+                <div id="configLocal" class="flex flex-wrap gap-2 mb-3"></div>
+                <div class="flex gap-2 mb-3"><input type="number" id="nuevoLocal" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2"><button id="addLocal" class="bg-blue-600 px-4 py-2 rounded">+</button></div>
+                <div class="text-sm">🛡️ Líberos:</div>
+                <div id="configLocalLiberos" class="flex flex-wrap gap-2 mt-2"></div>
+            </div>
+            <div class="bg-gray-800 rounded-2xl p-4">
+                <h2 class="text-xl font-bold mb-3 text-red-400">🔴 VISITANTE</h2>
+                <div id="configVisitante" class="flex flex-wrap gap-2 mb-3"></div>
+                <div class="flex gap-2 mb-3"><input type="number" id="nuevoVisitante" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2"><button id="addVisitante" class="bg-red-600 px-4 py-2 rounded">+</button></div>
+                <div class="text-sm">🛡️ Líberos:</div>
+                <div id="configVisitanteLiberos" class="flex flex-wrap gap-2 mt-2"></div>
+            </div>
+        </div>
+        <button id="comenzarBtn" class="w-full mt-6 py-4 rounded-xl bg-green-600 font-bold text-lg">▶️ COMENZAR</button>
+    </div>
+
+    <div id="pantallaAnotacion" class="max-w-2xl mx-auto p-3 pb-20 hidden">
+        <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-4 text-center">
+            <div class="flex justify-between items-center">
+                <div class="flex-1"><div class="text-xs" id="localLabel">LOCAL</div><div class="text-4xl font-bold" id="localScore">0</div></div>
+                <div class="text-2xl">VS</div>
+                <div class="flex-1"><div class="text-xs" id="visitanteLabel">VISITANTE</div><div class="text-4xl font-bold" id="visitanteScore">0</div></div>
+            </div>
+            <div class="flex justify-center items-center gap-4 mt-2">
+                <div class="flex items-center gap-2"><span class="text-xs text-gray-200">📊 SET</span>
+                    <select id="selectorSet" class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm font-bold border border-white/20">
+                        <option value="1">Set 1</option><option value="2">Set 2</option><option value="3">Set 3</option><option value="4">Set 4</option><option value="5">Set 5</option>
+                    </select>
+                </div>
+                <div class="text-xs text-gray-200">🎯 Punto <span id="currentPoint">0</span></div>
+            </div>
+            <div><span class="serving-badge" id="servingBadge">🏐 SACA LOCAL</span></div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <button id="btnLocal" class="py-3 rounded-xl font-bold bg-blue-700 transition-all">🔵 LOCAL</button>
+            <button id="btnVisitante" class="py-3 rounded-xl font-bold bg-gray-700 transition-all">🔴 VISITANTE</button>
+        </div>
+        
+        <!-- CANCHA -->
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="flex justify-between items-center mb-3">
+                <div class="text-xs text-gray-400">🏐 EN CANCHA</div>
+                <div class="text-xs text-gray-500">👆 Tocá un número</div>
+            </div>
+            <div id="canchaGrid" class="cancha-grid"></div>
+        </div>
+
+        <!-- BANCO -->
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="text-xs text-gray-400 mb-3">🪑 SUPLENTES</div>
+            <div id="bancoContainer"></div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="text-xs text-gray-400 text-center mb-2">⚡ ACCIÓN RÁPIDA</div>
+            <div class="grid grid-cols-3 gap-2">
+                <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="ATAQUE"><span class="text-2xl">🎯</span><span class="text-xs mt-1">ATAQUE</span></button>
+                <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="BLOQUEO"><span class="text-2xl">🧱</span><span class="text-xs mt-1">BLOQUEO</span></button>
+                <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="ACE"><span class="text-2xl">🏐</span><span class="text-xs mt-1">ACE</span></button>
+                <button class="accion-rapida-btn py-3 rounded-xl bg-orange-700/50 flex flex-col items-center justify-center transition-all" data-accion="ERROR"><span class="text-2xl">❌</span><span class="text-xs mt-1">ERROR</span></button>
+                <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="OTRO"><span class="text-2xl">🎲</span><span class="text-xs mt-1">OTRO</span></button>
+            </div>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="text-xs text-gray-400 text-center mb-2">⏸️ TIEMPO MUERTO</div>
+            <button id="btnTimeout" class="w-full py-4 rounded-xl font-bold bg-yellow-600 hover:bg-yellow-700 transition-all text-white text-lg flex items-center justify-center gap-2">
+                <span class="text-2xl">⏸️</span>TIMEOUT<span class="text-xs bg-black/30 px-2 py-1 rounded">Tecla T</span>
+            </button>
+            <div class="text-xs text-center text-gray-500 mt-2">💡 Registra un tiempo muerto en el momento actual</div>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="text-xs text-gray-400 text-center mb-2">⚡ BREAK (romper saque rival)</div>
+            <button id="btnBreak" class="w-full py-4 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all text-white text-lg flex items-center justify-center gap-2">
+                <span class="text-2xl">⚡</span>BREAK<span class="text-xs bg-black/30 px-2 py-1 rounded">Tecla B</span>
+            </button>
+            <div class="text-xs text-center text-gray-500 mt-2">💡 Usá esto cuando tu equipo anota sin estar sacando (rompe el saque del rival)</div>
+        </div>
+
+        <div class="bg-gray-800 rounded-2xl p-4 mb-4">
+            <div class="text-xs text-gray-400 text-center mb-2">⚠️ ERROR DEL RIVAL (NO necesita seleccionar jugador)</div>
+            <button id="btnErrorRival" class="error-especial-btn w-full py-4 rounded-xl font-bold text-white text-lg flex items-center justify-center gap-2 transition-all">
+                <span class="text-2xl">❌</span>ERROR DEL RIVAL<span class="text-xs bg-black/30 px-2 py-1 rounded">Tecla F</span>
+            </button>
+            <div class="text-xs text-center text-gray-500 mt-2">💡 Usá esto cuando el rival comete error en ataque, recepción o bloqueo</div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-3">
+            <button id="confirmarBtn" class="py-4 rounded-xl font-bold bg-green-600 transition-all">✅ CONFIRMAR PUNTO</button>
+            <button id="deshacerBtn" class="py-4 rounded-xl font-bold bg-red-600 transition-all">↩️ DESHACER</button>
+        </div>
+        
+        <div class="bg-gray-800/50 rounded-xl p-3 mt-4">
+            <div class="text-xs text-gray-400">📋 ÚLTIMOS PUNTOS</div>
+            <div id="historial" class="text-xs space-y-1 max-h-32 overflow-y-auto"></div>
+        </div>
+        <div id="feedback" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold hidden z-50"></div>
+    </div>
+    
+    <div class="fixed bottom-4 left-4 bg-gray-900/90 backdrop-blur rounded-lg p-2 text-xs text-gray-400 border border-primary/30 z-50 hidden md:block">
+        <div class="font-bold text-primary mb-1">🎮 ATAJOS</div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
+            <div><kbd class="px-1 bg-gray-700 rounded">Q</kbd> LOCAL</div><div><kbd class="px-1 bg-gray-700 rounded">W</kbd> VISIT</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">A</kbd> ATAQ</div><div><kbd class="px-1 bg-gray-700 rounded">S</kbd> BLOQ</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">D</kbd> ACE</div><div><kbd class="px-1 bg-gray-700 rounded">F</kbd> ERR RIVAL</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">R</kbd> ERROR</div><div><kbd class="px-1 bg-gray-700 rounded">B</kbd> BREAK</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">T</kbd> TIMEOUT</div><div><kbd class="px-1 bg-gray-700 rounded">H</kbd> OTRO</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">0-9</kbd> JUG</div><div><kbd class="px-1 bg-gray-700 rounded">+/-</kbd> NAV</div>
+            <div><kbd class="px-1 bg-gray-700 rounded">⏎</kbd> GUARD</div><div><kbd class="px-1 bg-gray-700 rounded">Z</kbd> DESH</div>
+        </div>
+    </div>
+
+    <script>
+        let config = { local: { jugadores: [], liberos: [] }, visitante: { jugadores: [], liberos: [] } };
+        let estado = { local: { score: 0, jugadoresLista: [] }, visitante: { score: 0, jugadoresLista: [] }, equipo: "LOCAL", accion: null, set: 1, punto: 0, historial: [] };
+        
+        let jugadorSeleccionado = null;
+        let equipoQueSaca = "LOCAL";
+        let matchIdActual = null, homeTeamName = "LOCAL", awayTeamName = "VISITANTE";
+        
+        // Guardar referencia a los elementos de la cancha para NO regenerarlos completamente
+        let canchaButtons = [];
+        let bancoButtons = [];
+
+        async function cargarConfiguracion() {
+            try {
+                const response = await fetch('/data/config.json');
+                if (response.ok) {
+                    const configData = await response.json();
+                    matchIdActual = configData.matchId;
+                    homeTeamName = configData.homeTeam || "LOCAL";
+                    awayTeamName = configData.awayTeam || "VISITANTE";
+                    document.getElementById('localLabel').textContent = homeTeamName;
+                    document.getElementById('visitanteLabel').textContent = awayTeamName;
+                    document.getElementById('btnLocal').innerHTML = `🔵 ${homeTeamName}`;
+                    document.getElementById('btnVisitante').innerHTML = `🔴 ${awayTeamName}`;
+                    return matchIdActual;
+                }
+            } catch(e) {}
+            return 257929;
+        }
+
+        function mostrarFeedback(msg, tipo = 'success') {
+            let fb = document.getElementById('feedback');
+            fb.innerText = msg;
+            fb.classList.remove('hidden');
+            if (tipo === 'success') fb.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold bg-green-500 text-black';
+            else if (tipo === 'error') fb.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold bg-red-500 text-white';
+            else if (tipo === 'info') fb.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold bg-blue-500 text-white';
+            setTimeout(() => fb.classList.add('hidden'), 2000);
+        }
+
+        async function guardarTimeout() {
+            if (!estado.equipo) { mostrarFeedback('❌ Seleccioná un equipo primero', 'error'); return; }
+            const timeout = { id: `timeout_${Date.now()}`, timestamp: new Date().toISOString(), set: estado.set, equipo: estado.equipo, marcador: `${estado.local.score}-${estado.visitante.score}` };
+            let timeoutsGuardados = JSON.parse(localStorage.getItem(`timeouts_${matchIdActual}`) || '[]');
+            timeoutsGuardados.push(timeout);
+            localStorage.setItem(`timeouts_${matchIdActual}`, JSON.stringify(timeoutsGuardados));
+            mostrarFeedback(`⏸️ TIMEOUT registrado para ${estado.equipo === 'LOCAL' ? homeTeamName : awayTeamName} en Set ${estado.set} (${timeout.marcador})`, 'info');
+        }
+
+        function guardarBreak() {
+            if (!estado.equipo) { mostrarFeedback('❌ Seleccioná un equipo primero', 'error'); return; }
+            const breakPoint = { timestamp: new Date().toISOString(), set: estado.set, equipo: estado.equipo, tipo: 'break', marcador: `${estado.local.score}-${estado.visitante.score}` };
+            let breaksGuardados = JSON.parse(localStorage.getItem(`breaks_${matchIdActual}`) || '[]');
+            breaksGuardados.push(breakPoint);
+            localStorage.setItem(`breaks_${matchIdActual}`, JSON.stringify(breaksGuardados));
+            mostrarFeedback(`⚡ BREAK! ${estado.equipo === 'LOCAL' ? homeTeamName : awayTeamName} rompe el saque (${breakPoint.marcador})`, 'success');
+        }
+
+        function renderConfig() {
+            const render = (equipo, data, containerId, liberosContainerId) => {
+                document.getElementById(containerId).innerHTML = data.jugadores.map(n => `<button class="config-jugador bg-gray-700 w-12 h-12 rounded-xl font-bold" data-equipo="${equipo}" data-num="${n}">${n}</button>`).join('');
+                document.getElementById(liberosContainerId).innerHTML = data.jugadores.map(n => `<button class="config-libero ${data.liberos.includes(n)?'bg-yellow-500 text-black':'bg-gray-600'} px-3 py-1 rounded text-sm" data-equipo="${equipo}" data-num="${n}">${data.liberos.includes(n)?'🛡️':'[L]'}</button>`).join('');
+            };
+            render('local', config.local, 'configLocal', 'configLocalLiberos');
+            render('visitante', config.visitante, 'configVisitante', 'configVisitanteLiberos');
+            document.querySelectorAll('.config-jugador').forEach(btn => btn.onclick = () => { let eq=btn.dataset.equipo, n=parseInt(btn.dataset.num); config[eq].jugadores = config[eq].jugadores.filter(x=>x!==n); config[eq].liberos = config[eq].liberos.filter(x=>x!==n); renderConfig(); });
+            document.querySelectorAll('.config-libero').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); let eq=btn.dataset.equipo, n=parseInt(btn.dataset.num); if(config[eq].liberos.includes(n)) config[eq].liberos = config[eq].liberos.filter(x=>x!==n); else config[eq].liberos.push(n); renderConfig(); });
+        }
+
+        document.getElementById('addLocal').onclick = () => { let n=parseInt(document.getElementById('nuevoLocal').value); if(n&&!config.local.jugadores.includes(n)){config.local.jugadores.push(n); config.local.jugadores.sort((a,b)=>a-b); renderConfig();} };
+        document.getElementById('addVisitante').onclick = () => { let n=parseInt(document.getElementById('nuevoVisitante').value); if(n&&!config.visitante.jugadores.includes(n)){config.visitante.jugadores.push(n); config.visitante.jugadores.sort((a,b)=>a-b); renderConfig();} };
+        document.getElementById('btnTimeout').onclick = guardarTimeout;
+        document.getElementById('btnBreak').onclick = guardarBreak;
+
+        document.getElementById('comenzarBtn').onclick = () => {
+            estado.local.jugadoresLista = [...config.local.jugadores].sort((a,b)=>a-b);
+            estado.visitante.jugadoresLista = [...config.visitante.jugadores].sort((a,b)=>a-b);
+            estado.local.score = 0; estado.visitante.score = 0; estado.set = 1; estado.punto = 0;
+            estado.historial = []; estado.accion = null;
+            jugadorSeleccionado = null;
+            equipoQueSaca = "LOCAL";
+            actualizarBadgeSaque();
+            actualizarCancha();
+            renderizarBanco();
+            const selectorSet = document.getElementById('selectorSet');
+            if (selectorSet) selectorSet.value = 1;
+            document.getElementById('pantallaConfig').classList.add('hidden');
+            document.getElementById('pantallaAnotacion').classList.remove('hidden');
+            initAnotacion();
+        };
+
+        function actualizarBadgeSaque() {
+            const badge = document.getElementById('servingBadge');
+            badge.innerHTML = `🏐 SACA ${equipoQueSaca === 'LOCAL' ? homeTeamName : awayTeamName}`;
+            badge.style.background = equipoQueSaca === 'LOCAL' ? '#1e3a5f' : '#3b1e3f';
+        }
+
+        function toggleSaque() {
+            equipoQueSaca = equipoQueSaca === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
+            actualizarBadgeSaque();
+            // SOLO actualizar el badge, NO la cancha
+            // actualizarCancha();  // ELIMINADO - la cancha NO cambia visualmente
+        }
+
+        function actualizarCancha() {
+            const jugadoresLista = estado.local.jugadoresLista; // SIEMPRE mostrar los mismos 6 (LOCAL)
+            const primeros6 = jugadoresLista.slice(0, 6);
+            const container = document.getElementById('canchaGrid');
+            
+            container.innerHTML = primeros6.map(n => `
+                <button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold text-xl ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">
+                    ${n}
+                </button>
+            `).join('');
+            
+            document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
+                b.onclick = () => {
+                    const num = parseInt(b.dataset.jugador);
+                    jugadorSeleccionado = num;
+                    mostrarFeedback(`👕 Jugador ${jugadorSeleccionado} seleccionado`, 'info');
+                    actualizarCancha();
+                    renderizarBanco();
+                };
+            });
+        }
+
+        function renderizarBanco() {
+            const bancoLocal = estado.local.jugadoresLista.slice(6);
+            const bancoVisitante = estado.visitante.jugadoresLista.slice(6);
+            const container = document.getElementById('bancoContainer');
+            
+            let html = '';
+            if (bancoLocal.length > 0) {
+                html += `<div class="banco-seccion">
+                    <div class="banco-header">
+                        <span class="banco-equipo-nombre local">🔵 ${homeTeamName}</span>
+                        <span class="banco-badge">suplentes</span>
+                    </div>
+                    <div class="banco-grid">
+                `;
+                bancoLocal.forEach(n => {
+                    html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            if (bancoVisitante.length > 0) {
+                html += `<div class="banco-seccion">
+                    <div class="banco-header">
+                        <span class="banco-equipo-nombre visitante">🔴 ${awayTeamName}</span>
+                        <span class="banco-badge">suplentes</span>
+                    </div>
+                    <div class="banco-grid">
+                `;
+                bancoVisitante.forEach(n => {
+                    html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
+                });
+                html += `</div></div>`;
+            }
+            
+            container.innerHTML = html || '<div class="text-gray-500 text-center text-sm">Sin suplentes</div>';
+            
+            document.querySelectorAll('#bancoContainer .banco-item').forEach(b => {
+                b.onclick = () => {
+                    const num = parseInt(b.dataset.jugador);
+                    jugadorSeleccionado = num;
+                    mostrarFeedback(`👕 Suplente ${jugadorSeleccionado} seleccionado`, 'info');
+                    actualizarCancha();
+                    renderizarBanco();
+                };
+            });
+        }
+
+        function actualizarMarcador() {
+            document.getElementById('localScore').innerText = estado.local.score;
+            document.getElementById('visitanteScore').innerText = estado.visitante.score;
+            document.getElementById('currentPoint').innerText = estado.punto;
+            const selectorSet = document.getElementById('selectorSet');
+            if (selectorSet && selectorSet.value != estado.set) selectorSet.value = estado.set;
+        }
+
+        function renderHistorial() {
+            const container = document.getElementById('historial');
+            if (estado.historial.length === 0) { container.innerHTML = '<div class="text-gray-500 text-center">Esperando puntos...</div>'; return; }
+            container.innerHTML = estado.historial.slice().reverse().slice(0,10).map(p => {
+                let accionDisplay = p.accion === 'ERROR' ? '❌ ERROR' : (p.accion === 'ERROR_RIVAL' ? '❌ ERR RIVAL' : p.accion);
+                let jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
+                return `<div class="flex justify-between py-1 border-b border-gray-700">
+                    <span class="text-${p.equipoAnota === 'LOCAL' ? 'blue' : 'red'}-400 font-bold">${p.equipoAnota === 'LOCAL' ? homeTeamName : awayTeamName}</span>
+                    <span>${jugadorDisplay}</span>
+                    <span class="text-gray-400">${accionDisplay}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function initAnotacion() {
+            actualizarCancha();
+            renderizarBanco();
+            actualizarMarcador();
+            document.getElementById('btnLocal').click();
+            const selectorSet = document.getElementById('selectorSet');
+            if (selectorSet) {
+                selectorSet.value = estado.set;
+                selectorSet.onchange = () => {
+                    const nuevoSet = parseInt(selectorSet.value);
+                    if (nuevoSet !== estado.set) {
+                        estado.local.score = 0; estado.visitante.score = 0; estado.punto = 0; estado.set = nuevoSet;
+                        actualizarMarcador();
+                        mostrarFeedback(`📊 Cambiado a Set ${nuevoSet} - Marcador 0-0`, 'info');
+                    } else {
+                        estado.set = nuevoSet;
+                        actualizarMarcador();
+                        mostrarFeedback(`📊 Set ${nuevoSet} seleccionado`, 'info');
+                    }
+                };
+            }
+        }
+
+        async function cargarJugadoresDesdeAPI() {
+            try {
+                const response = await fetch(`/data/full_${matchIdActual}.json?_t=${Date.now()}`);
+                if (response.ok) {
+                    const fullData = await response.json();
+                    const court = fullData.liveState?.court;
+                    if (court) {
+                        const jugadoresLocal = [], jugadoresVisitante = [], liberosLocal = [], liberosVisitante = [];
+                        if (court.home?.positions) for (const [pos, info] of Object.entries(court.home.positions)) if (info.number && info.lastName) { jugadoresLocal.push(info.number); if (info.isLibero) liberosLocal.push(info.number); }
+                        if (court.home?.bench) for (const info of court.home.bench) if (info.number && info.lastName && !jugadoresLocal.includes(info.number)) { jugadoresLocal.push(info.number); if (info.isLibero) liberosLocal.push(info.number); }
+                        if (court.away?.positions) for (const [pos, info] of Object.entries(court.away.positions)) if (info.number && info.lastName) { jugadoresVisitante.push(info.number); if (info.isLibero) liberosVisitante.push(info.number); }
+                        if (court.away?.bench) for (const info of court.away.bench) if (info.number && info.lastName && !jugadoresVisitante.includes(info.number)) { jugadoresVisitante.push(info.number); if (info.isLibero) liberosVisitante.push(info.number); }
+                        if (jugadoresLocal.length) { config.local.jugadores = jugadoresLocal.sort((a,b)=>a-b); config.local.liberos = liberosLocal; }
+                        if (jugadoresVisitante.length) { config.visitante.jugadores = jugadoresVisitante.sort((a,b)=>a-b); config.visitante.liberos = liberosVisitante; }
+                        renderConfig();
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        function determinarEquipoQueAnota() {
+            if (estado.accion === 'ERROR') return estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
+            if (estado.accion === 'ERROR_RIVAL') return estado.equipo;
+            return estado.equipo;
+        }
+
+        async function guardarPunto() {
+            if (!estado.accion) { mostrarFeedback('❌ Seleccioná una ACCIÓN', 'error'); return; }
+            if (estado.accion !== 'ERROR_RIVAL' && !jugadorSeleccionado) {
+                mostrarFeedback('❌ Seleccioná un JUGADOR', 'error');
+                document.getElementById('canchaGrid').classList.add('error-highlight');
+                setTimeout(() => document.getElementById('canchaGrid').classList.remove('error-highlight'), 500);
+                return;
+            }
+            
+            const equipoQueAnota = determinarEquipoQueAnota();
+            const jugadorQueAnota = jugadorSeleccionado;
+            const marcadorAntes = `${estado.local.score}-${estado.visitante.score}`;
+            
+            if (equipoQueAnota === 'LOCAL') {
+                estado.local.score++;
+            } else {
+                estado.visitante.score++;
+            }
+            
+            const marcadorDespues = `${estado.local.score}-${estado.visitante.score}`;
+            
+            const punto = {
+                timestamp: new Date().toISOString(),
+                set: estado.set,
+                punto: estado.punto + 1,
+                equipo: estado.equipo,
+                equipoAnota: equipoQueAnota,
+                jugador: estado.accion === 'ERROR_RIVAL' ? null : jugadorQueAnota,
+                accion: estado.accion,
+                asistencia: null,
+                marcadorAntes: marcadorAntes,
+                marcadorDespues: marcadorDespues
+            };
+            
+            let puntosGuardados = JSON.parse(localStorage.getItem(`puntos_${matchIdActual}`) || '[]');
+            puntosGuardados.push(punto);
+            localStorage.setItem(`puntos_${matchIdActual}`, JSON.stringify(puntosGuardados));
+            
+            estado.punto++;
+            estado.historial.push(punto);
+            actualizarMarcador();
+            renderHistorial();
+            
+            // Limpiar selecciones
+            jugadorSeleccionado = null;
+            estado.accion = null;
+            
+            // ACTUALIZAR LA INTERFAZ SIN ROMPER LA POSICIÓN VISUAL
+            // En lugar de regenerar toda la cancha, solo actualizamos la clase 'seleccionado'
+            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            
+            // Cambiar saque (solo el badge)
+            toggleSaque();
+            
+            if (jugadorQueAnota) {
+                mostrarFeedback(`✅ Punto de ${equipoQueAnota === 'LOCAL' ? homeTeamName : awayTeamName} - J${jugadorQueAnota}`, 'success');
+            } else {
+                mostrarFeedback(`✅ Punto para ${equipoQueAnota === 'LOCAL' ? homeTeamName : awayTeamName}`, 'success');
+            }
+        }
+
+        function deshacer() {
+            if (!estado.historial.length) { mostrarFeedback('⚠️ No hay puntos para deshacer', 'error'); return; }
+            
+            let ultimo = estado.historial.pop();
+            if (ultimo.equipoAnota === 'LOCAL') { 
+                estado.local.score--; 
+                mostrarFeedback(`↩️ Deshecho: punto de ${homeTeamName}`, 'info'); 
+            } else { 
+                estado.visitante.score--; 
+                mostrarFeedback(`↩️ Deshecho: punto de ${awayTeamName}`, 'info'); 
+            }
+            estado.punto--;
+            
+            actualizarMarcador();
+            renderHistorial();
+            
+            // Limpiar selección visual
+            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            jugadorSeleccionado = null;
+        }
+
+        document.getElementById('btnLocal').onclick = () => {
+            estado.equipo = 'LOCAL';
+            jugadorSeleccionado = null;
+            estado.accion = null;
+            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+            document.getElementById('btnErrorRival').classList.remove('seleccionado');
+            document.getElementById('btnLocal').classList.add('bg-blue-700');
+            document.getElementById('btnVisitante').classList.remove('bg-blue-700');
+            document.getElementById('btnVisitante').classList.add('bg-gray-700');
+            mostrarFeedback(`🔵 ${homeTeamName} seleccionado`, 'info');
+        };
+
+        document.getElementById('btnVisitante').onclick = () => {
+            estado.equipo = 'VISITANTE';
+            jugadorSeleccionado = null;
+            estado.accion = null;
+            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+            document.getElementById('btnErrorRival').classList.remove('seleccionado');
+            document.getElementById('btnVisitante').classList.add('bg-blue-700');
+            document.getElementById('btnLocal').classList.remove('bg-blue-700');
+            document.getElementById('btnLocal').classList.add('bg-gray-700');
+            mostrarFeedback(`🔴 ${awayTeamName} seleccionado`, 'info');
+        };
+
+        document.getElementById('btnErrorRival').onclick = () => {
+            estado.accion = 'ERROR_RIVAL';
+            document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+            document.getElementById('btnErrorRival').classList.add('seleccionado');
+            mostrarFeedback(`❌ ERROR DEL RIVAL seleccionado - El punto será para tu equipo`, 'info');
+        };
+
+        document.querySelectorAll('.accion-rapida-btn').forEach(btn => {
+            btn.onclick = () => {
+                estado.accion = btn.dataset.accion;
+                document.getElementById('btnErrorRival').classList.remove('seleccionado');
+                document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+                btn.classList.add('seleccionado');
+                mostrarFeedback(`⚡ ${btn.dataset.accion} seleccionado`, 'info');
+            };
+        });
+
+        document.getElementById('confirmarBtn').onclick = guardarPunto;
+        document.getElementById('deshacerBtn').onclick = deshacer;
+
+        function navegarJugador(direccion) {
+            const btns = document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item');
+            if (btns.length === 0) return;
+            let currentIndex = -1;
+            for (let i = 0; i < btns.length; i++) if (btns[i].classList.contains('seleccionado')) { currentIndex = i; break; }
+            if (direccion === 'next') currentIndex = (currentIndex + 1) % btns.length;
+            else if (direccion === 'prev') currentIndex = (currentIndex - 1 + btns.length) % btns.length;
+            if (currentIndex === -1) currentIndex = 0;
+            btns[currentIndex].click();
+        }
+
+        function initKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                const key = e.key.toLowerCase();
+                if (key === 'q') { e.preventDefault(); document.getElementById('btnLocal').click(); }
+                else if (key === 'w') { e.preventDefault(); document.getElementById('btnVisitante').click(); }
+                else if (key === 'a') { e.preventDefault(); document.querySelector('.accion-rapida-btn[data-accion="ATAQUE"]')?.click(); }
+                else if (key === 's') { e.preventDefault(); document.querySelector('.accion-rapida-btn[data-accion="BLOQUEO"]')?.click(); }
+                else if (key === 'd') { e.preventDefault(); document.querySelector('.accion-rapida-btn[data-accion="ACE"]')?.click(); }
+                else if (key === 'f') { e.preventDefault(); document.getElementById('btnErrorRival').click(); }
+                else if (key === 'r') { e.preventDefault(); document.querySelector('.accion-rapida-btn[data-accion="ERROR"]')?.click(); }
+                else if (key === 'b') { e.preventDefault(); guardarBreak(); }
+                else if (key === 't') { e.preventDefault(); guardarTimeout(); }
+                else if (key === 'h') { e.preventDefault(); document.querySelector('.accion-rapida-btn[data-accion="OTRO"]')?.click(); }
+                else if (key === 'enter') { e.preventDefault(); document.getElementById('confirmarBtn').click(); }
+                else if (key === 'z') { e.preventDefault(); document.getElementById('deshacerBtn').click(); }
+                else if (/^[0-9]$/.test(key)) {
+                    e.preventDefault();
+                    const numero = parseInt(key);
+                    const btns = document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item');
+                    for (let btn of btns) if (parseInt(btn.dataset.jugador) === numero) { btn.click(); break; }
+                }
+                else if (key === '+' || key === '=') { e.preventDefault(); navegarJugador('next'); }
+                else if (key === '-') { e.preventDefault(); navegarJugador('prev'); }
+            });
+        }
+
+        async function init() {
+            await cargarConfiguracion();
+            if (matchIdActual) await cargarJugadoresDesdeAPI();
+            renderConfig();
+            initKeyboardShortcuts();
+        }
+        init();
+    </script>
+</body>
+</html> 

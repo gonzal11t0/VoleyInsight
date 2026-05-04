@@ -1,0 +1,9 @@
+version: "2"
+authtoken: 2suu1VwB4I0oDz7VJXyOyKkxNOq_2Sk2ABZg5RqWM19ruXWAg
+tunnels:
+  dashboard:
+    proto: http
+    addr: 5500
+  api:
+    proto: http
+    addr: 3002
