@@ -1,0 +1,59 @@
+::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f1119; }
+        ::-webkit-scrollbar-thumb { background: #2a2f42; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #667eea; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .animate-pulse-slow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        
+        .section-tooltip-container { position: relative; cursor: help; }
+        .section-tooltip-text {
+            visibility: hidden; width: 280px; background-color: #1a1f2e; color: #fff;
+            text-align: left; border-radius: 8px; padding: 12px; position: absolute;
+            z-index: 100; top: -10px; right: 30px; font-size: 12px; border: 1px solid #667eea;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .section-tooltip-text::after { content: ""; position: absolute; top: 15px; right: -10px;
+            border-width: 5px; border-style: solid; border-color: transparent transparent transparent #667eea; }
+        .section-tooltip-container:hover .section-tooltip-text { visibility: visible; opacity: 1; }
+        .help-icon:hover { opacity: 1 !important; }
+        
+        @media (max-width: 768px) {
+            .stats-grid-mobile { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+            .stats-grid-mobile > div { padding: 0.75rem; }
+            .stats-grid-mobile .text-2xl { font-size: 1.25rem; }
+            .stats-grid-mobile .text-xs { font-size: 0.65rem; }
+            .chart-container canvas { max-height: 200px !important; }
+            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .table-container table { min-width: 800px; }
+        }
+        @media (max-width: 640px) {
+            .tab-btn { padding: 0.375rem 0.75rem !important; font-size: 0.75rem !important; }
+        }
+        .overflow-x-auto { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        body { overflow-x: hidden; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .reconnecting-blink { animation: blink 1s ease-in-out infinite; }
+        button:active { transform: scale(0.98); }
+        .stat-card, .bg-card, .tab-btn, button { transition: all 0.2s ease-in-out; }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #1a1f2e 25%, #2a2f42 50%, #1a1f2e 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-card {
+            background: #1a1f2e;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(102,126,234,0.1);
+        }
+        .skeleton-title { height: 24px; width: 60%; margin-bottom: 16px; }
+        .skeleton-grid-item { height: 80px; border-radius: 12px; }
+        .skeleton-chart { height: 250px; width: 100%; border-radius: 12px; }
+        .skeleton-badge { height: 32px; width: 120px; border-radius: 20px; }

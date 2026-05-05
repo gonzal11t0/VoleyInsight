@@ -1,61 +1,41 @@
 @echo off
-title VoleyInsight - Inicio Rapido
+title VoleyInsight - Tracker (solo para datos MetroVóley)
 
 cd /d "%~dp0"
 
 echo ========================================
-echo 🏐 VoleyInsight - INICIO RAPIDO
+echo 🏐 VOLEYINSIGHT - MODO TRACKER
+echo ========================================
+echo.
+echo 📡 Este script solo inicia el tracker de MetroVóley.
+echo 🌐 El dashboard ya está online en:
+echo    https://voleyinsight.onrender.com/dashboard/index.html
+echo.
+echo ⚠️  IMPORTANTE:
+echo    - El tracker debe correr MIENTRAS DURE EL PARTIDO
+echo    - Los datos se envían al dashboard online automáticamente
+echo    - Podés cerrar esta ventana cuando termine el partido
+echo.
 echo ========================================
 echo.
 
-:: Iniciar servidores
-echo [1/3] Iniciando servidores...
-start "API" cmd /k node server-api.js
-timeout /t 2 /nobreak >nul
-start "Web" cmd /k npx serve . -p 5500
-timeout /t 2 /nobreak >nul
-start "Tracker" cmd /k npm start
-
-:: Iniciar Serveo (alternativa a Cloudflare)
-echo.
-echo [2/3] Generando URL publica con Serveo...
-echo.
-
-:: Buscar Git Bash
-if exist "C:\Program Files\Git\git-bash.exe" (
-    set GITBASH="C:\Program Files\Git\git-bash.exe"
-) else if exist "C:\Program Files (x86)\Git\git-bash.exe" (
-    set GITBASH="C:\Program Files (x86)\Git\git-bash.exe"
-) else (
-    echo ❌ No se encontro Git Bash. Descargalo de https://git-scm.com/download/win
-    echo.
-    echo Mientras tanto, podes acceder localmente:
-    echo http://localhost:5500/dashboard/index.html
-    pause
-    exit /b
-)
-
-:: Abrir Git Bash con Serveo
-start "Serveo Tunnel" %GITBASH% -c "ssh -R 80:localhost:5500 serveo.net; echo; echo Presiona Enter para cerrar...; read"
+:: Iniciar solo el tracker
+echo [1/1] Iniciando tracker...
+start "VoleyInsight Tracker" cmd /k npm run tracker
 
 echo.
-echo ========================================
-echo 🟢 SISTEMA INICIADO
-echo ========================================
+echo ✅ Tracker iniciado
 echo.
-echo 📡 BUSCA LA URL en la ventana "Serveo Tunnel"
-echo    Se ve asi: https://xxxx.serveousercontent.com
+echo 📊 Dashboard online: https://voleyinsight.onrender.com/dashboard/index.html
+echo 📝 Anotador online: https://voleyinsight.onrender.com/dashboard/anotador.html
 echo.
-echo 📱 Comparti: [ESA_URL]/dashboard/index.html
-echo    Ejemplo: https://xxxx.serveousercontent.com/dashboard/index.html
+echo ⚠️  Mantené esta ventana ABIERTA durante el partido
 echo.
-echo ⚠️  No cierres las ventanas durante el partido
-echo.
-echo Presiona cualquier tecla para CERRAR TODO...
+
+echo Presiona cualquier tecla para CERRAR TODO (después del partido)...
 pause >nul
 
-:: Cerrar todo al salir
-echo Cerrando servicios...
+:: Cerrar tracker al salir
+echo Cerrando tracker...
 taskkill /f /im node.exe >nul 2>&1
-taskkill /f /im ssh.exe >nul 2>&1
-echo ✅ Todo cerrado
+echo ✅ Tracker cerrado

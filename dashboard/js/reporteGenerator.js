@@ -1,4 +1,4 @@
-class ReporteGenerator {
+export class ReporteGenerator {
     static generarHTML(d) {
         const { 
             homeTeam, awayTeam, homeScore, awayScore, fechaHora, 
@@ -18,6 +18,7 @@ class ReporteGenerator {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <title>${homeTeam} vs ${awayTeam} - Reporte VoleyInsight</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -114,6 +115,12 @@ class ReporteGenerator {
 </head>
 <body>
     <div class="container">
+<!-- Botón PDF - Versión simplificada -->
+<div style="text-align: center; margin: 20px 0;">
+    <button id="btnDescargarPDF" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 60px; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer;">
+        📄 DESCARGAR REPORTE EN PDF
+    </button>
+</div>
         <div class="header">
             <h1>🏐 VoleyInsight</h1>
             <div class="score-container">
@@ -123,7 +130,7 @@ class ReporteGenerator {
             </div>
             <div class="date">📅 ${fechaHora}</div>
         </div>
-        
+
         <!-- BANNER DE INSTRUCCIONES PARA GUARDAR -->
         <div class="save-banner">
             <p>💾 <strong>¿Cómo guardar este reporte?</strong></p>
@@ -304,6 +311,19 @@ class ReporteGenerator {
             }
         }
     </script>
+    <script>
+    document.getElementById('btnDescargarPDF').addEventListener('click', function() {
+        const element = document.querySelector('.container');
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: 'reporte_${homeTeam}_vs_${awayTeam}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    });
+</script>
 </body>
 </html>`;
     }
