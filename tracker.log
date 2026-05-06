@@ -76226,3 +76226,18 @@
 {"timestamp":"2026-05-05T18:21:13.193Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
 {"timestamp":"2026-05-05T18:21:23.201Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
 {"timestamp":"2026-05-05T18:21:33.216Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:57:44.941Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-05-06T16:57:44.943Z","level":"info","message":"🚀 Iniciando tracker para partido 247180 con reconexión automática"}
+{"timestamp":"2026-05-06T16:57:45.195Z","level":"info","message":"🎯 LOCAL 15 - 13 VISITANTE","set":5,"scorer":null,"event":"POINT","lead":2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-05-06T16:57:45.197Z","level":"info","message":"JSON saved","filename":"data\\match_247180.json"}
+{"timestamp":"2026-05-06T16:57:55.429Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:05.439Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:15.440Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:25.457Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:35.468Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:45.431Z","level":"info","message":"JSON saved","filename":"data\\match_247180.json"}
+{"timestamp":"2026-05-06T16:58:45.450Z","level":"info","message":"Analysis saved","filename":"data\\analysis_247180.json"}
+{"timestamp":"2026-05-06T16:58:45.478Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:58:55.490Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:59:05.500Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
+{"timestamp":"2026-05-06T16:59:15.513Z","level":"info","message":"CSV saved","filename":"data\\match_247180.csv","records":1}
