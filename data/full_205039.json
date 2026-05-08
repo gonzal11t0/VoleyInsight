@@ -1,0 +1,33 @@
+{
+  "timestamp": "2026-05-07T21:33:27.686+00:00",
+  "match": {
+    "id": 205039,
+    "statusId": 2,
+    "homeTeamSets": 3,
+    "awayTeamSets": 0,
+    "currentSet": 3,
+    "winnerId": null,
+    "updatedAt": "2026-05-03T17:45:44.760Z",
+    "sets": [
+      {
+        "number": 1,
+        "statusId": 2,
+        "homeTeamScore": 25,
+        "awayTeamScore": 16
+      },
+      {
+        "number": 2,
+        "statusId": 2,
+        "homeTeamScore": 25,
+        "awayTeamScore": 11
+      },
+      {
+        "number": 3,
+        "statusId": 2,
+        "homeTeamScore": 25,
+        "awayTeamScore": 17
+      }
+    ]
+  },
+  "liveState": null
+}

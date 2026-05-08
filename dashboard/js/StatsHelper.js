@@ -184,3 +184,47 @@ export function calcularEstadisticasServicio(data, puntosJugadores) {
     const aef = at > 0 ? ((aa - ae) / at * 100).toFixed(1) : 0;
     return { home: { aces: ha, errores: he, totalSaques: ht, eficiencia: hef }, away: { aces: aa, errores: ae, totalSaques: at, eficiencia: aef } };
 }
+export function generarTablaHTMLSimple(stats, jugadoresMap) {
+    if (!stats || Object.keys(stats).length === 0) return '';
+    
+    let html = '';
+    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
+    
+    for (const [numJugador, s] of ordenados) {
+        const num = parseInt(numJugador);
+        if (isNaN(num)) continue;
+        
+        const nombre = jugadoresMap[num] || `Jugador ${num}`;
+        const ataquesTotales = s.ataques || 0;
+        const ataquesConvertidos = s.ataquesConvertidos || 0;
+        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
+        
+        let efAtaque = '0';
+        if (ataquesTotales > 0) {
+            efAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
+        }
+        
+        let efServ = '0';
+        const totalSaques = s.totalSaques || 0;
+        if (totalSaques > 0) {
+            efServ = ((s.acesServicio - s.erroresServicio) / totalSaques * 100).toFixed(1);
+        }
+        
+        html += `<tr style="border-bottom:1px solid #374151;">
+            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
+            <td style="text-align:center;font-weight:bold;color:#667eea;">${s.puntos || 0}</span></td>
+            <td style="text-align:center;">${ataquesTexto}</span></td>
+            <td style="text-align:center;">${s.bloqueos || 0}</span></td>
+            <td style="text-align:center;">${s.aces || 0}</span></td>
+            <td style="text-align:center;color:#ef4444;">${s.erroresAtaque || 0}</span></td>
+            <td style="text-align:center;">${s.asistencias || 0}</span></td>
+            <td style="text-align:center;font-weight:bold;">${efAtaque}%</span></td>
+            <td style="text-align:center;color:#3b82f6;">${s.acesServicio || 0}</span></td>
+            <td style="text-align:center;color:#ef4444;">${s.erroresServicio || 0}</span></td>
+            <td style="text-align:center;font-weight:bold;">${efServ}%</span></td>
+            <td style="text-align:center;font-weight:bold;">${totalSaques}</span></td>
+        </tr>`;
+    }
+    
+    return html;
+}

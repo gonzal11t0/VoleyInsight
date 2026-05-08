@@ -276,74 +276,91 @@
         }
 
         function actualizarCancha() {
-            const jugadoresLista = estado.local.jugadoresLista; // SIEMPRE mostrar los mismos 6 (LOCAL)
-            const primeros6 = jugadoresLista.slice(0, 6);
-            const container = document.getElementById('canchaGrid');
-            
-            container.innerHTML = primeros6.map(n => `
-                <button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold text-xl ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">
-                    ${n}
-                </button>
-            `).join('');
-            
-            document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
-                b.onclick = () => {
-                    const num = parseInt(b.dataset.jugador);
-                    jugadorSeleccionado = num;
-                    mostrarFeedback(`👕 Jugador ${jugadorSeleccionado} seleccionado`, 'info');
-                    actualizarCancha();
-                    renderizarBanco();
-                };
-            });
-        }
-
+    // Determinar qué equipo mostrar según el equipo seleccionado
+    let jugadoresLista;
+    if (estado.equipo === 'LOCAL') {
+        jugadoresLista = estado.local.jugadoresLista;
+    } else {
+        jugadoresLista = estado.visitante.jugadoresLista;
+    }
+    
+    const primeros6 = jugadoresLista.slice(0, 6);
+    const container = document.getElementById('canchaGrid');
+    
+    container.innerHTML = primeros6.map(n => `
+        <button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold text-xl ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">
+            ${n}
+        </button>
+    `).join('');
+    
+    document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
+        b.onclick = () => {
+            const num = parseInt(b.dataset.jugador);
+            jugadorSeleccionado = num;
+            mostrarFeedback(`👕 Jugador ${jugadorSeleccionado} seleccionado`, 'info');
+            actualizarCancha();
+            renderizarBanco();
+        };
+    });
+}
         function renderizarBanco() {
-            const bancoLocal = estado.local.jugadoresLista.slice(6);
-            const bancoVisitante = estado.visitante.jugadoresLista.slice(6);
-            const container = document.getElementById('bancoContainer');
-            
-            let html = '';
-            if (bancoLocal.length > 0) {
-                html += `<div class="banco-seccion">
-                    <div class="banco-header">
-                        <span class="banco-equipo-nombre local">🔵 ${homeTeamName}</span>
-                        <span class="banco-badge">suplentes</span>
-                    </div>
-                    <div class="banco-grid">
-                `;
-                bancoLocal.forEach(n => {
-                    html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
-                });
-                html += `</div></div>`;
-            }
-            
-            if (bancoVisitante.length > 0) {
-                html += `<div class="banco-seccion">
-                    <div class="banco-header">
-                        <span class="banco-equipo-nombre visitante">🔴 ${awayTeamName}</span>
-                        <span class="banco-badge">suplentes</span>
-                    </div>
-                    <div class="banco-grid">
-                `;
-                bancoVisitante.forEach(n => {
-                    html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
-                });
-                html += `</div></div>`;
-            }
-            
-            container.innerHTML = html || '<div class="text-gray-500 text-center text-sm">Sin suplentes</div>';
-            
-            document.querySelectorAll('#bancoContainer .banco-item').forEach(b => {
-                b.onclick = () => {
-                    const num = parseInt(b.dataset.jugador);
-                    jugadorSeleccionado = num;
-                    mostrarFeedback(`👕 Suplente ${jugadorSeleccionado} seleccionado`, 'info');
-                    actualizarCancha();
-                    renderizarBanco();
-                };
-            });
+    // Determinar qué equipo mostrar según el equipo seleccionado
+    let bancoEquipo, nombreEquipo, claseEquipo;
+    if (estado.equipo === 'LOCAL') {
+        bancoEquipo = estado.local.jugadoresLista.slice(6);
+        nombreEquipo = homeTeamName;
+        claseEquipo = 'local';
+    } else {
+        bancoEquipo = estado.visitante.jugadoresLista.slice(6);
+        nombreEquipo = awayTeamName;
+        claseEquipo = 'visitante';
+    }
+    
+    const container = document.getElementById('bancoContainer');
+    
+    if (bancoEquipo.length > 0) {
+        let html = `<div class="banco-seccion">
+            <div class="banco-header">
+                <span class="banco-equipo-nombre ${claseEquipo}">${estado.equipo === 'LOCAL' ? '🔵' : '🔴'} ${nombreEquipo}</span>
+                <span class="banco-badge">suplentes</span>
+            </div>
+            <div class="banco-grid">
+        `;
+        bancoEquipo.forEach(n => {
+            html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
+        });
+        html += `</div></div>`;
+        container.innerHTML = html;
+    } else {
+        container.innerHTML = '<div class="text-gray-500 text-center text-sm">Sin suplentes</div>';
+    }
+    
+    document.querySelectorAll('#bancoContainer .banco-item').forEach(b => {
+        b.onclick = () => {
+            const num = parseInt(b.dataset.jugador);
+            jugadorSeleccionado = num;
+            mostrarFeedback(`👕 Suplente ${jugadorSeleccionado} seleccionado`, 'info');
+            actualizarCancha();
+            renderizarBanco();
+        };
+    });
+}
+function actualizarTitularesSegunSaque() {
+    // Esta función decide qué 6 jugadores están en cancha
+    // Por ahora, usamos los primeros 6 del equipo que saca
+    if (equipoQueSaca === 'LOCAL') {
+        // Si saca LOCAL, mostrar los primeros 6 de LOCAL
+        if (estado.local.jugadoresLista.length >= 6) {
+            // Ya están en actualizarCancha()
         }
-
+    } else {
+        // Si saca VISITANTE, mostrar los primeros 6 de VISITANTE
+        if (estado.visitante.jugadoresLista.length >= 6) {
+            // Ya están en actualizarCancha()
+        }
+    }
+    actualizarCancha();
+}
         function actualizarMarcador() {
             document.getElementById('localScore').innerText = estado.local.score;
             document.getElementById('visitanteScore').innerText = estado.visitante.score;

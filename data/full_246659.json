@@ -1,0 +1,1327 @@
+{
+  "timestamp": "2026-05-06T20:26:17.962+00:00",
+  "match": {
+    "id": 246659,
+    "statusId": 3,
+    "homeTeamSets": 0,
+    "awayTeamSets": 0,
+    "currentSet": 1,
+    "winnerId": null,
+    "updatedAt": "2026-05-06T19:49:55.037Z",
+    "sets": [
+      {
+        "number": 1,
+        "statusId": 3,
+        "homeTeamScore": 19,
+        "awayTeamScore": 21
+      }
+    ]
+  },
+  "liveState": {
+    "serving": "home",
+    "score": {
+      "sets": {
+        "home": 0,
+        "away": 0
+      },
+      "currentSet": {
+        "number": 1,
+        "home": 19,
+        "away": 21,
+        "isTiebreak": false
+      },
+      "setHistory": []
+    },
+    "timeline": [
+      {
+        "id": "2307242",
+        "type": "TIMEOUT_CALLED",
+        "timestamp": "2026-05-06T20:03:37.033+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 1,
+          "away": 6
+        },
+        "description": "Tiempo solicitado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612
+        }
+      },
+      {
+        "id": "2307243",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:05:01.478+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 1,
+          "away": 7
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 12149,
+          "scores": {
+            "6865": 7,
+            "7612": 1
+          }
+        }
+      },
+      {
+        "id": "2307244",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:05:48.476+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 2,
+          "away": 7
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 899,
+          "scores": {
+            "6865": 7,
+            "7612": 2
+          }
+        }
+      },
+      {
+        "id": "2307245",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:06:21.308+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 3,
+          "away": 7
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 11107,
+          "scores": {
+            "6865": 7,
+            "7612": 3
+          }
+        }
+      },
+      {
+        "id": "2307246",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:06:47.898+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 4,
+          "away": 7
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 5096,
+          "scores": {
+            "6865": 7,
+            "7612": 4
+          }
+        }
+      },
+      {
+        "id": "2307247",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:07:18.259+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 5,
+          "away": 7
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 826,
+          "scores": {
+            "6865": 7,
+            "7612": 5
+          }
+        }
+      },
+      {
+        "id": "2307248",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:07:51.880+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 5,
+          "away": 7
+        },
+        "description": "Líbero sale",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865
+        }
+      },
+      {
+        "id": "2307249",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:07:51.880+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 5,
+          "away": 8
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 7302,
+          "scores": {
+            "6865": 8,
+            "7612": 5
+          }
+        }
+      },
+      {
+        "id": "2307250",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:08:23.519+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 5,
+          "away": 9
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 806,
+          "scores": {
+            "6865": 9,
+            "7612": 5
+          }
+        }
+      },
+      {
+        "id": "2307251",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:08:56.689+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 5,
+          "away": 9
+        },
+        "description": "Líbero sale",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612
+        }
+      },
+      {
+        "id": "2307252",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:08:56.690+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 6,
+          "away": 9
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 21680,
+          "scores": {
+            "6865": 9,
+            "7612": 6
+          }
+        }
+      },
+      {
+        "id": "2307253",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-06T20:09:08.409+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 6,
+          "away": 9
+        },
+        "description": "Cambio de líbero",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "liberoId": 2183357,
+          "playerOutId": 2183359,
+          "position": 1
+        }
+      },
+      {
+        "id": "2307254",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:09:25.376+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 6,
+          "away": 10
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 975,
+          "scores": {
+            "6865": 10,
+            "7612": 6
+          }
+        }
+      },
+      {
+        "id": "2307255",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-06T20:09:31.145+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 6,
+          "away": 10
+        },
+        "description": "Cambio de líbero",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "liberoId": 2158894,
+          "playerOutId": 2158891,
+          "position": 1
+        }
+      },
+      {
+        "id": "2307256",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:09:54.120+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 6,
+          "away": 11
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 16016,
+          "scores": {
+            "6865": 11,
+            "7612": 6
+          }
+        }
+      },
+      {
+        "id": "2307257",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:10:29.337+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 7,
+          "away": 11
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 14864,
+          "scores": {
+            "6865": 11,
+            "7612": 7
+          }
+        }
+      },
+      {
+        "id": "2307258",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:10:55.745+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 7,
+          "away": 12
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 873,
+          "scores": {
+            "6865": 12,
+            "7612": 7
+          }
+        }
+      },
+      {
+        "id": "2307259",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:11:20.328+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 12
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 10887,
+          "scores": {
+            "6865": 12,
+            "7612": 8
+          }
+        }
+      },
+      {
+        "id": "2307260",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:11:59.918+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 12
+        },
+        "description": "Líbero sale",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865
+        }
+      },
+      {
+        "id": "2307261",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:11:59.919+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 13
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 20709,
+          "scores": {
+            "6865": 13,
+            "7612": 8
+          }
+        }
+      },
+      {
+        "id": "2307262",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:12:38.784+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 14
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 17487,
+          "scores": {
+            "6865": 14,
+            "7612": 8
+          }
+        }
+      },
+      {
+        "id": "2307263",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:13:19.704+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 14
+        },
+        "description": "Líbero sale",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612
+        }
+      },
+      {
+        "id": "2307264",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:13:19.705+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 9,
+          "away": 14
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 17206,
+          "scores": {
+            "6865": 14,
+            "7612": 9
+          }
+        }
+      },
+      {
+        "id": "2307265",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-06T20:13:38.449+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 9,
+          "away": 14
+        },
+        "description": "Cambio de líbero",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "liberoId": 2183357,
+          "playerOutId": 2183354,
+          "position": 1
+        }
+      },
+      {
+        "id": "2307266",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:13:53.609+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 10,
+          "away": 14
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 12888,
+          "scores": {
+            "6865": 14,
+            "7612": 10
+          }
+        }
+      },
+      {
+        "id": "2307267",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:14:20.109+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 10,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 9772,
+          "scores": {
+            "6865": 15,
+            "7612": 10
+          }
+        }
+      },
+      {
+        "id": "2307268",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-06T20:14:24.329+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 10,
+          "away": 15
+        },
+        "description": "Cambio de líbero",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "liberoId": 2158894,
+          "playerOutId": 2158901,
+          "position": 1
+        }
+      },
+      {
+        "id": "2307269",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:14:49.113+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 11,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 12536,
+          "scores": {
+            "6865": 15,
+            "7612": 11
+          }
+        }
+      },
+      {
+        "id": "2307270",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:15:26.769+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 12,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 11512,
+          "scores": {
+            "6865": 15,
+            "7612": 12
+          }
+        }
+      },
+      {
+        "id": "2307271",
+        "type": "TIMEOUT_CALLED",
+        "timestamp": "2026-05-06T20:15:39.537+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 12,
+          "away": 15
+        },
+        "description": "Tiempo solicitado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865
+        }
+      },
+      {
+        "id": "2307272",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:17:07.664+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 13,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 1115,
+          "scores": {
+            "6865": 15,
+            "7612": 13
+          }
+        }
+      },
+      {
+        "id": "2307273",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:17:43.216+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 14,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 870,
+          "scores": {
+            "6865": 15,
+            "7612": 14
+          }
+        }
+      },
+      {
+        "id": "2307274",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:18:08.356+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 15,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 1048,
+          "scores": {
+            "6865": 15,
+            "7612": 15
+          }
+        }
+      },
+      {
+        "id": "2307275",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:18:41.095+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 15
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 12046,
+          "scores": {
+            "6865": 15,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307276",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:19:09.733+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 16
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 12108,
+          "scores": {
+            "6865": 16,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307277",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:19:58.105+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 17
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 18696,
+          "scores": {
+            "6865": 17,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307278",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:20:37.016+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 18
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 7476,
+          "scores": {
+            "6865": 18,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307279",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:21:00.463+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 19
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 3054,
+          "scores": {
+            "6865": 19,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307280",
+        "type": "TIMEOUT_CALLED",
+        "timestamp": "2026-05-06T20:21:07.441+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 19
+        },
+        "description": "Tiempo solicitado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612
+        }
+      },
+      {
+        "id": "2307281",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:22:54.872+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 16,
+          "away": 20
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 28663,
+          "scores": {
+            "6865": 20,
+            "7612": 16
+          }
+        }
+      },
+      {
+        "id": "2307282",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:23:39.671+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 17,
+          "away": 20
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 14431,
+          "scores": {
+            "6865": 20,
+            "7612": 17
+          }
+        }
+      },
+      {
+        "id": "2307283",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:24:11.101+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 18,
+          "away": 20
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 16389,
+          "scores": {
+            "6865": 20,
+            "7612": 18
+          }
+        }
+      },
+      {
+        "id": "2307284",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:24:29.279+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 18,
+          "away": 20
+        },
+        "description": "Líbero sale",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865
+        }
+      },
+      {
+        "id": "2307285",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:24:29.280+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 18,
+          "away": 21
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "rallyDuration": 1948,
+          "scores": {
+            "6865": 21,
+            "7612": 18
+          }
+        }
+      },
+      {
+        "id": "2307286",
+        "type": "SUBSTITUTION_MADE",
+        "timestamp": "2026-05-06T20:24:43.665+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 18,
+          "away": 21
+        },
+        "description": "Cambio: Jugador por Jugador",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "matchTeamPlayerInId": 2183353,
+          "matchTeamPlayerOutId": 2183359,
+          "setNumber": 1,
+          "scoresAtSubstitution": {
+            "6865": 21,
+            "7612": 18
+          }
+        }
+      },
+      {
+        "id": "2307287",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-06T20:25:05.547+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 18,
+          "away": 21
+        },
+        "description": "Líbero sale",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612
+        }
+      },
+      {
+        "id": "2307288",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-06T20:25:05.549+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 19,
+          "away": 21
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "rallyDuration": 859,
+          "scores": {
+            "6865": 21,
+            "7612": 19
+          }
+        }
+      },
+      {
+        "id": "2307289",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-06T20:25:09.704+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 19,
+          "away": 21
+        },
+        "description": "Cambio de líbero",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865,
+          "liberoId": 2183357,
+          "playerOutId": 2183353,
+          "position": 1
+        }
+      },
+      {
+        "id": "2307290",
+        "type": "TIMEOUT_CALLED",
+        "timestamp": "2026-05-06T20:25:18.273+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 19,
+          "away": 21
+        },
+        "description": "Tiempo solicitado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 6865
+        }
+      },
+      {
+        "id": "2307291",
+        "type": "SUBSTITUTION_MADE",
+        "timestamp": "2026-05-06T20:26:23.456+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 19,
+          "away": 21
+        },
+        "description": "Cambio: Jugador por Jugador",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 7612,
+          "matchTeamPlayerInId": 2158900,
+          "matchTeamPlayerOutId": 2158891,
+          "setNumber": 1,
+          "scoresAtSubstitution": {
+            "6865": 21,
+            "7612": 19
+          }
+        }
+      }
+    ],
+    "court": {
+      "home": {
+        "positions": {
+          "1": {
+            "id": 104879,
+            "matchTeamPlayerId": 2158900,
+            "firstName": "Paula",
+            "lastName": "Torres Salvay",
+            "number": 18,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 1,
+            "sanctions": [],
+            "substitutedFor": 4
+          },
+          "2": {
+            "id": 92108,
+            "matchTeamPlayerId": 2158898,
+            "firstName": "Zoe",
+            "lastName": "Brosan",
+            "number": 15,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 2,
+            "sanctions": []
+          },
+          "3": {
+            "id": 86730,
+            "matchTeamPlayerId": 2158902,
+            "firstName": "Francisca",
+            "lastName": "Migoya",
+            "number": 21,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 3,
+            "sanctions": []
+          },
+          "4": {
+            "id": 105770,
+            "matchTeamPlayerId": 2158901,
+            "firstName": "Leiry Katheryn",
+            "lastName": "Bience Enni",
+            "number": 20,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 4,
+            "sanctions": []
+          },
+          "5": {
+            "id": 92788,
+            "matchTeamPlayerId": 2158895,
+            "firstName": "Rocio",
+            "lastName": "Gutierrez",
+            "number": 10,
+            "isCaptain": true,
+            "isLibero": false,
+            "position": 5,
+            "sanctions": []
+          },
+          "6": {
+            "id": 97021,
+            "matchTeamPlayerId": 2158892,
+            "firstName": "Constanza",
+            "lastName": "Eluchans",
+            "number": 5,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 6,
+            "sanctions": []
+          }
+        },
+        "liberoIn": null,
+        "liberoReplacedPosition": null,
+        "bench": [
+          {
+            "id": 89331,
+            "matchTeamPlayerId": 2158889,
+            "firstName": "Samanta Lucia",
+            "lastName": "Tuillier Esposito",
+            "number": 2,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 109671,
+            "matchTeamPlayerId": 2158890,
+            "firstName": "Bianca Jazmín",
+            "lastName": "González",
+            "number": 3,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 92368,
+            "matchTeamPlayerId": 2158891,
+            "firstName": "Mia Catalina",
+            "lastName": "Marquez",
+            "number": 4,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 106174,
+            "matchTeamPlayerId": 2158893,
+            "firstName": "Fernanda Sophia ",
+            "lastName": "Rodriguez Sifontes",
+            "number": 6,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 91503,
+            "matchTeamPlayerId": 2158894,
+            "firstName": "Torres Iara",
+            "lastName": "Ayala",
+            "number": 7,
+            "isCaptain": false,
+            "isLibero": true,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 101487,
+            "matchTeamPlayerId": 2158896,
+            "firstName": "Sofia Luna",
+            "lastName": "Fernandez Medina",
+            "number": 13,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 108627,
+            "matchTeamPlayerId": 2158897,
+            "firstName": "Francesca",
+            "lastName": "Altamirano Martinez",
+            "number": 14,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 94227,
+            "matchTeamPlayerId": 2158899,
+            "firstName": "Catalina Cristina",
+            "lastName": "Pedreira",
+            "number": 17,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          }
+        ]
+      },
+      "away": {
+        "positions": {
+          "1": {
+            "id": 88313,
+            "matchTeamPlayerId": 2183357,
+            "firstName": "Mia",
+            "lastName": "Maj",
+            "number": 4,
+            "isCaptain": true,
+            "isLibero": true,
+            "position": 1,
+            "sanctions": [],
+            "substitutedFor": 13
+          },
+          "2": {
+            "id": 87602,
+            "matchTeamPlayerId": 2183355,
+            "firstName": "Lola Valentina",
+            "lastName": "Gonzalez",
+            "number": 6,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 2,
+            "sanctions": []
+          },
+          "3": {
+            "id": 89066,
+            "matchTeamPlayerId": 2183352,
+            "firstName": "Biase Lola",
+            "lastName": "Di",
+            "number": 1,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 3,
+            "sanctions": []
+          },
+          "4": {
+            "id": 110567,
+            "matchTeamPlayerId": 2183354,
+            "firstName": "Camila Abigail",
+            "lastName": "Giles",
+            "number": 25,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 4,
+            "sanctions": []
+          },
+          "5": {
+            "id": 87683,
+            "matchTeamPlayerId": 2183358,
+            "firstName": "Miranda",
+            "lastName": "Molina",
+            "number": 10,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 5,
+            "sanctions": []
+          },
+          "6": {
+            "id": 85481,
+            "matchTeamPlayerId": 2183356,
+            "firstName": "Bárbara",
+            "lastName": "Katinas",
+            "number": 7,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 6,
+            "sanctions": []
+          }
+        },
+        "liberoIn": {
+          "id": 88313,
+          "matchTeamPlayerId": 2183357,
+          "firstName": "Mia",
+          "lastName": "Maj",
+          "number": 4,
+          "isCaptain": true,
+          "isLibero": true,
+          "position": 1,
+          "sanctions": [],
+          "substitutedFor": 13
+        },
+        "liberoReplacedPosition": 1,
+        "bench": [
+          {
+            "id": 110823,
+            "matchTeamPlayerId": 2183359,
+            "firstName": "Angelina",
+            "lastName": "Olivera",
+            "number": 3,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 90757,
+            "matchTeamPlayerId": 2183361,
+            "firstName": "Sofia",
+            "lastName": "Scavone",
+            "number": 5,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 98780,
+            "matchTeamPlayerId": 2183353,
+            "firstName": "Vincenzo Olivia",
+            "lastName": "Di",
+            "number": 13,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 89142,
+            "matchTeamPlayerId": 2183360,
+            "firstName": "Maria Sol",
+            "lastName": "Ortiz Moretti",
+            "number": 16,
+            "isCaptain": false,
+            "isLibero": false,
+            "canEnter": true,
+            "sanctions": []
+          }
+        ]
+      }
+    }
+  }
+}

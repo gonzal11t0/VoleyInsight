@@ -7,8 +7,10 @@ import {
     renderizarSoloNombres, 
     renderizarTop5ConNombres, 
     renderizarGraficoPuntos,
-    calcularEstadisticasServicio
+    calcularEstadisticasServicio,
+    generarTablaHTMLSimple
 } from './StatsHelper.js';
+
 export class VolleyballDashboard {
     constructor() {
         this.timeouts = [];
@@ -777,50 +779,6 @@ actualizarVistaIndividuales() {
                     this.charts.momentum = new Chart(mc, { type: 'bar', data: { labels: Array.from({ length: mom.length }, (_,i)=>i+10), datasets: [{ label: 'Momentum', data: mom, backgroundColor: mom.map(m=>m>=0?'#667eea':'#f43f5e') }] }, options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } }, scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } } } });
                 }
             }
-           generarTablaHTMLSimple(stats, jugadoresMap) {
-    if (!stats || Object.keys(stats).length === 0) return '';
-    
-    let html = '';
-    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
-    
-    for (const [numJugador, s] of ordenados) {
-        const num = parseInt(numJugador);
-        if (isNaN(num)) continue;
-        
-        const nombre = jugadoresMap[num] || `Jugador ${num}`;
-        const ataquesTotales = s.ataques || 0;
-        const ataquesConvertidos = s.ataquesConvertidos || 0;
-        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
-        
-        let efAtaque = '0';
-        if (ataquesTotales > 0) {
-            efAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
-        }
-        
-        let efServ = '0';
-        const totalSaques = s.totalSaques || 0;
-        if (totalSaques > 0) {
-            efServ = ((s.acesServicio - s.erroresServicio) / totalSaques * 100).toFixed(1);
-        }
-        
-        html += `<tr style="border-bottom:1px solid #374151;">
-            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
-            <td style="text-align:center;font-weight:bold;color:#667eea;">${s.puntos || 0}</span></td>
-            <td style="text-align:center;">${ataquesTexto}</span></td>
-            <td style="text-align:center;">${s.bloqueos || 0}</span></td>
-            <td style="text-align:center;">${s.aces || 0}</span></td>
-            <td style="text-align:center;color:#ef4444;">${s.erroresAtaque || 0}</span></td>
-            <td style="text-align:center;">${s.asistencias || 0}</span></td>
-            <td style="text-align:center;font-weight:bold;">${efAtaque}%</span></td>
-            <td style="text-align:center;color:#3b82f6;">${s.acesServicio || 0}</span></td>
-            <td style="text-align:center;color:#ef4444;">${s.erroresServicio || 0}</span></td>
-            <td style="text-align:center;font-weight:bold;">${efServ}%</span></td>
-            <td style="text-align:center;font-weight:bold;">${totalSaques}</span></tr>
-        </tr>`;
-    }
-    
-    return html;
-}
 
 async saveAsHTML() {
     try {
@@ -915,10 +873,14 @@ async saveAsHTML() {
         }
         
         // ============================================
-        // GENERACIÓN DE TABLAS - CARGA FORZADA DESDE localStorage
+        // GENERACIÓN DE TABLAS - CON FALLBACK A NOMBRES GENÉRICOS
         // ============================================
         let tablaLocal = '';
         let tablaVisitante = '';
+        
+        // Variables para stats (declaradas afuera para usar después)
+        let statsLocalCalculadas = null;
+        let statsVisitanteCalculadas = null;
         
         // FORZAR CARGA DIRECTA desde localStorage
         const puntosKey = `puntos_${this.matchId}`;
@@ -1007,7 +969,6 @@ async saveAsHTML() {
                 for (const jugador in stats) {
                     const s = stats[jugador];
                     
-                    // Asegurar valores numéricos
                     s.ataques = s.ataques || 0;
                     s.ataquesConvertidos = s.ataquesConvertidos || 0;
                     s.bloqueos = s.bloqueos || 0;
@@ -1019,51 +980,49 @@ async saveAsHTML() {
                     s.totalSaques = s.totalSaques || 0;
                     s.puntosPorErrorRival = s.puntosPorErrorRival || 0;
                     
-                    // Calcular eficiencia de ataque (NUNCA puede dar NaN)
                     if (s.ataques > 0) {
                         s.eficienciaAtaque = ((s.ataquesConvertidos / s.ataques) * 100).toFixed(1);
                     } else {
                         s.eficienciaAtaque = '0';
                     }
                     
-                    // Calcular eficiencia de servicio
                     if (s.totalSaques > 0) {
                         s.eficienciaServicio = ((s.acesServicio - s.erroresServicio) / s.totalSaques * 100).toFixed(1);
                     } else {
                         s.eficienciaServicio = '0';
                     }
                     
-                    // Recalcular puntos totales
                     s.puntos = (s.ataquesConvertidos || 0) + (s.bloqueos || 0) + (s.aces || 0) + (s.puntosPorErrorRival || 0);
                 }
                 
                 return stats;
             };
             
-            const statsLocal = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
-            const statsVisitante = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
+            statsLocalCalculadas = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
+            statsVisitanteCalculadas = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
             
-            console.log('Stats LOCAL calculadas:', statsLocal);
-            console.log('Stats VISITANTE calculadas:', statsVisitante);
+            console.log('Stats LOCAL calculadas:', statsLocalCalculadas);
+            console.log('Stats VISITANTE calculadas:', statsVisitanteCalculadas);
             
-            // Función para generar tabla HTML
-            const generarTablaHTML = (stats, jugadoresMap, nombreEquipo) => {
+            // Función para generar tabla HTML con FALLBACK a nombres genéricos
+            const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
                 if (!stats || Object.keys(stats).length === 0) {
-                    return `</td><td colspan="13" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
+                    return `<tr><td colspan="13" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
                 }
                 
                 let html = '';
-                
-                // Ordenar por puntos descendente
                 const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
                 
                 for (const [numJugador, s] of ordenados) {
                     const num = parseInt(numJugador);
                     if (isNaN(num)) continue;
                     
-                    const nombre = jugadoresMap[num] || `Jugador ${num}`;
+                    // FALLBACK: Si no hay nombre en jugadoresMap, usar "Visitante X" o "Local X" según el equipo
+                    let nombre = jugadoresMap[num];
+                    if (!nombre) {
+                        nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
+                    }
                     
-                    // Valores con defaults seguros
                     const puntos = s.puntos || 0;
                     const ataquesTotales = s.ataques || 0;
                     const ataquesConvertidos = s.ataquesConvertidos || 0;
@@ -1075,23 +1034,18 @@ async saveAsHTML() {
                     const erroresServicio = s.erroresServicio || 0;
                     const totalSaques = s.totalSaques || 0;
                     
-                    // Formato ATA: convertidos/totales
                     const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
                     
-                    // Eficiencia de ataque (NUNCA NaN)
                     let eficienciaAtaque = '0';
                     if (ataquesTotales > 0) {
-                        const conv = ataquesConvertidos !== undefined ? ataquesConvertidos : 0;
-                        eficienciaAtaque = ((conv / ataquesTotales) * 100).toFixed(1);
+                        eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
                     }
                     
-                    // Eficiencia de servicio
                     let eficienciaServicio = '0';
                     if (totalSaques > 0) {
                         eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
                     }
                     
-                    // Colores
                     const efAtaqueNum = parseFloat(eficienciaAtaque);
                     const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
                     
@@ -1117,8 +1071,8 @@ async saveAsHTML() {
                 return html;
             };
             
-            tablaLocal = generarTablaHTML(statsLocal, this.jugadoresLocal, homeTeam);
-            tablaVisitante = generarTablaHTML(statsVisitante, this.jugadoresVisitante, awayTeam);
+            tablaLocal = generarTablaHTML(statsLocalCalculadas, this.jugadoresLocal, homeTeam, false);
+            tablaVisitante = generarTablaHTML(statsVisitanteCalculadas, this.jugadoresVisitante, awayTeam, true);
             
             console.log('✅ tablas generadas - Local longitud:', tablaLocal.length, 'Visitante longitud:', tablaVisitante.length);
             
@@ -1191,7 +1145,6 @@ async saveAsHTML() {
         const eficienciaPorSet = [];
         const puntosPorSet = [];
 
-        // Intentar usar datos del tracker primero
         let datosParaEficiencia = null;
         if (this.data && this.data.length > 0 && this.data.some(p => p.scorer)) {
             datosParaEficiencia = this.data;
@@ -1207,7 +1160,6 @@ async saveAsHTML() {
             for (const setNum of setsUnicos) {
                 const puntosSet = datosParaEficiencia.filter(p => (p.set || 1) === setNum);
                 
-                // Detectar scorer según tipo de dato
                 let localSet = 0, visitanteSet = 0;
                 for (const p of puntosSet) {
                     if (p.scorer === 'HOME') localSet++;
@@ -1231,28 +1183,29 @@ async saveAsHTML() {
         console.log('📊 eficienciaPorSet calculado:', eficienciaPorSet);
 
         // ============================================
-        // CALCULAR STATS POR SET PARA FILTROS
+        // CALCULAR STATS POR SET PARA FILTROS (usando las variables ya calculadas)
         // ============================================
         const localPorSet = {};
         const visitantePorSet = {};
 
+        // Si tenemos stats calculadas, usarlas para "todos"
+        if (statsLocalCalculadas && statsVisitanteCalculadas) {
+            localPorSet['todos'] = tablaLocal;
+            visitantePorSet['todos'] = tablaVisitante;
+        }
+
+        // Calcular stats por set individuales
         if (this.puntosJugadores && this.puntosJugadores.length > 0) {
             const setsUnicosPuntos = [...new Set(this.puntosJugadores.map(p => p.set))];
             
             for (const setNum of setsUnicosPuntos) {
                 const puntosSet = this.puntosJugadores.filter(p => p.set === setNum);
-                const statsLocalSet = this.calcularStatsPorJugador(puntosSet, 'LOCAL');
-                const statsVisitanteSet = this.calcularStatsPorJugador(puntosSet, 'VISITANTE');
+                const statsLocalSet = calcularStatsPorJugador(puntosSet, 'LOCAL');
+                const statsVisitanteSet = calcularStatsPorJugador(puntosSet, 'VISITANTE');
                 
-                // Generar HTML para cada set
-                localPorSet[setNum] = this.generarTablaHTMLSimple(statsLocalSet, this.jugadoresLocal);
-                visitantePorSet[setNum] = this.generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);
-            }
+                localPorSet[setNum] = generarTablaHTMLSimple(statsLocalSet, this.jugadoresLocal);
+visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);            }
         }
-        
-        // También guardar la versión "todos" para el filtro
-        localPorSet['todos'] = tablaLocal;
-        visitantePorSet['todos'] = tablaVisitante;
         
         const datosReporte = {
             homeTeam, awayTeam, homeScore, awayScore, fechaHora: new Date().toLocaleString(),
@@ -1282,5 +1235,5 @@ async saveAsHTML() {
         this.mostrarFeedbackPartido('❌ Error al generar el reporte: ' + e.message);
     }
 }
-        
+
 }
