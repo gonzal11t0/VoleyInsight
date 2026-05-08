@@ -261,7 +261,7 @@ aplicarConfiguracionSets() {
                 const { local: setsGanadosLocal, visitante: setsGanadosVisitante } = this.calcularSetsGanados(setsMap);
 const totalSetsPosibles = this.configSets.maxSets;
 const setsParaGanar = this.configSets.setsParaGanar;
-                this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitante >= setsParaGanar;
+this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitante >= setsParaGanar;
                 let setsHtml = '';
                 for (const setNum of setsArray) {
                     const set = setsMap.get(setNum);
@@ -544,12 +544,89 @@ actualizarVistaIndividuales() {
             }
             
             setupEventListeners() {
-                document.getElementById('offlineModeBtn')?.addEventListener('click', () => this.mostrarFeedbackPartido('📡 Modo offline activado - Usando datos cacheados'));
-                document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
-                document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
-                document.getElementById('soundToggleBtn')?.addEventListener('click', () => { const enabled = this.soundManager.toggle(); document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); });
-                document.getElementById('menuHamburguesaBtn')?.addEventListener('click', () => { const menu = document.getElementById('menuDesplegable'); if (menu) menu.classList.toggle('show'); });
+    document.getElementById('offlineModeBtn')?.addEventListener('click', () => this.mostrarFeedbackPartido('📡 Modo offline activado - Usando datos cacheados'));
+    document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
+    document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
+    document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
+        const enabled = this.soundManager.toggle(); 
+        document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; 
+        if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); 
+    });
+    
+    // ✅ MENÚ HAMBURGUESA - CÓDIGO CORREGIDO
+    const menuBtn = document.getElementById('menuHamburguesaBtn');
+    const menuDesplegable = document.getElementById('menuDesplegable');
+    
+    if (menuBtn && menuDesplegable) {
+        // Quitar event listeners anteriores si existen
+        const newMenuBtn = menuBtn.cloneNode(true);
+        menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+        
+        newMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🔄 Menú hamburguesa clickeado');
+            
+            // Toggle clase 'hidden' y 'show'
+            if (menuDesplegable.classList.contains('hidden')) {
+                menuDesplegable.classList.remove('hidden');
+                menuDesplegable.classList.add('show');
+                // También agregar clase para animación
+                menuDesplegable.style.display = 'flex';
+            } else {
+                menuDesplegable.classList.add('hidden');
+                menuDesplegable.classList.remove('show');
+                menuDesplegable.style.display = 'none';
             }
+        });
+        
+        // Cerrar menú si se clickea fuera
+        document.addEventListener('click', (e) => {
+            if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
+                menuDesplegable.classList.add('hidden');
+                menuDesplegable.classList.remove('show');
+                menuDesplegable.style.display = 'none';
+            }
+        });
+    }
+    
+    // ✅ Botones móviles
+    const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
+    if (saveHTMLBtnMobile) {
+        saveHTMLBtnMobile.addEventListener('click', () => {
+            this.saveAsHTML();
+            // Cerrar menú después de guardar
+            if (menuDesplegable) {
+                menuDesplegable.classList.add('hidden');
+                menuDesplegable.style.display = 'none';
+            }
+        });
+    }
+    
+    const soundToggleBtnMobile = document.getElementById('soundToggleBtnMobile');
+    if (soundToggleBtnMobile) {
+        soundToggleBtnMobile.addEventListener('click', () => {
+            const enabled = this.soundManager.toggle();
+            soundToggleBtnMobile.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+            if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
+            // Sincronizar con botón desktop
+            const btnDesktop = document.getElementById('soundToggleBtn');
+            if (btnDesktop) btnDesktop.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+        });
+    }
+    
+    const refreshSelectorMobile = document.getElementById('refreshIntervalSelectorMobile');
+    if (refreshSelectorMobile) {
+        refreshSelectorMobile.addEventListener('change', (e) => {
+            const ms = parseInt(e.target.value);
+            const selectorDesktop = document.getElementById('refreshIntervalSelector');
+            if (selectorDesktop) selectorDesktop.value = ms;
+            if (this.refreshInterval) clearInterval(this.refreshInterval);
+            this.refreshInterval = setInterval(() => this.loadData(), ms);
+            this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`);
+        });
+    }
+}
             
             actualizarHoraUltimoPunto() {
                 const c = document.getElementById('lastPointTime');

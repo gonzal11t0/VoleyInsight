@@ -53,6 +53,10 @@ export class SoundManager {
     }
     playLocalPoint() { this.playBeep(880, 0.3, 'sine'); }
     playAwayPoint() { this.playBeep(440, 0.4, 'sawtooth'); }
-    playEndMatch() { this.playBeep(523.25,0.2,'sine'); setTimeout(()=>this.playBeep(659.25,0.2,'sine'),200); setTimeout(()=>this.playBeep(783.99,0.4,'sine'),400); }
-    toggle() { this.enabled = !this.enabled; return this.enabled; }
+playEndMatch() {
+    if (!this.enabled) return;
+    this.playSound(523.25, 0.3); // Do5
+    setTimeout(() => this.playSound(659.25, 0.3), 150); // Mi5
+    setTimeout(() => this.playSound(783.99, 0.5), 300); // Sol5
+}    toggle() { this.enabled = !this.enabled; return this.enabled; }
 }

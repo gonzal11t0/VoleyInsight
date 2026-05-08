@@ -57,6 +57,13 @@
       "cantidad_maxima_de_sets": 5,
       "puntos_minimos_set_normal": 25,
       "puntos_minimos_set_decisivo": 15
+    },
+      "mayores": {
+      "nombre": "Mayores",
+      "max_sets": 5,
+      "puntos_por_set": 25,
+      "set_decisivo_puntos": 15,
+      "sets_para_ganar": 3
     }
   }
 }
