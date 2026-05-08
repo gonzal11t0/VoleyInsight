@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-05-08T00:36:25.172+00:00",
+  "timestamp": "2026-05-08T00:38:25.633+00:00",
   "match": {
     "id": 156820,
     "statusId": 3,
@@ -12,8 +12,8 @@
       {
         "number": 1,
         "statusId": 3,
-        "homeTeamScore": 7,
-        "awayTeamScore": 3
+        "homeTeamScore": 10,
+        "awayTeamScore": 6
       }
     ]
   },
@@ -26,8 +26,8 @@
       },
       "currentSet": {
         "number": 1,
-        "home": 7,
-        "away": 3,
+        "home": 10,
+        "away": 6,
         "isTiebreak": false
       },
       "setHistory": []
@@ -578,23 +578,211 @@
             "5761": 3
           }
         }
+      },
+      {
+        "id": "2311429",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:36:26.341+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 3
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 5755,
+          "rallyDuration": 9476,
+          "scores": {
+            "5755": 8,
+            "5761": 3
+          }
+        }
+      },
+      {
+        "id": "2311457",
+        "type": "LIBERO_OUT",
+        "timestamp": "2026-05-08T00:36:48.196+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 3
+        },
+        "description": "Líbero sale",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 5761
+        }
+      },
+      {
+        "id": "2311458",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:36:48.207+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 4
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 5761,
+          "rallyDuration": 6326,
+          "scores": {
+            "5755": 8,
+            "5761": 4
+          }
+        }
+      },
+      {
+        "id": "2311466",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-08T00:36:53.962+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 4
+        },
+        "description": "Cambio de líbero",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 5755,
+          "liberoId": 2184787,
+          "playerOutId": 2184788,
+          "position": 1
+        }
+      },
+      {
+        "id": "2311485",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:37:07.707+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 5
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 5761,
+          "rallyDuration": 5034,
+          "scores": {
+            "5755": 8,
+            "5761": 5
+          }
+        }
+      },
+      {
+        "id": "2311518",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:37:32.137+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 8,
+          "away": 6
+        },
+        "description": "Punto anotado",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 5761,
+          "rallyDuration": 5169,
+          "scores": {
+            "5755": 8,
+            "5761": 6
+          }
+        }
+      },
+      {
+        "id": "2311550",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:37:54.301+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 9,
+          "away": 6
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 5755,
+          "rallyDuration": 6595,
+          "scores": {
+            "5755": 9,
+            "5761": 6
+          }
+        }
+      },
+      {
+        "id": "2311557",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-08T00:37:58.419+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 9,
+          "away": 6
+        },
+        "description": "Cambio de líbero",
+        "team": "away",
+        "undone": false,
+        "data": {
+          "teamId": 5761,
+          "liberoId": 2186148,
+          "playerOutId": 2186151,
+          "position": 1
+        }
+      },
+      {
+        "id": "2311562",
+        "type": "LIBERO_SWAP",
+        "timestamp": "2026-05-08T00:38:00.344+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 9,
+          "away": 6
+        },
+        "description": "Cambio de líbero",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 5755,
+          "liberoId": 2184797,
+          "playerOutId": 2184787,
+          "position": 6
+        }
+      },
+      {
+        "id": "2311579",
+        "type": "SCORE_POINT",
+        "timestamp": "2026-05-08T00:38:14.652+00:00",
+        "setNumber": 1,
+        "score": {
+          "home": 10,
+          "away": 6
+        },
+        "description": "Punto anotado",
+        "team": "home",
+        "undone": false,
+        "data": {
+          "teamId": 5755,
+          "rallyDuration": 6250,
+          "scores": {
+            "5755": 10,
+            "5761": 6
+          }
+        }
       }
     ],
     "court": {
       "home": {
         "positions": {
           "1": {
-            "id": 110237,
-            "matchTeamPlayerId": 2184788,
-            "firstName": "Brenda Casiana",
-            "lastName": "Migliore",
-            "number": 3,
-            "isCaptain": false,
-            "isLibero": false,
-            "position": 1,
-            "sanctions": []
-          },
-          "2": {
             "id": 6987,
             "matchTeamPlayerId": 2184793,
             "firstName": "Yesica Judith",
@@ -602,10 +790,10 @@
             "number": 12,
             "isCaptain": false,
             "isLibero": false,
-            "position": 2,
+            "position": 1,
             "sanctions": []
           },
-          "3": {
+          "2": {
             "id": 41682,
             "matchTeamPlayerId": 2184791,
             "firstName": "Natalia Soledad",
@@ -613,10 +801,10 @@
             "number": 9,
             "isCaptain": false,
             "isLibero": false,
-            "position": 3,
+            "position": 2,
             "sanctions": []
           },
-          "4": {
+          "3": {
             "id": 6352,
             "matchTeamPlayerId": 2184789,
             "firstName": "Florencia Milagros",
@@ -624,10 +812,10 @@
             "number": 7,
             "isCaptain": false,
             "isLibero": false,
-            "position": 4,
+            "position": 3,
             "sanctions": []
           },
-          "5": {
+          "4": {
             "id": 56541,
             "matchTeamPlayerId": 2184800,
             "firstName": "Maria Elena",
@@ -635,10 +823,10 @@
             "number": 29,
             "isCaptain": true,
             "isLibero": false,
-            "position": 5,
+            "position": 4,
             "sanctions": []
           },
-          "6": {
+          "5": {
             "id": 80701,
             "matchTeamPlayerId": 2184795,
             "firstName": "Silvia",
@@ -646,12 +834,35 @@
             "number": 14,
             "isCaptain": false,
             "isLibero": false,
-            "position": 6,
+            "position": 5,
             "sanctions": []
+          },
+          "6": {
+            "id": 82791,
+            "matchTeamPlayerId": 2184797,
+            "firstName": "Florencia Belen",
+            "lastName": "Alvarez",
+            "number": 16,
+            "isCaptain": false,
+            "isLibero": true,
+            "position": 6,
+            "sanctions": [],
+            "substitutedFor": 3
           }
         },
-        "liberoIn": null,
-        "liberoReplacedPosition": null,
+        "liberoIn": {
+          "id": 82791,
+          "matchTeamPlayerId": 2184797,
+          "firstName": "Florencia Belen",
+          "lastName": "Alvarez",
+          "number": 16,
+          "isCaptain": false,
+          "isLibero": true,
+          "position": 6,
+          "sanctions": [],
+          "substitutedFor": 3
+        },
+        "liberoReplacedPosition": 6,
         "bench": [
           {
             "id": 8143,
@@ -661,6 +872,17 @@
             "number": 2,
             "isCaptain": false,
             "isLibero": true,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 110237,
+            "matchTeamPlayerId": 2184788,
+            "firstName": "Brenda Casiana",
+            "lastName": "Migliore",
+            "number": 3,
+            "isCaptain": false,
+            "isLibero": false,
             "canEnter": true,
             "sanctions": []
           },
@@ -709,17 +931,6 @@
             "sanctions": []
           },
           {
-            "id": 82791,
-            "matchTeamPlayerId": 2184797,
-            "firstName": "Florencia Belen",
-            "lastName": "Alvarez",
-            "number": 16,
-            "isCaptain": false,
-            "isLibero": true,
-            "canEnter": true,
-            "sanctions": []
-          },
-          {
             "id": 46304,
             "matchTeamPlayerId": 2184798,
             "firstName": "Ines",
@@ -746,50 +957,6 @@
       "away": {
         "positions": {
           "1": {
-            "id": 13149,
-            "matchTeamPlayerId": 2186154,
-            "firstName": "Camila Victoria",
-            "lastName": "Carranza",
-            "number": 27,
-            "isCaptain": true,
-            "isLibero": false,
-            "position": 1,
-            "sanctions": []
-          },
-          "2": {
-            "id": 110732,
-            "matchTeamPlayerId": 2186151,
-            "firstName": "Carla Julieta",
-            "lastName": "Sanchez",
-            "number": 12,
-            "isCaptain": false,
-            "isLibero": false,
-            "position": 2,
-            "sanctions": []
-          },
-          "3": {
-            "id": 11685,
-            "matchTeamPlayerId": 2186152,
-            "firstName": "Romina Claribel",
-            "lastName": "Cruz",
-            "number": 16,
-            "isCaptain": false,
-            "isLibero": false,
-            "position": 3,
-            "sanctions": []
-          },
-          "4": {
-            "id": 111003,
-            "matchTeamPlayerId": 2186150,
-            "firstName": "Ana Priscila",
-            "lastName": "Zabala",
-            "number": 10,
-            "isCaptain": false,
-            "isLibero": false,
-            "position": 4,
-            "sanctions": []
-          },
-          "5": {
             "id": 13997,
             "matchTeamPlayerId": 2186148,
             "firstName": "Mariana Ailen",
@@ -797,17 +964,61 @@
             "number": 7,
             "isCaptain": false,
             "isLibero": true,
-            "position": 5,
+            "position": 1,
             "sanctions": [],
-            "substitutedFor": 1
+            "substitutedFor": 12
           },
-          "6": {
+          "2": {
+            "id": 11685,
+            "matchTeamPlayerId": 2186152,
+            "firstName": "Romina Claribel",
+            "lastName": "Cruz",
+            "number": 16,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 2,
+            "sanctions": []
+          },
+          "3": {
+            "id": 111003,
+            "matchTeamPlayerId": 2186150,
+            "firstName": "Ana Priscila",
+            "lastName": "Zabala",
+            "number": 10,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 3,
+            "sanctions": []
+          },
+          "4": {
+            "id": 81272,
+            "matchTeamPlayerId": 2186159,
+            "firstName": "Luana Teresa",
+            "lastName": "Schneider",
+            "number": 1,
+            "isCaptain": false,
+            "isLibero": false,
+            "position": 4,
+            "sanctions": []
+          },
+          "5": {
             "id": 21418,
             "matchTeamPlayerId": 2186149,
             "firstName": "María Belén",
             "lastName": "Gimenez",
             "number": 4,
             "isCaptain": false,
+            "isLibero": false,
+            "position": 5,
+            "sanctions": []
+          },
+          "6": {
+            "id": 13149,
+            "matchTeamPlayerId": 2186154,
+            "firstName": "Camila Victoria",
+            "lastName": "Carranza",
+            "number": 27,
+            "isCaptain": true,
             "isLibero": false,
             "position": 6,
             "sanctions": []
@@ -821,23 +1032,12 @@
           "number": 7,
           "isCaptain": false,
           "isLibero": true,
-          "position": 5,
+          "position": 1,
           "sanctions": [],
-          "substitutedFor": 1
+          "substitutedFor": 12
         },
-        "liberoReplacedPosition": 5,
+        "liberoReplacedPosition": 1,
         "bench": [
-          {
-            "id": 81272,
-            "matchTeamPlayerId": 2186159,
-            "firstName": "Luana Teresa",
-            "lastName": "Schneider",
-            "number": 1,
-            "isCaptain": false,
-            "isLibero": false,
-            "canEnter": true,
-            "sanctions": []
-          },
           {
             "id": 115842,
             "matchTeamPlayerId": 2186157,
@@ -846,6 +1046,17 @@
             "number": 3,
             "isCaptain": false,
             "isLibero": true,
+            "canEnter": true,
+            "sanctions": []
+          },
+          {
+            "id": 110732,
+            "matchTeamPlayerId": 2186151,
+            "firstName": "Carla Julieta",
+            "lastName": "Sanchez",
+            "number": 12,
+            "isCaptain": false,
+            "isLibero": false,
             "canEnter": true,
             "sanctions": []
           },

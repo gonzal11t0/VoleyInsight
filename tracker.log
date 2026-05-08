@@ -78598,3 +78598,32 @@
 {"timestamp":"2026-05-08T00:36:13.653Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":11}
 {"timestamp":"2026-05-08T00:36:22.922Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
 {"timestamp":"2026-05-08T00:36:22.923Z","level":"info","message":"Analysis saved","filename":"data\\analysis_156820.json"}
+{"timestamp":"2026-05-08T00:36:23.655Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":11}
+{"timestamp":"2026-05-08T00:36:31.216Z","level":"info","message":"🔄 LOCAL 8 - 3 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":5,"homeRun":3,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-05-08T00:36:31.217Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:36:33.659Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":12}
+{"timestamp":"2026-05-08T00:36:43.674Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":12}
+{"timestamp":"2026-05-08T00:36:52.295Z","level":"info","message":"🔄 LOCAL 8 - 4 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":4,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-05-08T00:36:52.296Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:36:53.674Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":13}
+{"timestamp":"2026-05-08T00:37:03.738Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":13}
+{"timestamp":"2026-05-08T00:37:13.374Z","level":"info","message":"🔄 LOCAL 8 - 5 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":3,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-05-08T00:37:13.407Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:37:13.694Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":14}
+{"timestamp":"2026-05-08T00:37:22.948Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:37:22.954Z","level":"info","message":"Analysis saved","filename":"data\\analysis_156820.json"}
+{"timestamp":"2026-05-08T00:37:23.704Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":14}
+{"timestamp":"2026-05-08T00:37:33.720Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":14}
+{"timestamp":"2026-05-08T00:37:37.427Z","level":"info","message":"🔄 LOCAL 8 - 6 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":2,"homeRun":0,"awayRun":3,"phase":"MID"}
+{"timestamp":"2026-05-08T00:37:37.435Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:37:43.731Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":15}
+{"timestamp":"2026-05-08T00:37:53.738Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":15}
+{"timestamp":"2026-05-08T00:37:58.602Z","level":"info","message":"🔄 LOCAL 9 - 6 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":3,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-05-08T00:37:58.659Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:38:03.770Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":16}
+{"timestamp":"2026-05-08T00:38:13.775Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":16}
+{"timestamp":"2026-05-08T00:38:19.810Z","level":"info","message":"🔄 LOCAL 10 - 6 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":4,"homeRun":2,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-05-08T00:38:19.926Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:38:22.964Z","level":"info","message":"JSON saved","filename":"data\\match_156820.json"}
+{"timestamp":"2026-05-08T00:38:22.965Z","level":"info","message":"Analysis saved","filename":"data\\analysis_156820.json"}
+{"timestamp":"2026-05-08T00:38:23.786Z","level":"info","message":"CSV saved","filename":"data\\match_156820.csv","records":17}

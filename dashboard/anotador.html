@@ -521,34 +521,44 @@ function actualizarTitularesSegunSaque() {
         }
 
         document.getElementById('btnLocal').onclick = () => {
-            estado.equipo = 'LOCAL';
-            jugadorSeleccionado = null;
-            estado.accion = null;
-            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
-                btn.classList.remove('seleccionado');
-            });
-            document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
-            document.getElementById('btnErrorRival').classList.remove('seleccionado');
-            document.getElementById('btnLocal').classList.add('bg-blue-700');
-            document.getElementById('btnVisitante').classList.remove('bg-blue-700');
-            document.getElementById('btnVisitante').classList.add('bg-gray-700');
-            mostrarFeedback(`🔵 ${homeTeamName} seleccionado`, 'info');
-        };
+    estado.equipo = 'LOCAL';
+    jugadorSeleccionado = null;
+    estado.accion = null;
+    document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+        btn.classList.remove('seleccionado');
+    });
+    document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+    document.getElementById('btnErrorRival').classList.remove('seleccionado');
+    document.getElementById('btnLocal').classList.add('bg-blue-700');
+    document.getElementById('btnVisitante').classList.remove('bg-blue-700');
+    document.getElementById('btnVisitante').classList.add('bg-gray-700');
+    
+    // ✅ AGREGAR ESTAS DOS LÍNEAS
+    actualizarCancha();
+    renderizarBanco();
+    
+    mostrarFeedback(`🔵 ${homeTeamName} seleccionado`, 'info');
+};
 
         document.getElementById('btnVisitante').onclick = () => {
-            estado.equipo = 'VISITANTE';
-            jugadorSeleccionado = null;
-            estado.accion = null;
-            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
-                btn.classList.remove('seleccionado');
-            });
-            document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
-            document.getElementById('btnErrorRival').classList.remove('seleccionado');
-            document.getElementById('btnVisitante').classList.add('bg-blue-700');
-            document.getElementById('btnLocal').classList.remove('bg-blue-700');
-            document.getElementById('btnLocal').classList.add('bg-gray-700');
-            mostrarFeedback(`🔴 ${awayTeamName} seleccionado`, 'info');
-        };
+    estado.equipo = 'VISITANTE';
+    jugadorSeleccionado = null;
+    estado.accion = null;
+    document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+        btn.classList.remove('seleccionado');
+    });
+    document.querySelectorAll('.accion-rapida-btn').forEach(b => b.classList.remove('seleccionado'));
+    document.getElementById('btnErrorRival').classList.remove('seleccionado');
+    document.getElementById('btnVisitante').classList.add('bg-blue-700');
+    document.getElementById('btnLocal').classList.remove('bg-blue-700');
+    document.getElementById('btnLocal').classList.add('bg-gray-700');
+    
+    // ✅ AGREGAR ESTAS DOS LÍNEAS
+    actualizarCancha();
+    renderizarBanco();
+    
+    mostrarFeedback(`🔴 ${awayTeamName} seleccionado`, 'info');
+};
 
         document.getElementById('btnErrorRival').onclick = () => {
             estado.accion = 'ERROR_RIVAL';
