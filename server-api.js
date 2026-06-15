@@ -1,12 +1,32 @@
 // server-api.js - Servidor Express con API REST + WebSocket
-const express = require('express');
 const cors = require('cors');
+const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
 
-// Manejador de errores no capturados
+async function obtenerEstadoPartido(matchId) {
+    try {
+        const filePath = path.join(__dirname, 'data', `match_${matchId}.json`);
+        const data = await fs.readFile(filePath, 'utf-8');
+        const puntos = JSON.parse(data);
+        if (puntos && puntos.length > 0) {
+            const ultimo = puntos[puntos.length - 1];
+            return {
+                homeScore: ultimo.homeScore || 0,
+                awayScore: ultimo.awayScore || 0,
+                set: ultimo.set || 1,
+                homeTeam: ultimo.homeTeam,
+                awayTeam: ultimo.awayTeam,
+                lastPoint: ultimo
+            };
+        }
+    } catch(e) {
+        console.log(`⚠️ No se pudo leer el estado del partido ${matchId}:`, e.message);
+    }
+    return null;
+}
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
 });
@@ -16,20 +36,29 @@ process.on('uncaughtException', (error) => {
 });
 
 const app = express();
+const corsOptions = {
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+        origin: true,
+        methods: ['GET', 'POST'],
+        credentials: true,
+        transports: ['polling', 'websocket']
     }
 });
 
 const PORT = process.env.PORT || 3002;
 
-// Middleware
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static('./'));
 
 app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -38,32 +67,49 @@ app.use((req, res, next) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     next();
 });
-// ============================================
-// 🔌 WEB SOCKET - CONEXIONES
-// ============================================
 
-const connectedClients = new Map(); // matchId -> Set de sockets
+
+
+const connectedClients = new Map(); 
 
 io.on('connection', (socket) => {
     console.log('🔌 Cliente conectado:', socket.id);
     
-    socket.on('subscribe', (matchId) => {
-        socket.matchId = matchId;
-        if (!connectedClients.has(matchId)) {
-            connectedClients.set(matchId, new Set());
-        }
-        connectedClients.get(matchId).add(socket);
-        console.log(`📡 Cliente ${socket.id} suscrito a partido ${matchId}`);
-        socket.emit('subscribed', { matchId, status: 'ok' });
-    });
+    socket.on('subscribe', async (matchId) => {
+    socket.matchId = matchId;
+    if (!connectedClients.has(matchId)) {
+        connectedClients.set(matchId, new Set());
+    }
+    connectedClients.get(matchId).add(socket);
+    console.log(`📡 Cliente ${socket.id} suscrito a partido ${matchId}`);
+     
+    // ✅ Enviar confirmación
+    socket.emit('subscribed', { matchId, status: 'ok' });
     
-    socket.on('unsubscribe', () => {
-        if (socket.matchId && connectedClients.has(socket.matchId)) {
-            connectedClients.get(socket.matchId).delete(socket);
-            console.log(`📡 Cliente ${socket.id} desuscrito`);
-        }
-    });
+    // ✅ ENVIAR ESTADO ACTUAL DEL PARTIDO (esto es lo que faltaba)
+    const estadoActual = await obtenerEstadoPartido(matchId);
+    if (estadoActual) {
+        socket.emit('match_update', estadoActual);
+        console.log(`📤 Estado actual enviado a ${socket.id}: ${estadoActual.homeScore} - ${estadoActual.awayScore}`);
+    }
+});
     
+socket.on('unsubscribe', (matchId) => {
+    // Salir del room (si usás rooms)
+    socket.leave(`match_${matchId}`);
+    
+    // ✅ Limpiar del Map de clientes conectados
+    if (connectedClients.has(matchId)) {
+        connectedClients.get(matchId).delete(socket);
+        if (connectedClients.get(matchId).size === 0) {
+            connectedClients.delete(matchId);
+        }
+    }
+    
+    console.log(`📡 Cliente ${socket.id} desuscrito de partido ${matchId}`);
+});
+    socket.on('ping_keepalive', () => {
+    });
     socket.on('disconnect', () => {
         if (socket.matchId && connectedClients.has(socket.matchId)) {
             connectedClients.get(socket.matchId).delete(socket);
@@ -82,6 +128,7 @@ function emitNewPoint(matchId, pointData) {
     }
 }
 
+
 app.post('/api/webhook/point', (req, res) => {
     const { matchId, point } = req.body;
     if (matchId && point) {
@@ -91,10 +138,6 @@ app.post('/api/webhook/point', (req, res) => {
         res.status(400).json({ success: false, error: 'Faltan datos' });
     }
 });
-
-// ============================================
-// 📡 API REST PROPIA
-// ============================================
 
 app.get('/api/matches', async (req, res) => {
     try {
@@ -304,11 +347,7 @@ app.get('/api/status', (req, res) => {
     res.json({ success: true, status: 'online', version: '2.5.0', timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status'] });
 });
 
-// ============================================
-// SERVICIO DE ARCHIVOS ESTÁTICOS
-// ============================================
-
-app.get('/data/config.json', async (req, res) => {
+app.get('/api/config', async (req, res) => {
     try {
         const configPath = path.join(__dirname, 'data', 'config.json');
         const data = await fs.readFile(configPath, 'utf-8');
@@ -318,20 +357,31 @@ app.get('/data/config.json', async (req, res) => {
     }
 });
 
-app.get('/data/:filename', async (req, res) => {
+app.post('/api/config', async (req, res) => {
     try {
-        const filename = req.params.filename;
-        const filePath = path.join(__dirname, 'data', filename);
-        const data = await fs.readFile(filePath, 'utf-8');
-        res.json(JSON.parse(data));
+        const { matchId } = req.body;
+        if (!matchId) {
+            return res.status(400).json({ error: 'matchId requerido' });
+        }
+        
+        const configPath = path.join(__dirname, 'data', 'config.json');
+        let config = {};
+        try {
+            const data = await fs.readFile(configPath, 'utf-8');
+            config = JSON.parse(data);
+        } catch(e) {}
+        
+        config.matchId = matchId;
+        await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
+        
+        res.json({ success: true, matchId });
     } catch(e) {
-        res.status(404).json({ error: 'File not found' });
+        res.status(500).json({ error: e.message });
     }
 });
 
-// ============================================
-// INICIAR SERVIDOR (con server.listen para WebSocket)
-// ============================================
+
+app.use(express.static('./'));
 
 server.listen(PORT, () => {
     console.log(`
@@ -342,7 +392,6 @@ server.listen(PORT, () => {
 ║   📡 API REST: http://localhost:${PORT}/api/status           ║
 ║   🔌 WebSocket: ws://localhost:${PORT}                       ║
 ║   🖥️  Dashboard: http://localhost:${PORT}/dashboard/index.html ║
-║   📝 Anotador:  http://localhost:${PORT}/dashboard/anotador.html ║
 ║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
     `);

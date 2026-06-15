@@ -35,8 +35,6 @@
         .banco-equipo-nombre.visitante { color: #f9a8d4; }
         .banco-badge { font-size: 10px; background: #1a1f2e; padding: 2px 8px; border-radius: 20px; color: #9ca3af; }
         .serving-badge { margin-top: 8px; display: inline-block; background: #1e3a5f; padding: 4px 12px; border-radius: 60px; font-size: 11px; font-weight: 600; }
-        
-        /* Para que los botones no se muevan */
         .jugador-btn, .banco-item {
             transition: background 0.15s ease;
             cursor: pointer;
@@ -541,7 +539,7 @@ function actualizarTitularesSegunSaque() {
 };
 
         document.getElementById('btnVisitante').onclick = () => {
-    estado.equipo = 'VISITANTE';
+    estado.equipo = 'VISITANTE';z
     jugadorSeleccionado = null;
     estado.accion = null;
     document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
@@ -553,6 +551,7 @@ function actualizarTitularesSegunSaque() {
     document.getElementById('btnLocal').classList.remove('bg-blue-700');
     document.getElementById('btnLocal').classList.add('bg-gray-700');
     
+    // ✅ AGREGAR ESTAS DOS LÍNEAS
     actualizarCancha();
     renderizarBanco();
     

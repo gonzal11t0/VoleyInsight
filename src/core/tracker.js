@@ -1,3 +1,4 @@
+// src/core/tracker.js
 const logger = require('../utils/logger');
 const config = require('../config');
 const MetroVoleyAPI = require('../services/api');
@@ -21,6 +22,7 @@ class MatchTracker {
         this.pollInterval = null;
         this.saveInterval = null;
         this.statsInterval = null;
+        this.configMonitorInterval = null;  // ✅ NUEVO: para monitorear config.json
         this.notifier = null;
         this.socket = null;
         this.connectWebSocket();
@@ -30,136 +32,242 @@ class MatchTracker {
         this.maxReconnectDelay = 60000;
         this.lastSuccessfulFetch = null;
     }
-connectWebSocket() {
-    try {
-        this.socket = io('http://localhost:3002');
-        
-        this.socket.on('connect', () => {
-            logger.info('🔌 WebSocket conectado al servidor');
-            this.socket.emit('subscribe', this.matchId);
-        });
-        
-        this.socket.on('disconnect', () => {
-            logger.warn('⚠️ WebSocket desconectado, reintentando en 5s');
-            setTimeout(() => this.connectWebSocket(), 5000);
-        });
-        
-        this.socket.on('subscribed', (data) => {
-            logger.info(`📡 Suscrito a partido ${data.matchId}`);
-        });
-    } catch(e) {
-        logger.error('Error conectando WebSocket:', e.message);
+
+    connectWebSocket() {
+        try {
+            this.socket = io('http://localhost:3002');
+            
+            this.socket.on('connect', () => {
+                logger.info('🔌 WebSocket conectado al servidor');
+                this.socket.emit('subscribe', this.matchId);
+            });
+            
+            this.socket.on('disconnect', () => {
+                logger.warn('⚠️ WebSocket desconectado, reintentando en 5s');
+                setTimeout(() => this.connectWebSocket(), 5000);
+            });
+            
+            this.socket.on('subscribed', (data) => {
+                logger.info(`📡 Suscrito a partido ${data.matchId}`);
+            });
+            
+            // ✅ NUEVO: Escuchar evento de cambio de partido desde el dashboard
+            this.socket.on('cambiar_partido', async (data) => {
+                logger.info(`🔄 Recibido cambio de partido a ${data.matchId} via WebSocket`);
+                if (data.matchId && data.matchId !== this.matchId) {
+                    await this.cambiarPartido(data.matchId);
+                }
+            });
+            
+        } catch(e) {
+            logger.error('Error conectando WebSocket:', e.message);
+        }
     }
-}
-   async fetchAndProcess() {
-    if (this.isReconnecting) {
-        logger.debug('Already reconnecting, skipping fetch');
-        return;
-    }
-    
-    try {
-        const data = await this.api.fetchUpdates();
+
+    // ✅ NUEVO: Método para cambiar de partido dinámicamente
+    async cambiarPartido(nuevoMatchId) {
+        logger.info(`🔄 Cambiando partido de ${this.matchId} a ${nuevoMatchId}`);
         
-        if (this.consecutiveErrors > 0) {
-            logger.info(`✅ Conexión restablecida después de ${this.consecutiveErrors} errores`);
-            this.consecutiveErrors = 0;
-            this.reconnectDelay = 1000;
-            await this.notifyConnectionRestored();
+        // Guardar datos actuales antes de cambiar
+        if (this.repository.snapshots.length > 0) {
+            await this.repository.saveJSON();
+            logger.info(`💾 Datos del partido ${this.matchId} guardados`);
         }
         
-        this.lastSuccessfulFetch = new Date();
+        // Actualizar ID y reinicializar componentes
+        this.matchId = nuevoMatchId;
+        this.api = new MetroVoleyAPI(this.matchId);
+        this.repository = new DataRepository(this.matchId);
         
-        const snapshot = this.processor.processUpdate(data);
+        // Crear archivo si no existe
+        await this.crearArchivoPartidoVacio(this.matchId);
         
-        if (snapshot) {
-            this.repository.addSnapshot(snapshot);
-            this.logSnapshot(snapshot);
+        // Limpiar snapshots actuales
+        this.repository.snapshots = [];
+        
+        // Resuscribir WebSocket al nuevo partido
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('unsubscribe');
+            this.socket.emit('subscribe', this.matchId);
+        }
+        
+        // Resetear contadores de errores
+        this.consecutiveErrors = 0;
+        this.isReconnecting = false;
+        this.reconnectDelay = 1000;
+        
+        // Forzar una actualización inmediata
+        setTimeout(() => this.fetchAndProcess(), 1000);
+        
+        logger.info(`✅ Partido cambiado a ${nuevoMatchId}`);
+    }
+
+    // ✅ NUEVO: Crear archivo de partido vacío si no existe
+    async crearArchivoPartidoVacio(matchId) {
+        try {
+            const filePath = path.join('./data', `match_${matchId}.json`);
+            const existe = await fs.access(filePath).then(() => true).catch(() => false);
             
-            // ✅ WebSocket: enviar punto (AHORA DENTRO del bloque donde snapshot existe)
-            if (this.socket && this.socket.connected) {
-                if (snapshot.scorer) {
-                    this.socket.emit('new_point', {
-                        matchId: this.matchId,
-                        point: snapshot
-                    });
+            if (!existe) {
+                const estructuraInicial = [{
+                    "timestamp": new Date().toISOString(),
+                    "set": 1,
+                    "homeTeam": "LOCAL",
+                    "awayTeam": "VISITANTE",
+                    "homeScore": 0,
+                    "awayScore": 0,
+                    "scorer": null,
+                    "serving": "HOME",
+                    "homeRun": 0,
+                    "awayRun": 0,
+                    "lead": 0,
+                    "phase": "EARLY",
+                    "event": "INICIO"
+                }];
+                await fs.writeFile(filePath, JSON.stringify(estructuraInicial, null, 2), 'utf-8');
+                logger.info(`📄 Archivo creado para partido ${matchId}`);
+                
+                // También crear full_ vacío
+                const fullPath = path.join('./data', `full_${matchId}.json`);
+                const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
+                if (!fullExiste) {
+                    await fs.writeFile(fullPath, JSON.stringify({ matchId, liveState: { court: null } }, null, 2), 'utf-8');
+                }
+            }
+        } catch(e) {
+            logger.warn('Error creando archivo:', e.message);
+        }
+    }
+
+    // ✅ NUEVO: Monitorear cambios en config.json
+    async iniciarMonitoreoConfig() {
+        let ultimoMatchId = this.matchId;
+        
+        this.configMonitorInterval = setInterval(async () => {
+            try {
+                const configPath = path.join('./data', 'config.json');
+                const configData = await fs.readFile(configPath, 'utf-8');
+                const configFile = JSON.parse(configData);
+                
+                if (configFile.matchId && configFile.matchId !== ultimoMatchId) {
+                    logger.info(`📋 [MONITOR] config.json cambió: ${ultimoMatchId} -> ${configFile.matchId}`);
+                    ultimoMatchId = configFile.matchId;
                     
-                    // Fallback por HTTP
-                    try {
-                        const fetch = require('node-fetch');
-                        await fetch('http://localhost:3002/api/webhook/point', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                matchId: this.matchId,
-                                point: snapshot
-                            })
-                        });
-                    } catch(e) {
-                        logger.debug('Webhook fallback error:', e.message);
+                    if (configFile.matchId !== this.matchId) {
+                        await this.cambiarPartido(configFile.matchId);
+                        
+                        // Actualizar nombres de equipos si están en config
+                        if (configFile.homeTeam && configFile.awayTeam) {
+                            logger.info(`📋 Equipos: ${configFile.homeTeam} vs ${configFile.awayTeam}`);
+                        }
                     }
+                }
+            } catch(e) {
+                // Silencioso, archivo puede no existir temporalmente
+            }
+        }, 5000); // Revisar cada 5 segundos
+    }
+
+    async fetchAndProcess() {
+        if (this.isReconnecting) {
+            logger.debug('Already reconnecting, skipping fetch');
+            return;
+        }
+        
+        try {
+            const data = await this.api.fetchUpdates();
+            
+            if (this.consecutiveErrors > 0) {
+                logger.info(`✅ Conexión restablecida después de ${this.consecutiveErrors} errores`);
+                this.consecutiveErrors = 0;
+                this.reconnectDelay = 1000;
+                await this.notifyConnectionRestored();
+            }
+            
+            this.lastSuccessfulFetch = new Date();
+            
+            const snapshot = this.processor.processUpdate(data);
+            
+            if (snapshot) {
+                this.repository.addSnapshot(snapshot);
+                this.logSnapshot(snapshot);
+                if (this.socket && this.socket.connected) {
+                    if (snapshot.scorer) {
+                        this.socket.emit('new_point', {
+                            matchId: this.matchId,
+                            point: snapshot
+                        });
+                        
+                        try {
+                            const fetch = require('node-fetch');
+                            await fetch('http://localhost:3002/api/webhook/point', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    matchId: this.matchId,
+                                    point: snapshot
+                                })
+                            });
+                        } catch(e) {
+                            logger.debug('Webhook fallback error:', e.message);
+                        }
+                    }
+                }
+                
+                try {
+                    await this.repository.saveJSON();
+                } catch (saveError) {
+                    console.error('Error guardando JSON:', saveError.message);
                 }
             }
             
             try {
-                await this.repository.saveJSON();
-            } catch (saveError) {
-                console.error('Error guardando JSON:', saveError.message);
+                const fullDataPath = path.join('./data', `full_${this.matchId}.json`);
+                await fs.writeFile(fullDataPath, JSON.stringify(data, null, 2), 'utf-8');
+                
+                if (data.court) {
+                    const courtPath = path.join('./data', `court_${this.matchId}.json`);
+                    await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
+                } else {
+                    console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
+                }
+            } catch (e) {
+                console.error('Error guardando datos completos:', e.message);
             }
-        }
-        
-        try {
-            const fullDataPath = path.join('./data', `full_${this.matchId}.json`);
-            await fs.writeFile(fullDataPath, JSON.stringify(data, null, 2), 'utf-8');
             
-            if (data.court) {
-                const courtPath = path.join('./data', `court_${this.matchId}.json`);
-                await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
-            } else {
-                console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
+            await this.fetchStats();
+            
+        } catch (error) {
+            this.consecutiveErrors++;
+            logger.error(`❌ Error en fetch (${this.consecutiveErrors} consecutivos):`, {
+                error: error.message,
+                name: error.name
+            });
+            
+            if (this.consecutiveErrors >= 3 && !this.isReconnecting) {
+                await this.attemptReconnection();
             }
-        } catch (e) {
-            console.error('Error guardando datos completos:', e.message);
-        }
-        
-        await this.fetchStats();
-        
-    } catch (error) {
-        this.consecutiveErrors++;
-        logger.error(`❌ Error en fetch (${this.consecutiveErrors} consecutivos):`, {
-            error: error.message,
-            name: error.name
-        });
-        
-        if (this.consecutiveErrors >= 3 && !this.isReconnecting) {
-            await this.attemptReconnection();
         }
     }
-}
-    // ✅ NUEVO MÉTODO: Intentar reconexión con backoff exponencial
+
     async attemptReconnection() {
         this.isReconnecting = true;
         
-        // Calcular delay con backoff exponencial (1s, 2s, 4s, 8s, 16s, 32s, 60s...)
         const delay = Math.min(this.reconnectDelay * Math.pow(2, this.consecutiveErrors - 3), this.maxReconnectDelay);
         
         logger.warn(`🔄 Intentando reconexión... (delay: ${delay}ms, error #${this.consecutiveErrors})`);
         
-        // Notificar al frontend
         await this.notifyReconnecting(delay);
         
-        // Esperar antes de reintentar
         await this.sleep(delay);
         
-        // Actualizar delay para el próximo intento
         this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
         
         this.isReconnecting = false;
         
-        // Forzar un fetch inmediato
         await this.fetchAndProcess();
     }
 
-    // ✅ NUEVO MÉTODO: Notificar que estamos reconectando
     async notifyReconnecting(delay) {
         try {
             const status = {
@@ -176,7 +284,6 @@ connectWebSocket() {
         }
     }
 
-    // ✅ NUEVO MÉTODO: Notificar que la conexión se restauró
     async notifyConnectionRestored() {
         try {
             const status = {
@@ -187,7 +294,6 @@ connectWebSocket() {
             const statusPath = path.join('./data', `tracker_status_${this.matchId}.json`);
             await fs.writeFile(statusPath, JSON.stringify(status, null, 2), 'utf-8');
             
-            // Eliminar después de 5 segundos (solo para notificar el evento)
             setTimeout(async () => {
                 try {
                     await fs.unlink(statusPath);
@@ -200,7 +306,6 @@ connectWebSocket() {
         }
     }
 
-    // ✅ NUEVO MÉTODO: Sleep helper
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -244,7 +349,6 @@ connectWebSocket() {
     handleWebSocketError(error) {
         logger.warn('WebSocket error', { error: error.message });
         
-        // ✅ También manejar reconexión para WebSocket
         if (!this.isReconnecting && this.consecutiveErrors >= 2) {
             this.attemptReconnection();
         }
@@ -253,8 +357,8 @@ connectWebSocket() {
     logSnapshot(snapshot) {
         const { set, homeTeam, homeScore, awayScore, awayTeam, scorer, event } = snapshot;
         
-        const eventEmoji = event.includes('BREAK') ? '⚡' : 
-                           event.includes('SIDEOUT') ? '🔄' : '🎯';
+        const eventEmoji =  event.includes('BREAK') ? '⚡' : 
+                            event.includes('SIDEOUT') ? '🔄' : '🎯';
         
         logger.info(`${eventEmoji} ${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`, {
             set,
@@ -269,8 +373,6 @@ connectWebSocket() {
 
     startPolling() {
         logger.info('Starting polling mode', { interval: config.match.pollIntervalMs });
-        
-        // ✅ Usar el nuevo método start() que maneja reconexión
         this.start();
     }
 
@@ -299,22 +401,24 @@ connectWebSocket() {
         }, 60000);
     }
 
-    // ✅ MÉTODO PRINCIPAL MODIFICADO
     async start() {
         this.isRunning = true;
         logger.info(`🚀 Iniciando tracker para partido ${this.matchId} con reconexión automática`);
         
-        // Ejecutar fetch inmediatamente
+        // Crear archivo si no existe
+        await this.crearArchivoPartidoVacio(this.matchId);
+        
+        // ✅ NUEVO: Iniciar monitoreo de config.json
+        await this.iniciarMonitoreoConfig();
+        
         await this.fetchAndProcess();
         
-        // Configurar polling con manejo de reconexión
         this.pollInterval = setInterval(async () => {
             if (this.isRunning) {
                 await this.fetchAndProcess();
             }
         }, config.match.pollIntervalMs || 3000);
         
-        // Iniciar otros servicios
         this.startSaving();
         this.startWebSocket();
     }
@@ -370,6 +474,7 @@ connectWebSocket() {
         if (this.pollInterval) clearInterval(this.pollInterval);
         if (this.saveInterval) clearInterval(this.saveInterval);
         if (this.statsInterval) clearInterval(this.statsInterval);
+        if (this.configMonitorInterval) clearInterval(this.configMonitorInterval); // ✅ NUEVO
         
         await this.repository.saveCSV();
         await this.repository.saveJSON();

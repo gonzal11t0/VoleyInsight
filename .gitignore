@@ -5,3 +5,12 @@
 "ngrok.yml" 
 ".DS_Store" 
 "*.log" 
+node_modules/ 
+node_modules/ 
+data/*.json 
+data/api_url.txt 
+tracker.log 
+*.log 
+cloudflared.exe 
+ngrok.exe 
+.env 

@@ -1,0 +1,35 @@
+<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="800" height="800" fill="white"/>
+
+  <!-- Volleyball -->
+  <circle cx="320" cy="280" r="90" stroke="url(#gradient)" stroke-width="16" fill="none"/>
+  <path d="M250 230C290 260 310 320 290 370" stroke="url(#gradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M350 200C390 250 390 320 350 370" stroke="url(#gradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <path d="M240 300C300 260 360 260 400 310" stroke="url(#gradient)" stroke-width="12" stroke-linecap="round" fill="none"/>
+
+  <!-- Upward chart -->
+  <path d="M360 340L430 280L500 320L590 220" stroke="url(#gradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M565 220H590V245" stroke="url(#gradient)" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Bars -->
+  <rect x="400" y="350" width="40" height="90" rx="8" fill="url(#gradient)" opacity="0.85"/>
+  <rect x="470" y="320" width="40" height="120" rx="8" fill="url(#gradient)" opacity="0.9"/>
+  <rect x="540" y="260" width="40" height="180" rx="8" fill="url(#gradient)"/>
+
+  <!-- Text -->
+  <text x="400" y="560"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="72"
+        font-weight="700"
+        fill="url(#gradient)">
+    VoleyInsight
+  </text>
+</svg>

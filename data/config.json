@@ -1,6 +1,20 @@
 {
-  "matchId": 156820,
-  "homeTeam": "ATTITUDE",
-  "awayTeam": "CEDEN",
-  "categoria": "sub_19"
+  "matchId": 272667,
+  "homeTeam": "VELEZ",
+  "awayTeam": "DBANF",
+  "categoria": "sub_21",
+  "partidos": [
+    {
+      "id": 272667,
+      "homeTeam": "VELEZ",
+      "awayTeam": "DBANF",
+      "categoria": "sub_21"
+    },
+    {
+      "id": 272669,
+      "homeTeam": "RIVER",
+      "awayTeam": "MLOMASZ",
+      "categoria": "sub_21"
+    }
+  ]
 }

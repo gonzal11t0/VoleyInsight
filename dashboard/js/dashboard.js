@@ -12,59 +12,752 @@ import {
 } from './StatsHelper.js';
 
 export class VolleyballDashboard {
-    constructor() {
-        this.timeouts = [];
-        this.socket = null;
-        this.useWebSocket = true;
-        this.data = [];
-        this.charts = {};
-        this.matchId = null;
-        this.homeTeamName = "LOCAL";
-        this.awayTeamName = "VISITANTE";
-        this.soundManager = new SoundManager();
-        this.lastPointCount = 0;
-        this.matchEnded = false;
-        this.partidoTerminado = false;
-        this.vistaActual = 'partido';
-        this.filtroSet = 'all';
-        this.puntosJugadores = null;
-        this.chartPuntosJugadores = null;
-        this.jugadoresLocal = {};
-        this.jugadoresVisitante = {};
-        this.refreshInterval = null;
-        this.ultimoPuntoSonido = null;
-        this.categoria = null;
-        this.reglamento = null;
-        this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
-        
-        this.mostrarSkeleton(true);
-        setTimeout(() => this.mostrarSkeleton(false), 5000);
-        
-        document.body.addEventListener('click', () => {
-            if (this.soundManager.audioContext && this.soundManager.audioContext.state === 'suspended') {
-                this.soundManager.audioContext.resume();
-                this.mostrarFeedbackPartido('🔊 Sonidos activados', 'success');
+constructor() {
+    this.timeouts = [];
+    this.socket = null;
+    this.useWebSocket = true;
+    this.data = [];
+    this.charts = {};
+    this.matchId = null;
+    this.homeTeamName = "LOCAL";
+    this.awayTeamName = "VISITANTE";
+    this.soundManager = new SoundManager();
+    this.lastPointCount = 0;
+    this.matchEnded = false;
+    this.partidoTerminado = false;
+    this.vistaActual = 'partido';
+    this.filtroSet = 'all';
+    this.puntosJugadores = null;
+    this.chartPuntosJugadores = null;
+    this.jugadoresLocal = {};
+    this.jugadoresVisitante = {};
+    this.reportesCargados = [];
+    this.chartEvolucion = null;
+    this.refreshInterval = null;
+    this.ultimoPuntoSonido = null;
+    this.categoria = null;
+    this.reglamento = null;
+    this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
+    
+    this.mostrarSkeleton(true);
+    setTimeout(() => this.mostrarSkeleton(false), 5000);
+    
+    document.body.addEventListener('click', () => {
+        if (this.soundManager.audioContext && this.soundManager.audioContext.state === 'suspended') {
+            this.soundManager.audioContext.resume();
+            this.mostrarFeedbackPartido('🔊 Sonidos activados', 'success');
+        }
+    }, { once: true });
+    
+    this.cargarConfiguracion().then(() => {
+        this.cargarReglamento();
+        this.connectWebSocket();
+        this.loadData();
+        this.startAutoRefresh();
+        this.setupRefreshIntervalSelector();
+        this.startConnectionMonitor();
+        this.setupLivePanel();
+        this.setupEventListeners();
+        this.setupPanelMinimizable();
+        this.cargarListaPartidos();
+        this.setupSelectorPartido();
+        this.cargarPuntosJugadores();
+        this.setupTabs();
+        this.setupFiltrosSets();    
+        this.setupEvolucionTab();
+        this.setupReportUpload();
+        this.startAutoRefreshPuntos();
+        this.actualizarSets();
+    });
+}
+limpiarDOMCompletamente() {
+    document.getElementById('homeScore').textContent = '0';
+    document.getElementById('awayScore').textContent = '0';
+    
+    document.getElementById('tablaLocalBody').innerHTML = '';
+    document.getElementById('tablaVisitanteBody').innerHTML = '';
+    
+    document.getElementById('maxRunHome').textContent = '0';
+    document.getElementById('maxRunAway').textContent = '0';
+    document.getElementById('breaksHome').textContent = '0';
+    document.getElementById('breaksAway').textContent = '0';
+    document.getElementById('efficiencyHome').textContent = '0%';
+    document.getElementById('efficiencyAway').textContent = '0%';
+    document.getElementById('totalPoints').textContent = '0';
+    document.getElementById('clutchHome').textContent = '0%';
+    
+    document.getElementById('serviceAcesHome').textContent = '0';
+    document.getElementById('serviceErrorsHome').textContent = '0';
+    document.getElementById('serviceEfficiencyHome').textContent = '0%';
+    document.getElementById('serviceAcesAway').textContent = '0';
+    document.getElementById('serviceErrorsAway').textContent = '0';
+    document.getElementById('serviceEfficiencyAway').textContent = '0%';
+    
+    document.getElementById('sideoutLocalLabel').textContent = '0%';
+    document.getElementById('sideoutVisitanteLabel').textContent = '0%';
+    document.getElementById('breakpointLocalLabel').textContent = '0%';
+    document.getElementById('breakpointVisitanteLabel').textContent = '0%';
+    
+    const sideoutBar = document.getElementById('sideoutBarLocal');
+    const breakpointBar = document.getElementById('breakpointBarLocal');
+    if (sideoutBar) sideoutBar.style.width = '0%';
+    if (breakpointBar) breakpointBar.style.width = '0%';
+    
+    document.getElementById('setsList').innerHTML = '<div class="text-gray-500 text-xs">Cargando sets...</div>';
+    document.getElementById('breakPointsList').innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div>';
+    document.getElementById('timeline').innerHTML = '<div class="text-center text-gray-400 py-8">Esperando datos...</div>';
+    document.getElementById('insightsList').innerHTML = '';
+    document.getElementById('metricInterpretations').innerHTML = '';
+    document.getElementById('actionableRecommendations').innerHTML = '';
+    document.getElementById('setDominance').innerHTML = '<div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div>';
+    
+    if (this.charts.score) { this.charts.score.destroy(); this.charts.score = null; }
+    if (this.charts.momentum) { this.charts.momentum.destroy(); this.charts.momentum = null; }
+    if (this.charts.runs) { this.charts.runs.destroy(); this.charts.runs = null; }
+    if (this.charts.phase) { this.charts.phase.destroy(); this.charts.phase = null; }
+}
+    async cargarListaPartidos() {
+    try {
+        const response = await fetch('/data/config.json');
+        if (response.ok) {
+            const config = await response.json();
+            this.listaPartidos = config.partidos || [];
+            
+            const selector = document.getElementById('partidoSelector');
+            if (selector && this.listaPartidos.length > 0) {
+                selector.innerHTML = this.listaPartidos.map(p => 
+                    `<option value="${p.id}" ${p.id == this.matchId ? 'selected' : ''}>
+                        ${p.id} - ${p.homeTeam} vs ${p.awayTeam}
+                    </option>`
+                ).join('');
             }
-        }, { once: true });
-        
-        this.cargarConfiguracion().then(() => {
-            this.cargarReglamento();
-            this.connectWebSocket();
-            this.loadData();
-            this.startAutoRefresh();
-            this.setupRefreshIntervalSelector();
-            this.startConnectionMonitor();
-            this.setupLivePanel();
-            this.setupEventListeners();
-            this.cargarPuntosJugadores();
-            this.setupTabs();
-            this.setupFiltrosSets();
-            this.cargarPartidosHistoricos();
-            this.startAutoRefreshPuntos();
-            this.actualizarSets();
+        }
+    } catch(e) {
+        console.log('Error cargando lista de partidos');
+    }
+}
+setupPanelMinimizable() {
+    const panelContent = document.getElementById('panelContent');
+    const toggleBtn = document.getElementById('togglePanelBtn');
+    const panelHeader = document.getElementById('panelHeader');
+    
+    if (!panelContent || !toggleBtn) return;
+    
+    const estaMinimizado = localStorage.getItem('panelMinimizado') === 'true';
+    
+    if (estaMinimizado) {
+        panelContent.style.display = 'none';
+        toggleBtn.innerHTML = '+';
+    }
+    
+    const toggle = () => {
+        if (panelContent.style.display === 'none') {
+            panelContent.style.display = 'block';
+            toggleBtn.innerHTML = '−';
+            localStorage.setItem('panelMinimizado', 'false');
+        } else {
+            panelContent.style.display = 'none';
+            toggleBtn.innerHTML = '+';
+            localStorage.setItem('panelMinimizado', 'true');
+        }
+    };
+    
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggle();
+    });
+    
+    if (panelHeader) {
+        panelHeader.addEventListener('click', (e) => {
+            if (e.target === toggleBtn) return;
+            toggle();
         });
     }
-                   mostrarSkeleton(mostrar) {
+}
+
+setupSelectorPartido() {
+    const btn = document.getElementById('cargarPartidoBtn');
+    const selector = document.getElementById('partidoSelector');
+    if (!btn || !selector) return;
+    
+    btn.addEventListener('click', async () => {
+        const nuevoId = parseInt(selector.value);
+        if (!nuevoId || nuevoId == this.matchId) {
+            this.mostrarFeedbackPartido('⚠️ Ya estás en ese partido');
+            return;
+        }
+        
+        const idAnterior = this.matchId;
+        
+        if (this.data && this.data.length > 0) {
+            await this.saveAsHTML();
+        }
+        
+        localStorage.removeItem(`puntos_${this.matchId}`);
+        localStorage.removeItem(`timeouts_${this.matchId}`);
+        localStorage.removeItem(`breaks_${this.matchId}`);
+        localStorage.removeItem(`jugadores_${this.matchId}_local`);
+        localStorage.removeItem(`jugadores_${this.matchId}_visitante`);
+        
+        this.data = [];
+        this.puntosJugadores = [];
+        this.timeouts = [];
+        this.jugadoresLocal = {};
+        this.jugadoresVisitante = {};
+        this.reportesCargados = [];
+        this.ultimoPuntoSonido = null;
+        this.matchEnded = false;
+        this.partidoTerminado = false;
+        
+        if (this.charts.score) { this.charts.score.destroy(); this.charts.score = null; }
+        if (this.charts.momentum) { this.charts.momentum.destroy(); this.charts.momentum = null; }
+        if (this.charts.runs) { this.charts.runs.destroy(); this.charts.runs = null; }
+        if (this.charts.phase) { this.charts.phase.destroy(); this.charts.phase = null; }
+        if (this.chartEvolucion) { this.chartEvolucion.destroy(); this.chartEvolucion = null; }
+        if (this.chartPuntosJugadores) { this.chartPuntosJugadores.destroy(); this.chartPuntosJugadores = null; }
+        
+        this.matchId = nuevoId;
+        
+        const partido = this.listaPartidos?.find(p => p.id === nuevoId);
+        if (partido) {
+            this.homeTeamName = partido.homeTeam;
+            this.awayTeamName = partido.awayTeam;
+        } else {
+            this.homeTeamName = "LOCAL";
+            this.awayTeamName = "VISITANTE";
+        }
+        
+        document.getElementById('homeTeamName').textContent = this.homeTeamName;
+        document.getElementById('awayTeamName').textContent = this.awayTeamName;
+        document.getElementById('homeScore').textContent = '0';
+        document.getElementById('awayScore').textContent = '0';
+        
+        document.getElementById('tablaLocalBody').innerHTML = '';
+        document.getElementById('tablaVisitanteBody').innerHTML = '';
+        document.getElementById('setsList').innerHTML = '<div class="text-gray-500 text-xs">Cargando sets...</div>';
+        document.getElementById('breakPointsList').innerHTML = '<div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div>';
+        document.getElementById('timeline').innerHTML = '<div class="text-center text-gray-400 py-8">Esperando datos...</div>';
+        document.getElementById('insightsList').innerHTML = '';
+        document.getElementById('metricInterpretations').innerHTML = '';
+        document.getElementById('actionableRecommendations').innerHTML = '';
+        document.getElementById('setDominance').innerHTML = '<div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div>';
+        
+        document.getElementById('serviceAcesHome').textContent = '0';
+        document.getElementById('serviceErrorsHome').textContent = '0';
+        document.getElementById('serviceEfficiencyHome').textContent = '0%';
+        document.getElementById('serviceAcesAway').textContent = '0';
+        document.getElementById('serviceErrorsAway').textContent = '0';
+        document.getElementById('serviceEfficiencyAway').textContent = '0%';
+        
+        document.getElementById('maxRunHome').textContent = '0';
+        document.getElementById('maxRunAway').textContent = '0';
+        document.getElementById('breaksHome').textContent = '0';
+        document.getElementById('breaksAway').textContent = '0';
+        document.getElementById('efficiencyHome').textContent = '0%';
+        document.getElementById('efficiencyAway').textContent = '0%';
+        document.getElementById('totalPoints').textContent = '0';
+        document.getElementById('clutchHome').textContent = '0%';
+        
+        const clutchBarHome = document.getElementById('clutchBarHome');
+        const clutchBarAway = document.getElementById('clutchBarAway');
+        if (clutchBarHome) clutchBarHome.style.width = '0%';
+        if (clutchBarAway) clutchBarAway.style.width = '0%';
+        
+        document.getElementById('sideoutLocalLabel').textContent = '0%';
+        document.getElementById('sideoutVisitanteLabel').textContent = '0%';
+        document.getElementById('breakpointLocalLabel').textContent = '0%';
+        document.getElementById('breakpointVisitanteLabel').textContent = '0%';
+        
+        const sideoutBar = document.getElementById('sideoutBarLocal');
+        const breakpointBar = document.getElementById('breakpointBarLocal');
+        if (sideoutBar) sideoutBar.style.width = '0%';
+        if (breakpointBar) breakpointBar.style.width = '0%';
+        
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/config`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId: nuevoId })
+            });
+            if (!response.ok) throw new Error('Error al actualizar config.json');
+            console.log('✅ config.json actualizado en el servidor');
+        } catch(e) {
+            console.error('Error actualizando config.json:', e);
+            this.mostrarFeedbackPartido('❌ Error al cambiar partido en el servidor');
+            return;
+        }
+        
+        if (this.socket) {
+            if (this.socket.connected) {
+                this.socket.emit('unsubscribe', idAnterior);
+                this.socket.emit('subscribe', nuevoId);
+                console.log(`🔄 WebSocket resuscrito: ${idAnterior} → ${nuevoId}`);
+            } else {
+                this.socket.connect();
+                this.socket.once('connect', () => {
+                    this.socket.emit('subscribe', nuevoId);
+                    console.log(`🔄 WebSocket reconectado y suscrito a ${nuevoId}`);
+                });
+            }
+        }
+        
+        await this.loadData();
+        await this.cargarPuntosJugadores();
+        await this.cargarTimeouts();
+        this.actualizarSets();
+        this.updateDashboard();
+        this.actualizarVistaIndividuales();
+        
+        this.mostrarFeedbackPartido(`📊 Cambiado a ${this.homeTeamName} vs ${this.awayTeamName} (${nuevoId})`);
+    });
+}
+async obtenerUrlApi() {
+    try {
+        const response = await fetch('/data/api_url.txt?_t=' + Date.now());
+        if (response.ok) {
+            let url = await response.text();
+            url = url.trim();
+            if (url && (url.startsWith('https') || url.startsWith('http'))) {
+                console.log('✅ API URL desde archivo:', url);
+                return url;
+            }
+        }
+    } catch(e) {
+        console.log('Error leyendo api_url.txt:', e);
+    }
+    
+    console.log('⚠️ Usando localhost:3002 como fallback');
+    return 'http://localhost:3002';
+}
+setupEvolucionTab() {
+    const tabEvolucion = document.getElementById('tabEvolucion');
+    const vistaEvolucion = document.getElementById('vistaEvolucion');
+    const tabPartido = document.getElementById('tabPartido');
+    const tabIndividuales = document.getElementById('tabIndividuales');
+    const tabAnotador = document.getElementById('tabAnotador');
+    const vistaPartido = document.getElementById('vistaPartido');
+    const vistaIndividuales = document.getElementById('vistaIndividuales');
+    const vistaAnotador = document.getElementById('vistaAnotador');
+    
+    if (!tabEvolucion) return;
+    
+    tabEvolucion.addEventListener('click', () => {
+        this.vistaActual = 'evolucion';
+        
+        [tabPartido, tabIndividuales, tabAnotador, tabEvolucion].forEach(tab => {
+            if (tab) {
+                tab.classList.remove('bg-primary', 'text-white');
+                tab.classList.add('bg-gray-700', 'text-gray-300');
+            }
+        });
+        tabEvolucion.classList.remove('bg-gray-700', 'text-gray-300');
+        tabEvolucion.classList.add('bg-primary', 'text-white');
+        
+        if (vistaPartido) vistaPartido.classList.add('hidden');
+        if (vistaIndividuales) vistaIndividuales.classList.add('hidden');
+        if (vistaAnotador) vistaAnotador.classList.add('hidden');
+        if (vistaEvolucion) vistaEvolucion.classList.remove('hidden');
+    });
+}
+
+setupReportUpload() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('reportFilesInput');
+    const reportList = document.getElementById('reportList');
+    const analizarBtn = document.getElementById('analizarComparativaBtn');
+    
+    if (!uploadArea) return;
+    
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-primary', 'bg-primary/10');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('border-primary', 'bg-primary/10');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-primary', 'bg-primary/10');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.html'));
+        this.procesarReportes(files);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        this.procesarReportes(files);
+    });
+    
+    analizarBtn.addEventListener('click', () => {
+        this.generarAnalisisComparativo();
+    });
+}
+
+async procesarReportes(files) {
+    const reportList = document.getElementById('reportList');
+    const analizarBtn = document.getElementById('analizarComparativaBtn');
+    
+    if (!reportList) return;
+    
+    this.reportesCargados = [];
+    reportList.innerHTML = '';
+    
+    for (const file of files) {
+        try {
+            const text = await file.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            
+            const datos = this.extraerDatosDeReporte(doc, file.name);
+            if (datos) {
+                this.reportesCargados.push(datos);
+                
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center bg-gray-800 rounded-lg p-2';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-primary">📄</span>
+                        <span class="text-sm">${datos.nombrePartido || file.name}</span>
+                        <span class="text-xs text-gray-500">${datos.fecha || ''}</span>
+                    </div>
+                    <span class="text-xs text-green-400">✓</span>
+                `;
+                reportList.appendChild(item);
+            }
+        } catch(e) {
+            console.error('Error procesando archivo:', file.name, e);
+            const item = document.createElement('div');
+            item.className = 'flex justify-between items-center bg-red-900/30 rounded-lg p-2';
+            item.innerHTML = `
+                <span class="text-sm text-red-400">❌ Error: ${file.name}</span>
+            `;
+            reportList.appendChild(item);
+        }
+    }
+    
+    if (this.reportesCargados.length >= 1) {
+        analizarBtn.disabled = false;
+        analizarBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        analizarBtn.disabled = true;
+        analizarBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+extraerDatosDeReporte(doc, nombreArchivo) {
+    try {
+        const header = doc.querySelector('.header h1') || doc.querySelector('h1');
+        const fechaElem = doc.querySelector('.date');
+        
+        const statCards = doc.querySelectorAll('.stat-card');
+        let datos = {
+            nombrePartido: '',
+            fecha: fechaElem ? fechaElem.textContent.replace('📅', '').trim() : '',
+            sideoutLocal: 0,
+            sideoutVisitante: 0,
+            breakpointLocal: 0,
+            breakpointVisitante: 0,
+            clutchLocal: 0,
+            eficienciaServicioLocal: 0,
+            eficienciaServicioVisitante: 0,
+            eficienciaLocal: 0,
+            eficienciaVisitante: 0,
+            resultado: ''
+        };
+        const teamScores = doc.querySelectorAll('.team-score');
+        if (teamScores.length >= 2) {
+            const homeNameElem = teamScores[0].querySelector('.team-name');
+            const awayNameElem = teamScores[1].querySelector('.team-name');
+            const homeScoreElem = teamScores[0].querySelector('.score-number');
+            const awayScoreElem = teamScores[1].querySelector('.score-number');
+            
+            datos.nombrePartido = `${homeNameElem?.textContent || 'LOCAL'} vs ${awayNameElem?.textContent || 'VISITANTE'}`;
+            datos.resultado = `${homeScoreElem?.textContent || '0'} - ${awayScoreElem?.textContent || '0'}`;
+        }
+        statCards.forEach(card => {
+            const label = card.querySelector('.stat-label')?.textContent || '';
+            const value = card.querySelector('.stat-value')?.textContent || '0';
+            const numValue = parseFloat(value) || 0;
+            
+            if (label.includes('Rompes') || label.toLowerCase().includes('break')) {
+            }
+            
+            if (label.includes('Eficiencia') && !label.includes('servicio')) {
+                if (label.includes(datos.nombrePartido.split(' vs ')[0]) || (label.includes('LOCAL') && !datos.eficienciaLocal)) {
+                    datos.eficienciaLocal = numValue;
+                } else if (label.includes(datos.nombrePartido.split(' vs ')[1]) || label.includes('VISITANTE')) {
+                    datos.eficienciaVisitante = numValue;
+                }
+            }
+            
+            if (label.includes('Bajo presión') || label.includes('Clutch')) {
+                datos.clutchLocal = numValue;
+            }
+        });
+        
+        const sections = doc.querySelectorAll('.section');
+        sections.forEach(section => {
+            const title = section.querySelector('.section-title')?.textContent || '';
+            if (title.includes('SIDEOUT') || title.includes('Sideout')) {
+                const numbers = section.querySelectorAll('.text-blue-400, .text-red-400, .font-bold');
+                numbers.forEach(num => {
+                    const text = num.textContent;
+                    if (text.includes('%')) {
+                        const val = parseFloat(text);
+                        if (num.classList.contains('text-blue-400') && !datos.sideoutLocal) {
+                            datos.sideoutLocal = val;
+                        } else if (num.classList.contains('text-red-400') && !datos.sideoutVisitante) {
+                            datos.sideoutVisitante = val;
+                        }
+                    }
+                });
+            }
+            
+            if (title.includes('BREAKPOINT') || title.includes('Breakpoint')) {
+                const numbers = section.querySelectorAll('.text-blue-400, .text-red-400, .font-bold');
+                numbers.forEach(num => {
+                    const text = num.textContent;
+                    if (text.includes('%')) {
+                        const val = parseFloat(text);
+                        if (num.classList.contains('text-blue-400') && !datos.breakpointLocal) {
+                            datos.breakpointLocal = val;
+                        } else if (num.classList.contains('text-red-400') && !datos.breakpointVisitante) {
+                            datos.breakpointVisitante = val;
+                        }
+                    }
+                });
+            }
+        });
+        
+        const serviceRows = doc.querySelectorAll('tr');
+        let totalAces = 0, totalErrores = 0, totalSaques = 0;
+        serviceRows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 11) {
+                const aces = parseInt(cells[8]?.textContent) || 0;
+                const errServ = parseInt(cells[9]?.textContent) || 0;
+                const totServ = parseInt(cells[11]?.textContent) || 0;
+                totalAces += aces;
+                totalErrores += errServ;
+                totalSaques += totServ;
+            }
+        });
+        
+        if (totalSaques > 0) {
+            datos.eficienciaServicioLocal = ((totalAces - totalErrores) / totalSaques * 100).toFixed(1);
+        }
+        
+        datos.sideoutLocal = datos.sideoutLocal || 50;
+        datos.breakpointLocal = datos.breakpointLocal || 30;
+        datos.clutchLocal = datos.clutchLocal || 50;
+        datos.eficienciaServicioLocal = datos.eficienciaServicioLocal || 0;
+        datos.eficienciaLocal = datos.eficienciaLocal || 50;
+        
+        return datos;
+        
+    } catch(e) {
+        console.error('Error extrayendo datos:', e);
+        return null;
+    }
+}
+
+generarAnalisisComparativo() {
+    const resultados = document.getElementById('analisisResultados');
+    const resumenElem = document.getElementById('resumenEjecutivo');
+    const fortalezasElem = document.getElementById('fortalezasList');
+    const debilidadesElem = document.getElementById('debilidadesList');
+    const tablaBody = document.getElementById('evolucionTablaBody');
+    
+    if (!resultados || this.reportesCargados.length === 0) return;
+    
+    resultados.classList.remove('hidden');
+    
+    const reportesOrdenados = [...this.reportesCargados].sort((a, b) => {
+        if (a.fecha && b.fecha) {
+            return new Date(a.fecha) - new Date(b.fecha);
+        }
+        return 0;
+    });
+    
+    const ultimo = reportesOrdenados[reportesOrdenados.length - 1];
+    const primero = reportesOrdenados[0];
+    const mejoraSideout = (ultimo.sideoutLocal - primero.sideoutLocal).toFixed(1);
+    const mejoraBreakpoint = (ultimo.breakpointLocal - primero.breakpointLocal).toFixed(1);
+    const mejoraClutch = (ultimo.clutchLocal - primero.clutchLocal).toFixed(1);
+    const mejoraServicio = (ultimo.eficienciaServicioLocal - primero.eficienciaServicioLocal).toFixed(1);
+    
+    let resumenTexto = '';
+    if (reportesOrdenados.length === 1) {
+        resumenTexto = `📊 Análisis del partido: ${ultimo.nombrePartido}. ` +
+            `El equipo tuvo una eficiencia del ${ultimo.eficienciaLocal}%, con Sideout del ${ultimo.sideoutLocal}% ` +
+            `y Breakpoint del ${ultimo.breakpointLocal}%. ` +
+            `Bajo presión convirtió el ${ultimo.clutchLocal}% de los puntos.`;
+    } else {
+        const tendenciaSideout = mejoraSideout > 0 ? 'mejoró' : (mejoraSideout < 0 ? 'empeoró' : 'se mantuvo');
+        const tendenciaBreakpoint = mejoraBreakpoint > 0 ? 'mejoró' : (mejoraBreakpoint < 0 ? 'empeoró' : 'se mantuvo');
+        
+        resumenTexto = `📈 Evolución a lo largo de ${reportesOrdenados.length} partidos. ` +
+            `Sideout% ${tendenciaSideout} ${Math.abs(mejoraSideout)} puntos (${primero.sideoutLocal}% → ${ultimo.sideoutLocal}%). ` +
+            `Breakpoint% ${tendenciaBreakpoint} ${Math.abs(mejoraBreakpoint)} puntos (${primero.breakpointLocal}% → ${ultimo.breakpointLocal}%). ` +
+            `Clutch% ${mejoraClutch > 0 ? 'mejoró' : (mejoraClutch < 0 ? 'empeoró' : 'se mantuvo')} en momentos clave.`;
+    }
+    resumenElem.textContent = resumenTexto;
+    
+    let fortalezas = [];
+    let debilidades = [];
+    
+    if (ultimo.sideoutLocal > 60) {
+        fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Excelente eficiencia cuando el equipo tiene el saque.`);
+    } else if (ultimo.sideoutLocal < 45) {
+        debilidades.push(`⚠️ Sideout% bajo (${ultimo.sideoutLocal}%) - Dificultad para anotar con saque propio.`);
+    }
+    
+    if (ultimo.breakpointLocal > 40) {
+        fortalezas.push(`⚡ Breakpoint% del ${ultimo.breakpointLocal}% - Buena capacidad para romper el saque rival.`);
+    } else if (ultimo.breakpointLocal < 25) {
+        debilidades.push(`🔻 Breakpoint% bajo (${ultimo.breakpointLocal}%) - Problemas en recepción y contraataque.`);
+    }
+    
+    if (ultimo.clutchLocal > 60) {
+        fortalezas.push(`🧠 Clutch% del ${ultimo.clutchLocal}% - El equipo rinde bien bajo presión.`);
+    } else if (ultimo.clutchLocal < 40) {
+        debilidades.push(`😰 Clutch% bajo (${ultimo.clutchLocal}%) - Dificultad en momentos clave del set.`);
+    }
+    
+    if (ultimo.eficienciaServicioLocal > 10) {
+        fortalezas.push(`🏐 Eficiencia de servicio del ${ultimo.eficienciaServicioLocal}% - Saque efectivo y con pocos errores.`);
+    } else if (ultimo.eficienciaServicioLocal < 0) {
+        debilidades.push(`❌ Eficiencia de servicio negativa (${ultimo.eficienciaServicioLocal}%) - Muchos errores de saque.`);
+    }
+    
+    if (fortalezas.length === 0) {
+        fortalezas.push('📌 No se detectaron fortalezas destacadas en este partido.');
+    }
+    if (debilidades.length === 0) {
+        debilidades.push('📌 No se detectaron debilidades críticas en este partido.');
+    }
+    
+    fortalezasElem.innerHTML = fortalezas.map(f => `<div class="bg-green-900/20 rounded-lg p-2 border-l-4 border-green-500">${f}</div>`).join('');
+    debilidadesElem.innerHTML = debilidades.map(d => `<div class="bg-red-900/20 rounded-lg p-2 border-l-4 border-red-500">${d}</div>`).join('');
+    
+    let tablaHtml = '';
+    for (let i = 0; i < reportesOrdenados.length; i++) {
+        const r = reportesOrdenados[i];
+        const sideoutColor = r.sideoutLocal >= 60 ? 'text-green-400' : (r.sideoutLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
+        const breakpointColor = r.breakpointLocal >= 40 ? 'text-green-400' : (r.breakpointLocal >= 25 ? 'text-yellow-400' : 'text-red-400');
+        const clutchColor = r.clutchLocal >= 60 ? 'text-green-400' : (r.clutchLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
+        const servicioColor = r.eficienciaServicioLocal >= 10 ? 'text-green-400' : (r.eficienciaServicioLocal >= 0 ? 'text-yellow-400' : 'text-red-400');
+        const eficienciaColor = r.eficienciaLocal >= 55 ? 'text-green-400' : (r.eficienciaLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
+        
+        tablaHtml += `<tr class="border-b border-gray-700">
+            <td class="py-2">
+                <div class="font-medium">${r.nombrePartido}</div>
+                <div class="text-xs text-gray-500">${r.fecha || ''} ${r.resultado ? `| ${r.resultado}` : ''}</div>
+            </td>
+            <td class="text-center ${sideoutColor} font-bold">${r.sideoutLocal}%</td>
+            <td class="text-center ${breakpointColor} font-bold">${r.breakpointLocal}%</td>
+            <td class="text-center ${clutchColor} font-bold">${r.clutchLocal}%</td>
+            <td class="text-center ${servicioColor} font-bold">${r.eficienciaServicioLocal}%</td>
+            <td class="text-center ${eficienciaColor} font-bold">${r.eficienciaLocal}%</td>
+         </tr>`;
+    }
+    tablaBody.innerHTML = tablaHtml;
+    
+    this.renderEvolucionChart(reportesOrdenados);
+}
+
+renderEvolucionChart(reportes) {
+    const canvas = document.getElementById('evolucionChart');
+    if (!canvas) return;
+    
+    if (this.chartEvolucion) {
+        this.chartEvolucion.destroy();
+    }
+    
+    const labels = reportes.map(r => {
+        const nombre = r.nombrePartido.split(' vs ')[0];
+        return nombre.length > 15 ? nombre.substring(0, 12) + '...' : nombre;
+    });
+    
+    this.chartEvolucion = new Chart(canvas, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Sideout%',
+                    data: reportes.map(r => r.sideoutLocal),
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2
+                },
+                {
+                    label: 'Breakpoint%',
+                    data: reportes.map(r => r.breakpointLocal),
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245,158,11,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2
+                },
+                {
+                    label: 'Clutch%',
+                    data: reportes.map(r => r.clutchLocal),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2
+                },
+                {
+                    label: 'Efi. Servicio%',
+                    data: reportes.map(r => r.eficienciaServicioLocal),
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168,85,247,0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.2,
+                    borderDash: [5, 5]
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#fff', font: { size: 10 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}%`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    ticks: { color: '#9ca3af', callback: (v) => v + '%' },
+                    grid: { color: '#1f2937' }
+                },
+                x: {
+                    ticks: { color: '#9ca3af', maxRotation: 45, minRotation: 45 },
+                    grid: { color: '#1f2937' }
+                }
+            }
+        }
+    });
+}                   mostrarSkeleton(mostrar) {
                 const skeleton = document.getElementById('skeletonLoader');
                 const realContent = document.getElementById('realContent');
                 if (mostrar) { if(skeleton) skeleton.style.display = 'flex'; if(realContent) realContent.style.display = 'none'; }
@@ -96,42 +789,70 @@ export class VolleyballDashboard {
                 monitor(); this.checkConnection();
             }
             
-            connectWebSocket() {
+            async connectWebSocket() {
                 if (!this.useWebSocket) return;
                 try {
-                    this.socket = io('http://localhost:3002', { reconnection: true, reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
-                    this.socket.on('connect', () => { console.log('🔌 WebSocket conectado'); this.socket.emit('subscribe', this.matchId); this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada'); });
-                    this.socket.on('new_point', (data) => { console.log('⚡ Punto en tiempo real:', data); this.loadData(); this.actualizarSets(); });
-                    this.socket.on('disconnect', () => { console.log('⚠️ WebSocket desconectado, usando polling'); this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling'); });
-                    this.socket.on('subscribed', (data) => { console.log(`📡 Suscrito a partido ${data.matchId}`); });
-                } catch(e) { console.log('WebSocket no disponible, usando polling'); this.useWebSocket = false; }
+                    const apiUrl = await this.obtenerUrlApi();
+                    this.socket = io(apiUrl, {
+                        transports: ['polling', 'websocket'],
+                        reconnection: true
+                    });
+                    
+                    this.socket.on('connect', () => {
+                        this.socket.emit('subscribe', this.matchId);
+                        this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
+                    });
+                    
+                    this.socket.on('new_point', (data) => {
+                        this.loadData();
+                        this.actualizarSets();
+                    });
+                    
+                    this.socket.on('disconnect', () => {
+                        this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling');
+                    });
+                    this.socket.on('match_update', (data) => {
+                    console.log('📊 Estado actual recibido:', data);
+                    document.getElementById('homeScore').textContent = data.homeScore;
+                    document.getElementById('awayScore').textContent = data.awayScore;
+                    // Si querés actualizar también el set y otros datos:
+                    if (data.set) {
+                        // actualizar set si es necesario
+                    }
+                });
+                    setInterval(() => {
+                        if (this.socket && this.socket.connected) {
+                            this.socket.emit('ping_keepalive');
+                        }
+                    }, 25000);
+                    
+                } catch(e) {
+                    console.log('WebSocket no disponible, usando polling');
+                    this.useWebSocket = false;
+                }
             }
             async cargarReglamento() {
-    try {
-        const response = await fetch('/data/reglamento.json');
-        if (response.ok) {
-            const data = await response.json();
-            this.reglamento = data;
-            console.log('📜 Reglamento cargado:', this.reglamento);
-            
-            // Cargar categoría desde config.json
-            const configResponse = await fetch('/data/config.json');
-            if (configResponse.ok) {
-                const config = await configResponse.json();
-                this.categoria = config.categoria || null;
-                console.log('🏷️ Categoría del partido:', this.categoria);
-                this.aplicarConfiguracionSets();
+                try {
+                    const response = await fetch('/data/reglamento.json');
+                    if (response.ok) {
+                        const data = await response.json();
+                        this.reglamento = data;
+                        
+                        const configResponse = await fetch('/data/config.json');
+                        if (configResponse.ok) {
+                            const config = await configResponse.json();
+                            this.categoria = config.categoria || null;
+                            this.aplicarConfiguracionSets();
+                        }
+                    } else {
+                        console.log('⚠️ No se encontró reglamento.json, usando valores por defecto');
+                    }
+                } catch(e) {
+                    console.log('Error cargando reglamento:', e);
+                }
             }
-        } else {
-            console.log('⚠️ No se encontró reglamento.json, usando valores por defecto');
-        }
-    } catch(e) {
-        console.log('Error cargando reglamento:', e);
-    }
-}
 aplicarConfiguracionSets() {
     if (!this.reglamento || !this.categoria) {
-        console.log('📊 Usando configuración por defecto: 3 sets (al mejor de 3)');
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
         return;
     }
@@ -144,7 +865,6 @@ aplicarConfiguracionSets() {
             puntosSetNormal: categoriaData.puntos_por_set,
             puntosSetDecisivo: categoriaData.set_decisivo_puntos
         };
-        console.log(`📊 Configuración aplicada para categoría ${this.categoria}:`, this.configSets);
     } else {
         console.log(`⚠️ Categoría "${this.categoria}" no encontrada en reglamento. Usando valores por defecto.`);
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
@@ -232,8 +952,10 @@ aplicarConfiguracionSets() {
                 if (this.refreshInterval) clearInterval(this.refreshInterval);
                 const startInterval = (ms) => { if (this.refreshInterval) clearInterval(this.refreshInterval); this.refreshInterval = setInterval(() => this.loadData(), ms); };
                 selector.onchange = () => { const ms = parseInt(selector.value); startInterval(ms); this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`); };
-                startInterval(3000);
+                startInterval(5000);
             }
+
+            
             
             actualizarSets() {
                 const container = document.getElementById('setsList');
@@ -294,58 +1016,7 @@ this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitant
     const puntosNecesarios = esSetDecisivo ? this.configSets.puntosSetDecisivo : this.configSets.puntosSetNormal;
     return (home >= puntosNecesarios || away >= puntosNecesarios) && Math.abs(home - away) >= 2;
 }
-            
-            async cargarPartidosHistoricos() {
-                try {
-                    const configResponse = await fetch('/data/config.json');
-                    let currentId = null;
-                    if (configResponse.ok) { const config = await configResponse.json(); currentId = config.matchId; this.matchId = currentId; }
-                    const idsAPROBAR = new Set();
-                    if (currentId) idsAPROBAR.add(currentId);
-                    [260283,259953,259843,258193,248494,248357,248621,247173,247041,246922,246909,241363,231128,156803,156795].forEach(id => idsAPROBAR.add(id));
-                    for (let i = 230000; i <= 260000; i += 1000) idsAPROBAR.add(i);
-                    const partidos = [];
-                    for (const id of idsAPROBAR) {
-                        try {
-                            const response = await fetch(`/data/match_${id}.json`);
-                            if (response.ok) {
-                                const data = await response.json();
-                                if (data?.length) {
-                                    const last = data[data.length - 1], first = data[0];
-                                    partidos.push({ id, fecha: first.timestamp ? new Date(first.timestamp).toLocaleDateString() : 'Fecha desconocida', homeTeam: last.homeTeam || first.homeTeam || 'LOCAL', awayTeam: last.awayTeam || first.awayTeam || 'VISITANTE', resultado: `${last.homeScore}-${last.awayScore}` });
-                                }
-                            }
-                        } catch(e) {}
-                    }
-                    partidos.sort((a, b) => b.id - a.id);
-                    const selector = document.getElementById('partidoHistoricoSelector');
-                    if (selector) selector.innerHTML = partidos.length ? '<option value="">-- Seleccionar partido --</option>' + partidos.map(p => `<option value="${p.id}" ${p.id == this.matchId ? 'selected' : ''}>${p.id} - ${p.homeTeam} vs ${p.awayTeam} (${p.fecha}) - ${p.resultado}</option>`).join('') : '<option value="">No hay partidos guardados</option>';
-                    const cargarBtn = document.getElementById('cargarPartidoHistoricoBtn');
-                    if (cargarBtn) {
-                        const nuevoBtn = cargarBtn.cloneNode(true);
-                        cargarBtn.parentNode.replaceChild(nuevoBtn, cargarBtn);
-                        nuevoBtn.onclick = (e) => { e.preventDefault(); const selector = document.getElementById('partidoHistoricoSelector'); const nuevoId = parseInt(selector.value); if (nuevoId && nuevoId !== this.matchId) this.cambiarPartido(nuevoId); else if (nuevoId === this.matchId) this.mostrarFeedbackPartido(`📌 Ya estás viendo el partido ${nuevoId}`); else if (!nuevoId) this.mostrarFeedbackPartido('⚠️ Seleccioná un partido válido'); };
-                    }
-                } catch(e) { console.log('Error cargando partidos históricos:', e); }
-            }
-            
-            async cambiarPartido(nuevoId) {
-                const nombres = await this.obtenerNombresEquiposDesdeAPI(nuevoId);
-                if (nombres) { this.homeTeamName = nombres.homeTeam; this.awayTeamName = nombres.awayTeam; document.getElementById('homeTeamName').textContent = this.homeTeamName; document.getElementById('awayTeamName').textContent = this.awayTeamName; }
-                else { this.homeTeamName = "LOCAL"; this.awayTeamName = "VISITANTE"; }
-                this.matchId = nuevoId;
-                this.data = null;
-                this.puntosJugadores = null;
-                this.jugadoresLocal = {};
-                this.jugadoresVisitante = {};
-                localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
-                localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
-                await this.loadData();
-                await this.cargarPuntosJugadores();
-                this.actualizarSets();
-                this.cargarTimeouts();
-                this.mostrarFeedbackPartido(`📊 ${this.homeTeamName} vs ${this.awayTeamName} (${nuevoId})`);
-            }
+
             
             mostrarFeedbackPartido(mensaje) {
                 const feedback = document.createElement('div');
@@ -379,6 +1050,7 @@ this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitant
                 } catch(e) {}
                 return null;
             }
+            
             
             async loadData() {
                 const offlineManager = new OfflineManager();
@@ -544,89 +1216,101 @@ actualizarVistaIndividuales() {
             }
             
             setupEventListeners() {
-    document.getElementById('offlineModeBtn')?.addEventListener('click', () => this.mostrarFeedbackPartido('📡 Modo offline activado - Usando datos cacheados'));
-    document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
-    document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
-    document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
-        const enabled = this.soundManager.toggle(); 
-        document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; 
-        if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); 
-    });
+                document.getElementById('offlineModeBtn')?.addEventListener('click', () => this.mostrarFeedbackPartido('📡 Modo offline activado - Usando datos cacheados'));
+                document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
+                document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
+                document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
+                    const enabled = this.soundManager.toggle(); 
+                    document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; 
+                    if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); 
+                });
+                
+                const menuBtn = document.getElementById('menuHamburguesaBtn');
+                const menuDesplegable = document.getElementById('menuDesplegable');
+                
+                if (menuBtn && menuDesplegable) {
+                    const newMenuBtn = menuBtn.cloneNode(true);
+                    menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+                    
+                    newMenuBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        if (menuDesplegable.classList.contains('hidden')) {
+                            menuDesplegable.classList.remove('hidden');
+                            menuDesplegable.classList.add('show');
+                            menuDesplegable.style.display = 'flex';
+                        } else {
+                            menuDesplegable.classList.add('hidden');
+                            menuDesplegable.classList.remove('show');
+                            menuDesplegable.style.display = 'none';
+                        }
+                    });
+                    
+                    document.addEventListener('click', (e) => {
+                        if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
+                            menuDesplegable.classList.add('hidden');
+                            menuDesplegable.classList.remove('show');
+                            menuDesplegable.style.display = 'none';
+                        }
+                    });
+                }
     
-    // ✅ MENÚ HAMBURGUESA - CÓDIGO CORREGIDO
-    const menuBtn = document.getElementById('menuHamburguesaBtn');
-    const menuDesplegable = document.getElementById('menuDesplegable');
-    
-    if (menuBtn && menuDesplegable) {
-        // Quitar event listeners anteriores si existen
-        const newMenuBtn = menuBtn.cloneNode(true);
-        menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
-        
-        newMenuBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('🔄 Menú hamburguesa clickeado');
-            
-            // Toggle clase 'hidden' y 'show'
-            if (menuDesplegable.classList.contains('hidden')) {
-                menuDesplegable.classList.remove('hidden');
-                menuDesplegable.classList.add('show');
-                // También agregar clase para animación
-                menuDesplegable.style.display = 'flex';
-            } else {
-                menuDesplegable.classList.add('hidden');
-                menuDesplegable.classList.remove('show');
-                menuDesplegable.style.display = 'none';
+                const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
+                if (saveHTMLBtnMobile) {
+                    saveHTMLBtnMobile.addEventListener('click', () => {
+                        this.saveAsHTML();
+                        if (menuDesplegable) {
+                            menuDesplegable.classList.add('hidden');
+                            menuDesplegable.style.display = 'none';
+                        }
+                    });
+                }
+                
+                const soundToggleBtnMobile = document.getElementById('soundToggleBtnMobile');
+                if (soundToggleBtnMobile) {
+                    soundToggleBtnMobile.addEventListener('click', () => {
+                        const enabled = this.soundManager.toggle();
+                        soundToggleBtnMobile.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+                        if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
+                        const btnDesktop = document.getElementById('soundToggleBtn');
+                        if (btnDesktop) btnDesktop.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+                    });
+                }
+                
+                const refreshSelectorMobile = document.getElementById('refreshIntervalSelectorMobile');
+                if (refreshSelectorMobile) {
+                    refreshSelectorMobile.addEventListener('change', (e) => {
+                        const ms = parseInt(e.target.value);
+                        const selectorDesktop = document.getElementById('refreshIntervalSelector');
+                        if (selectorDesktop) selectorDesktop.value = ms;
+                        if (this.refreshInterval) clearInterval(this.refreshInterval);
+                        this.refreshInterval = setInterval(() => this.loadData(), ms);
+                        this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`);
+                    });
+                }
+                const copyUrlBtn = document.getElementById('copyUrlBtn');
+                if (copyUrlBtn) {
+                    copyUrlBtn.addEventListener('click', () => {
+                        const currentUrl = window.location.href;
+                        
+                        const urlParts = currentUrl.match(/(https?:\/\/[^\/]+)/);
+                        const baseUrl = urlParts ? urlParts[1] : currentUrl;
+                        
+                        navigator.clipboard.writeText(baseUrl).then(() => {
+                            this.mostrarFeedbackPartido('🔗 URL copiada al portapapeles: ' + baseUrl);
+                            
+                            const originalText = copyUrlBtn.innerHTML;
+                            copyUrlBtn.innerHTML = '✅ ¡Copiado!';
+                            setTimeout(() => {
+                                copyUrlBtn.innerHTML = originalText;
+                            }, 2000);
+                        }).catch(() => {
+                            this.mostrarFeedbackPartido('❌ No se pudo copiar la URL');
+                        });
+                    });
+                }
             }
-        });
-        
-        // Cerrar menú si se clickea fuera
-        document.addEventListener('click', (e) => {
-            if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
-                menuDesplegable.classList.add('hidden');
-                menuDesplegable.classList.remove('show');
-                menuDesplegable.style.display = 'none';
-            }
-        });
-    }
-    
-    // ✅ Botones móviles
-    const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
-    if (saveHTMLBtnMobile) {
-        saveHTMLBtnMobile.addEventListener('click', () => {
-            this.saveAsHTML();
-            // Cerrar menú después de guardar
-            if (menuDesplegable) {
-                menuDesplegable.classList.add('hidden');
-                menuDesplegable.style.display = 'none';
-            }
-        });
-    }
-    
-    const soundToggleBtnMobile = document.getElementById('soundToggleBtnMobile');
-    if (soundToggleBtnMobile) {
-        soundToggleBtnMobile.addEventListener('click', () => {
-            const enabled = this.soundManager.toggle();
-            soundToggleBtnMobile.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
-            if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
-            // Sincronizar con botón desktop
-            const btnDesktop = document.getElementById('soundToggleBtn');
-            if (btnDesktop) btnDesktop.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
-        });
-    }
-    
-    const refreshSelectorMobile = document.getElementById('refreshIntervalSelectorMobile');
-    if (refreshSelectorMobile) {
-        refreshSelectorMobile.addEventListener('change', (e) => {
-            const ms = parseInt(e.target.value);
-            const selectorDesktop = document.getElementById('refreshIntervalSelector');
-            if (selectorDesktop) selectorDesktop.value = ms;
-            if (this.refreshInterval) clearInterval(this.refreshInterval);
-            this.refreshInterval = setInterval(() => this.loadData(), ms);
-            this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`);
-        });
-    }
-}
             
             actualizarHoraUltimoPunto() {
                 const c = document.getElementById('lastPointTime');
@@ -668,47 +1352,405 @@ actualizarVistaIndividuales() {
                 const c = document.getElementById('insightsList');
                 if (!c) return;
                 const i = [];
-                if (homeEfficiency > 55) i.push(`📈 ${this.homeTeamName} dominó ${homeEfficiency}% de los puntos del partido`);
-                else if (homeEfficiency > 45 && homeEfficiency < 55) i.push(`⚖️ Partido parejo - ${this.homeTeamName} tiene ${homeEfficiency}% de eficiencia`);
-                else if (homeEfficiency > 0 && homeEfficiency < 45) i.push(`⚠️ ${this.homeTeamName} necesita mejorar la eficiencia (${homeEfficiency}%)`);
-                if (homeBreaks > 10) i.push(`⚡ ${this.homeTeamName} fue efectivo en rompes: ${homeBreaks} conversiones`);
-                if (this.puntosJugadores?.length) {
-                    const pl = this.puntosJugadores.filter(p => p.equipo === 'LOCAL').length;
-                    const pv = this.puntosJugadores.filter(p => p.equipo === 'VISITANTE').length;
-                    if (pl + pv > 0) i.push(`📊 Puntos anotados manualmente: ${pl} - ${pv}`);
+                
+                if (homeEfficiency > 60) i.push(`🏆 DOMINIO TOTAL: ${this.homeTeamName} ganó ${homeEfficiency}% de los puntos.`);
+                else if (homeEfficiency > 55) i.push(`✅ CONTROL: ${this.homeTeamName} ganó ${homeEfficiency}% de los puntos.`);
+                else if (homeEfficiency > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${this.homeTeamName} ganó ${homeEfficiency}% vs rival.`);
+                else if (homeEfficiency < 45 && homeEfficiency > 0) i.push(`⚠️ SUPERADO: ${this.homeTeamName} solo ganó ${homeEfficiency}% de los puntos.`);
+                
+                if (homeBreaks > 12) i.push(`⚡ EFECTIVO EN ROMPES: ${homeBreaks} veces quebró el saque rival.`);
+                else if (homeBreaks < 6 && homeBreaks > 0) i.push(`🔻 POCOS ROMPES: Solo ${homeBreaks} veces quebró el saque. Mejorar recepción.`);
+                
+                const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
+                const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
+                
+                if (sideout > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideout}%) cuando tiene el saque.`);
+                else if (sideout < 45 && sideout > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideout}%). Problemas con saque propio.`);
+                
+                if (breakpoint > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpoint}%). Buena recepción y contraataque.`);
+                else if (breakpoint < 25 && breakpoint > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpoint}%). Dificultad para romper saque rival.`);
+                
+                const clutch = parseFloat(document.getElementById('clutchHome')?.textContent) || 0;
+                if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${clutch}% bajo presión.`);
+                else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: Solo ${clutch}% en momentos críticos.`);
+                
+                if (i.length === 0) {
+                    i.push('📊 Esperando más datos para generar insights...');
                 }
-                c.innerHTML = i.length ? i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-sm">${x}</div>`).join('') : '<div class="text-gray-400 text-center py-4">Esperando más datos...</div>';
-            }
+                
+                c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
+}
             
-            updateInterpretations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff) {
+            updateInterpretations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
                 const c = document.getElementById('metricInterpretations');
                 if (!c) return;
-                const i = [];
-                const effH = homeEff || 0, maxAR = maxAwayRun || 0, maxHR = maxHomeRun || 0, brH = homeBreaks || 0, brA = awayBreaks || 0, clutch = homeClutchPct || 0;
-                if (effH > 55) i.push(`📊 EFICIENCIA (${effH}%) → ${this.homeTeamName} dominó el partido.`);
-                else if (effH < 45 && effH > 0) i.push(`⚠️ EFICIENCIA (${effH}%) → ${this.awayTeamName} dominó el partido.`);
-                else if (effH > 0) i.push(`⚖️ EFICIENCIA (${effH}%) → Partido parejo entre ${this.homeTeamName} y ${this.awayTeamName}.`);
-                if (maxAR > 5) i.push(`🔥 RACHA RIVAL (${maxAR} pts) → ${this.awayTeamName} tuvo una racha larga. Revisar recepción.`);
-                if (maxHR > 5) i.push(`💪 RACHA PROPIA (${maxHR} pts) → ${this.homeTeamName} encadenó puntos seguidos. Analizar qué funcionó.`);
-                if (brH > brA + 5) i.push(`💪 ROMPS (${brH} vs ${brA}) → ${this.homeTeamName} fue muy efectivo rompiendo el saque.`);
-                else if (brA > brH + 5) i.push(`⚠️ ROMPS (${brH} vs ${brA}) → ${this.awayTeamName} rompió el saque muchas veces. Mejorar servicio.`);
-                if (clutch > 60) i.push(`🏆 BAJO PRESIÓN (${clutch}%) → ${this.homeTeamName} demostró excelente temple en momentos críticos.`);
-                else if (clutch < 35 && clutch > 0) i.push(`⚠️ BAJO PRESIÓN (${clutch}%) → ${this.homeTeamName} mostró debilidad en momentos clave. Trabajar presión.`);
-                c.innerHTML = i.length ? i.map(x => `<div class="bg-dark/50 rounded-lg p-2 mb-1 text-sm border-l-4 border-primary">${x}</div>`).join('') : '<div class="text-gray-400 text-center py-4">Esperando datos del partido...</div>';
+                
+                const effH = homeEff || 0;
+                const effA = awayEff || 0;
+                const maxAR = maxAwayRun || 0;
+                const maxHR = maxHomeRun || 0;
+                const brH = homeBreaks || 0;
+                const brA = awayBreaks || 0;
+                const clutch = homeClutchPct || 0;
+                const sideout = sideoutPct || 0;
+                const breakpoint = breakpointPct || 0;
+                const serviceEff = serviceEffHome || 0;
+                const serviceEffRival = serviceEffAway || 0;
+                const lateEff = phaseHomeEff?.late || 0;
+                const earlyEff = phaseHomeEff?.early || 0;
+                const midEff = phaseHomeEff?.mid || 0;
+                
+                const interpretaciones = [];
+                
+                if (effH > 60) {
+                    interpretaciones.push({
+                        titulo: '🏆 DOMINIO ABSOLUTO',
+                        descripcion: `${this.homeTeamName} ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`,
+                        accion: 'El sistema funciona. Mantener la estrategia y buscar perfeccionar detalles.'
+                    });
+                } else if (effH > 55) {
+                    interpretaciones.push({
+                        titulo: '✅ CONTROL DEL PARTIDO',
+                        descripcion: `${this.homeTeamName} ganó el ${effH}% de los puntos. Ventaja clara pero el rival compitió.`,
+                        accion: 'Analizar los momentos donde el rival descontó. ¿Fueron errores propios o méritos rivales?'
+                    });
+                } else if (effH > 50) {
+                    interpretaciones.push({
+                        titulo: '⚖️ VENTAJA MÍNIMA',
+                        descripcion: `${this.homeTeamName} solo ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`,
+                        accion: 'El partido se definió por detalles. Revisar puntos de quiebre y momentos clutch.'
+                    });
+                } else if (effH > 45) {
+                    interpretaciones.push({
+                        titulo: '⚠️ PARTIDO PAREDO',
+                        descripcion: `${this.homeTeamName} ganó el ${effH}% vs ${effA}% del rival. Prácticamente empatados en eficiencia.`,
+                        accion: 'El resultado pudo ser para cualquiera. ¿En qué fase del set el equipo rindió peor?'
+                    });
+                } else if (effH > 0) {
+                    interpretaciones.push({
+                        titulo: '🔴 SUPERADO EN EFICIENCIA',
+                        descripcion: `${this.homeTeamName} solo ganó el ${effH}% de los puntos. El rival dominó el ${effA}%.`,
+                        accion: 'Trabajar en: reducción de errores no forzados y mayor eficacia en ataque.'
+                    });
+                }
+                
+                if (maxHR > 5 && maxHR > maxAR + 2) {
+                    interpretaciones.push({
+                        titulo: '💪 FUERZA EN RACHAS OFENSIVAS',
+                        descripcion: `${this.homeTeamName} encadenó ${maxHR} puntos seguidos, superando ampliamente la mejor racha rival (${maxAR}).`,
+                        accion: '¿Qué generó esas rachas? Saque agresivo, bloqueo efectivo o errores rivales? Identificar y replicar.'
+                    });
+                } else if (maxAR > 5 && maxAR > maxHR + 2) {
+                    interpretaciones.push({
+                        titulo: '🔥 DEBILIDAD ANTE RACHAS RIVALES',
+                        descripcion: `${this.awayTeamName} tuvo una racha de ${maxAR} puntos consecutivos, ${maxAR - maxHR} más que la mejor racha propia.`,
+                        accion: 'Ajustar: pedir tiempo muerto ANTES de que la racha crezca, cambiar la rotación de saque.'
+                    });
+                } else if (maxAR > 5 || maxHR > 5) {
+                    interpretaciones.push({
+                        titulo: '⚡ RACHAS MOMENTÁNEAS',
+                        descripcion: `Ambos equipos tuvieron rachas (${this.homeTeamName}: ${maxHR}, ${this.awayTeamName}: ${maxAR}). El partido fue de altibajos.`,
+                        accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.'
+                    });
+                }
+                
+                if (brH > brA + 4) {
+                    interpretaciones.push({
+                        titulo: '💪 EXCELENTE RECEPCIÓN Y CONTRAATAQUE',
+                        descripcion: `${this.homeTeamName} rompió el saque ${brH} veces, ${brH - brA} más que el rival.`,
+                        accion: 'La recepción funcionó bien. Mantener la agresividad en el segundo toque y la definición.'
+                    });
+                } else if (brA > brH + 4) {
+                    interpretaciones.push({
+                        titulo: '⚠️ PROBLEMAS EN RECEPCIÓN DE SAQUE',
+                        descripcion: `${this.awayTeamName} rompió el saque ${brA} veces. ${this.homeTeamName} solo lo logró ${brH}.`,
+                        accion: 'Trabajar: recepción de saque, sistema de cobertura, saque más agresivo para evitar que el rival construa.'
+                    });
+                } else if (brH + brA > 15) {
+                    interpretaciones.push({
+                        titulo: '⚡ PARTIDO DE MUCHOS ROMPES',
+                        descripcion: `Hubo ${brH + brA} rompes en total. El saque no fue determinante, dominó el que mejor recibió.`,
+                        accion: 'El equipo que mejor pase y contraataque tiene ventaja. Fortalecer esas habilidades.'
+                    });
+                }
+                
+                if (clutch > 65) {
+                    interpretaciones.push({
+                        titulo: '🧠 FORTALEZA MENTAL DESTACADA',
+                        descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`,
+                        accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.'
+                    });
+                } else if (clutch < 35 && clutch > 0) {
+                    interpretaciones.push({
+                        titulo: '😰 DEBILIDAD BAJO PRESIÓN',
+                        descripcion: `${this.homeTeamName} solo ganó ${clutch}% de los puntos en situaciones críticas.`,
+                        accion: 'Entrenar ejercicios específicos: set point en contra, partidos empatados al final del set.'
+                    });
+                } else if (clutch > 0) {
+                    const evaluacion = clutch > 55 ? 'aceptable' : (clutch > 45 ? 'regular' : 'bajo');
+                    interpretaciones.push({
+                        titulo: '🎭 RENDIMIENTO BAJO PRESIÓN',
+                        descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`,
+                        accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.'
+                    });
+                }
+                
+                if (sideout > 65) {
+                    interpretaciones.push({
+                        titulo: '🎯 EXCELENTE SIDEOUT',
+                        descripcion: `${this.homeTeamName} convirtió ${sideout}% de los puntos cuando tenía el saque.`,
+                        accion: 'El ataque y el juego desde la zona de saque es muy eficiente. Mantener la estrategia ofensiva.'
+                    });
+                } else if (sideout < 45 && sideout > 0) {
+                    interpretaciones.push({
+                        titulo: '⚠️ PROBLEMAS CON SAQUE PROPIO',
+                        descripcion: `${this.homeTeamName} solo convirtió ${sideout}% de los puntos cuando sacaba.`,
+                        accion: 'Revisar: efectividad del ataque, definición en contraataque, errores en momentos de ventaja.'
+                    });
+                }
+                
+                if (breakpoint > 45) {
+                    interpretaciones.push({
+                        titulo: '⚡ EXCELENTE BREAKPOINT',
+                        descripcion: `${this.homeTeamName} convirtió ${breakpoint}% de los puntos cuando el rival sacaba.`,
+                        accion: 'La recepción y el contraataque son armas muy poderosas del equipo. Seguir desarrollándolas.'
+                    });
+                } else if (breakpoint < 25 && breakpoint > 0) {
+                    interpretaciones.push({
+                        titulo: '🔻 DIFICULTAD PARA ROMPER EL SAQUE',
+                        descripcion: `${this.homeTeamName} solo convirtió ${breakpoint}% de los puntos cuando el rival sacaba.`,
+                        accion: 'Trabajar: recepción de saque, transición ofensiva rápida, definición en contraataque.'
+                    });
+                }
+                
+                if (serviceEff > 15) {
+                    interpretaciones.push({
+                        titulo: '🏐 SAQUE MUY EFECTIVO',
+                        descripcion: `Eficiencia de servicio del ${serviceEff}% (Aces - Errores). El saque es un arma ofensiva.`,
+                        accion: 'Mantener la agresividad controlada. Seguir variando zonas y velocidades.'
+                    });
+                } else if (serviceEff < -5) {
+                    interpretaciones.push({
+                        titulo: '❌ ERRORES DE SERVICIO',
+                        descripcion: `Eficiencia de servicio negativa (${serviceEff}%). Muchos errores no forzados.`,
+                        accion: 'Priorizar efectividad sobre potencia. Reducir los errores de saque como primer objetivo.'
+                    });
+                } else if (serviceEff > 0 && serviceEff < 10) {
+                    interpretaciones.push({
+                        titulo: '📊 SERVICIO NEUTRO',
+                        descripcion: `Eficiencia de servicio del ${serviceEff}%. No fue determinante en el resultado.`,
+                        accion: 'Buscar mayor agresividad sin aumentar errores. Entrenar saques flotantes y saltados a zonas clave.'
+                    });
+                }
+                
+                if (earlyEff < 40 && earlyEff > 0) {
+                    interpretaciones.push({
+                        titulo: '⏰ ARRANQUES LENTOS',
+                        descripcion: `${this.homeTeamName} tuvo solo ${earlyEff}% de efectividad en los primeros 10 puntos de cada set.`,
+                        accion: 'Trabajar la concentración desde el inicio. Calentamiento más intenso, entrada en calor efectiva.'
+                    });
+                }
+                
+                if (lateEff < 40 && lateEff > 0) {
+                    interpretaciones.push({
+                        titulo: '⏱️ CIERRE DE SETS DÉBIL',
+                        descripcion: `${this.homeTeamName} tuvo solo ${lateEff}% de efectividad en la fase final (puntos 21+).`,
+                        accion: 'Ejercicios de definición de sets. Entrenar con marcador 20-20, set point en contra, etc.'
+                    });
+                }
+                
+                if (earlyEff > 60 && midEff > 60 && lateEff > 60) {
+                    interpretaciones.push({
+                        titulo: '📊 CONSISTENCIA TOTAL',
+                        descripcion: `El equipo rindió por encima del 60% en TODAS las fases del set. Muy difícil de vencer.`,
+                        accion: 'Felicitaciones. Mantener el nivel y trabajar detalles tácticos.'
+                    });
+                }
+                
+                if (interpretaciones.length === 0) {
+                    c.innerHTML = '<div class="text-center text-gray-400 py-6">Esperando más datos para generar análisis detallado...</div>';
+                    return;
+                }
+                
+                c.innerHTML = interpretaciones.map(i => `
+                    <div class="bg-dark/50 rounded-lg p-3 mb-2 border-l-4 border-primary hover:bg-dark/70 transition-all">
+                        <div class="font-bold text-primary text-xs md:text-sm mb-1 flex items-center gap-2">
+                            <span>📌</span> ${i.titulo}
+                        </div>
+                        <div class="text-gray-300 text-xs md:text-sm mb-2 pl-2">${i.descripcion}</div>
+                        <div class="text-amber-400 text-xs pl-2 border-t border-gray-700 pt-1 mt-1">
+                            💡 ${i.accion}
+                        </div>
+                    </div>
+                `).join('');
             }
             
-            updateRecommendations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff) {
+            updateRecommendations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
                 const c = document.getElementById('actionableRecommendations');
                 if (!c) return;
-                const r = [];
-                const effH = homeEff || 0, maxAR = maxAwayRun || 0, brA = awayBreaks || 0, brH = homeBreaks || 0, clutch = homeClutchPct || 0, late = phaseHomeEff?.late || 0;
-                if (effH < 45 && effH > 0) r.push(`📌 Mejorar eficiencia en ataque - ${this.homeTeamName} solo ganó el ${effH}% de los puntos`);
-                if (maxAR > 5) r.push(`📌 ${this.awayTeamName} tuvo una racha de ${maxAR} puntos consecutivos. Ajustar el bloqueo y la recepción.`);
-                if (brA > brH + 5) r.push(`📌 ${this.awayTeamName} rompió el saque ${brA} veces. Variar la zona de saque y la velocidad.`);
-                if (clutch < 40 && clutch > 0) r.push(`📌 Entrenar situaciones de presión: ${this.homeTeamName} solo convirtió ${clutch}% en momentos críticos.`);
-                if (late < 40 && late > 0) r.push(`📌 Débil en el cierre (${late}% en Late Game). ${this.homeTeamName} debe trabajar la definición de sets.`);
-                if (!r.length && effH > 0) r.push(effH > 50 ? `🏆 Buen partido de ${this.homeTeamName}! Mantener la estrategia para los próximos encuentros.` : `💪 Sigue así! Con más práctica los resultados van a llegar.`);
-                c.innerHTML = r.length ? r.map(rec => `<div class="bg-primary/10 rounded-lg p-2 mb-1 text-sm border-l-4 border-primary">${rec}</div>`).join('') : '<div class="text-gray-400 text-center py-4">Esperando datos del partido...</div>';
+                
+                const effH = homeEff || 0;
+                const effA = awayEff || 0;
+                const maxAR = maxAwayRun || 0;
+                const maxHR = maxHomeRun || 0;
+                const brH = homeBreaks || 0;
+                const brA = awayBreaks || 0;
+                const clutch = homeClutchPct || 0;
+                const sideout = sideoutPct || 0;
+                const breakpoint = breakpointPct || 0;
+                const serviceEff = serviceEffHome || 0;
+                const lateEff = phaseHomeEff?.late || 0;
+                const earlyEff = phaseHomeEff?.early || 0;
+                
+                const recomendaciones = [];
+                
+                
+                if (effH < 48 && effH > 0) {
+                    recomendaciones.push({
+                        prioridad: 'ALTA',
+                        area: 'EFICIENCIA GENERAL',
+                        texto: `Ganaste solo el ${effH}% de los puntos jugados.`,
+                        detalle: 'El rival dominó la mayor parte del partido. Hay que trabajar la eficiencia ofensiva y reducir errores.',
+                        tarea: 'Entrenar: reducción de errores no forzados, aumento del porcentaje de ataque.'
+                    });
+                }
+                
+                if (maxAR > 6) {
+                    recomendaciones.push({
+                        prioridad: 'ALTA',
+                        area: 'RACHAS RIVALES',
+                        texto: `${this.awayTeamName} tuvo una racha de ${maxAR} puntos consecutivos.`,
+                        detalle: 'Cuando el rival encadenó puntos, el equipo no pudo cortar la racha a tiempo.',
+                        tarea: 'Pedir tiempo muerto ANTES de que la racha crezca (al 3er o 4to punto seguido). Revisar rotación de saque.'
+                    });
+                }
+                
+                if (clutch < 40 && clutch > 0) {
+                    recomendaciones.push({
+                        prioridad: 'ALTA',
+                        area: 'MANEJO DE LA PRESIÓN',
+                        texto: `Solo convertiste ${clutch}% de los puntos en momentos críticos.`,
+                        detalle: 'El equipo se achica cuando el partido está parejo o hay set point en contra.',
+                        tarea: 'Ejercicios específicos: definir sets con marcador 20-20, 23-23, set point en contra.'
+                    });
+                }
+                
+                if (breakpoint < 28 && breakpoint > 0) {
+                    recomendaciones.push({
+                        prioridad: 'ALTA',
+                        area: 'RECEPCIÓN Y CONTRAATAQUE',
+                        texto: `Breakpoint% del ${breakpoint}% (muy bajo).`,
+                        detalle: 'El equipo tiene dificultades para anotar cuando el rival saca.',
+                        tarea: 'Trabajar: recepción de saque, pase perfecto, transición ofensiva rápida.'
+                    });
+                }
+                
+                
+                if (sideout < 48 && sideout > 0) {
+                    recomendaciones.push({
+                        prioridad: 'MEDIA',
+                        area: 'ATAQUE CON SAQUE PROPIO',
+                        texto: `Sideout% del ${sideout}% (por debajo del ideal 55%).`,
+                        detalle: 'Cuando el equipo tiene el saque, no logra convertir suficiente puntos.',
+                        tarea: 'Ajustar: definición en ataque, evitar errores en momentos de ventaja.'
+                    });
+                }
+                
+                if (brA > brH + 4) {
+                    recomendaciones.push({
+                        prioridad: 'MEDIA',
+                        area: 'SISTEMA DE BLOQUEO/DEFENSA',
+                        texto: `El rival rompió el saque ${brA} veces vs ${brH} veces propias.`,
+                        detalle: 'El rival construyó mejor sus puntos sin saque. El bloqueo y la defensa no fueron suficientes.',
+                        tarea: 'Revisar el posicionamiento defensivo, cobertura de bloqueo, saque más agresivo.'
+                    });
+                }
+                
+                if (lateEff < 45 && lateEff > 0 && effH > 0) {
+                    recomendaciones.push({
+                        prioridad: 'MEDIA',
+                        area: 'CIERRE DE SETS',
+                        texto: `Solo ${lateEff}% de efectividad en puntos 21+ (fase Late).`,
+                        detalle: 'El equipo baja su rendimiento en la parte final de los sets.',
+                        tarea: 'Entrenar la definición: concentración en los últimos puntos, saque agresivo, manejo de tiempos.'
+                    });
+                }
+                
+                if (serviceEff < -3) {
+                    recomendaciones.push({
+                        prioridad: 'MEDIA',
+                        area: 'ERRORES DE SERVICIO',
+                        texto: `Eficiencia de servicio negativa (${serviceEff}%).`,
+                        detalle: 'Muchos puntos regalados por errores de saque no forzados.',
+                        tarea: 'Priorizar efectividad: saque flotante bien colocado en lugar de salto sin control.'
+                    });
+                }
+                
+                
+                if (earlyEff < 45 && earlyEff > 0) {
+                    recomendaciones.push({
+                        prioridad: 'BAJA',
+                        area: 'ARRANQUE DE PARTIDO',
+                        texto: `Solo ${earlyEff}% de efectividad en los primeros 10 puntos.`,
+                        detalle: 'El equipo tarda en entrar en ritmo de competencia.',
+                        tarea: 'Mejorar la entrada en calor. Simular inicios de set en entrenamientos.'
+                    });
+                }
+                
+                if (maxHR < 3 && effH > 0) {
+                    recomendaciones.push({
+                        prioridad: 'BAJA',
+                        area: 'CONSISTENCIA OFENSIVA',
+                        texto: `Máxima racha de solo ${maxHR} puntos consecutivos.`,
+                        detalle: 'El equipo no logra encadenar puntos seguidos para tomar ventaja.',
+                        tarea: 'Trabajar la continuidad en ataque. Buscar sistemas ofensivos que generen puntos seguidos.'
+                    });
+                }
+                
+                if (recomendaciones.length === 0 && effH > 0) {
+                    if (effH > 60) {
+                        recomendaciones.push({
+                            prioridad: 'BAJA',
+                            area: '¡EXCELENTE PARTIDO!',
+                            texto: `Ganaste el ${effH}% de los puntos. Dominio claro.`,
+                            detalle: 'El equipo jugó a un nivel muy alto. Seguir por este camino.',
+                            tarea: 'Revisar los pequeños detalles que pueden marcar la diferencia en partidos más parejos.'
+                        });
+                    } else {
+                        recomendaciones.push({
+                            prioridad: 'BAJA',
+                            area: 'BUEN PARTIDO',
+                            texto: `Ganaste el ${effH}% de los puntos.`,
+                            detalle: 'El equipo compitió bien. Con pequeños ajustes se puede mejorar.',
+                            tarea: 'Foco en: mayor eficacia en ataque y reducción de errores no forzados.'
+                        });
+                    }
+                }
+                
+                c.innerHTML = recomendaciones.map(r => {
+                    const prioridadConfig = {
+                        'ALTA': { color: 'border-red-500 bg-red-500/10', icono: '🔴' },
+                        'MEDIA': { color: 'border-yellow-500 bg-yellow-500/10', icono: '🟡' },
+                        'BAJA': { color: 'border-blue-500 bg-blue-500/10', icono: '🔵' }
+                    };
+                    const config = prioridadConfig[r.prioridad];
+                    
+                    return `
+                        <div class="rounded-lg p-3 mb-2 border-l-4 ${config.color} transition-all hover:scale-[1.01]">
+                            <div class="flex items-center justify-between mb-1 flex-wrap gap-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold">${config.icono} ${r.prioridad}</span>
+                                    <span class="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded-full">${r.area}</span>
+                                </div>
+                            </div>
+                            <div class="text-white text-sm font-semibold mb-1">🎯 ${r.texto}</div>
+                            <div class="text-gray-400 text-xs mb-2">📊 ${r.detalle}</div>
+                            <div class="text-amber-400 text-xs border-t border-gray-700 pt-1 mt-1">
+                                ⚡ ${r.tarea}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
             
             updateSetDominance() {
@@ -810,9 +1852,9 @@ actualizarVistaIndividuales() {
                 this.actualizarHoraUltimoPunto();
                 
                 const phaseHomeEff = { early: phases.EARLY.total ? ((phases.EARLY.home / phases.EARLY.total) * 100).toFixed(1) : 0, mid: phases.MID.total ? ((phases.MID.home / phases.MID.total) * 100).toFixed(1) : 0, late: phases.LATE.total ? ((phases.LATE.home / phases.LATE.total) * 100).toFixed(1) : 0 };
-                this.updateInterpretations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff);
-                this.updateRecommendations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff);
-                
+                this.updateInterpretations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
+                this.updateRecommendations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
+                                
                 const ultimoPunto = [...this.data].reverse().find(p => p.scorer);
                 const timestamp = ultimoPunto ? new Date(ultimoPunto.timestamp) : new Date();
                 const segundos = Math.floor((new Date() - timestamp) / 1000);
@@ -948,39 +1990,29 @@ async saveAsHTML() {
                 <div style="font-size: 12px; color: #10b981;">🏆 ${winner}</div>
             </div>`;
         }
-        
-        // ============================================
-        // GENERACIÓN DE TABLAS - CON FALLBACK A NOMBRES GENÉRICOS
-        // ============================================
+
         let tablaLocal = '';
         let tablaVisitante = '';
         
-        // Variables para stats (declaradas afuera para usar después)
         let statsLocalCalculadas = null;
         let statsVisitanteCalculadas = null;
         
-        // FORZAR CARGA DIRECTA desde localStorage
         const puntosKey = `puntos_${this.matchId}`;
         const puntosGuardados = localStorage.getItem(puntosKey);
         let puntosJugadoresRaw = null;
         
         if (puntosGuardados) {
             puntosJugadoresRaw = JSON.parse(puntosGuardados);
-            console.log('✅ Puntos cargados desde localStorage:', puntosJugadoresRaw.length);
         } else {
             console.log('❌ No se encontraron puntos en localStorage para matchId:', this.matchId, puntosKey);
         }
         
-        // También intentar cargar desde this.puntosJugadores
         if ((!puntosJugadoresRaw || puntosJugadoresRaw.length === 0) && this.puntosJugadores && this.puntosJugadores.length > 0) {
             puntosJugadoresRaw = this.puntosJugadores;
-            console.log('📦 Usando this.puntosJugadores:', puntosJugadoresRaw.length);
         }
         
         if (puntosJugadoresRaw && puntosJugadoresRaw.length > 0) {
-            console.log('🔍 Primer punto ejemplo:', puntosJugadoresRaw[0]);
             
-            // Función para calcular stats manualmente
             const calcularStatsManual = (datos, equipo) => {
                 const stats = {};
                 for (const punto of datos) {
@@ -998,7 +2030,8 @@ async saveAsHTML() {
                             acesServicio: 0, 
                             erroresServicio: 0, 
                             totalSaques: 0,
-                            puntosPorErrorRival: 0
+                            puntosPorErrorRival: 0,
+                             faltas: 0 
                         };
                     }
                     
@@ -1023,6 +2056,9 @@ async saveAsHTML() {
                         case 'ERROR_RIVAL':
                             s.puntosPorErrorRival++;
                             s.puntos++;
+                            break;
+                        case 'FALTA': 
+                            s.faltas++;
                             break;
                         case 'ERROR':
                             s.erroresAtaque++;
@@ -1078,10 +2114,7 @@ async saveAsHTML() {
             statsLocalCalculadas = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
             statsVisitanteCalculadas = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
             
-            console.log('Stats LOCAL calculadas:', statsLocalCalculadas);
-            console.log('Stats VISITANTE calculadas:', statsVisitanteCalculadas);
             
-            // Función para generar tabla HTML con FALLBACK a nombres genéricos
             const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
                 if (!stats || Object.keys(stats).length === 0) {
                     return `<tr><td colspan="13" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
@@ -1094,7 +2127,6 @@ async saveAsHTML() {
                     const num = parseInt(numJugador);
                     if (isNaN(num)) continue;
                     
-                    // FALLBACK: Si no hay nombre en jugadoresMap, usar "Visitante X" o "Local X" según el equipo
                     let nombre = jugadoresMap[num];
                     if (!nombre) {
                         nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
@@ -1151,7 +2183,6 @@ async saveAsHTML() {
             tablaLocal = generarTablaHTML(statsLocalCalculadas, this.jugadoresLocal, homeTeam, false);
             tablaVisitante = generarTablaHTML(statsVisitanteCalculadas, this.jugadoresVisitante, awayTeam, true);
             
-            console.log('✅ tablas generadas - Local longitud:', tablaLocal.length, 'Visitante longitud:', tablaVisitante.length);
             
         } else {
             console.log('⚠️ No hay puntos para generar tablas individuales');
@@ -1216,19 +2247,14 @@ async saveAsHTML() {
         if (homePhaseEff.late < 40 && homePhaseEff.late > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Débil en el cierre (${homePhaseEff.late}% en Late Game). Trabajar definición.</div>`;
         if (!recommendationsHtml) recommendationsHtml = '<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido! Mantener la estrategia.</div>';
         
-        // ============================================
-        // CALCULAR EFICIENCIA POR SET (con fallback a datos manuales)
-        // ============================================
         const eficienciaPorSet = [];
         const puntosPorSet = [];
 
         let datosParaEficiencia = null;
         if (this.data && this.data.length > 0 && this.data.some(p => p.scorer)) {
             datosParaEficiencia = this.data;
-            console.log('📊 Usando datos del tracker para gráfico');
         } else if (this.puntosJugadores && this.puntosJugadores.length > 0) {
             datosParaEficiencia = this.puntosJugadores;
-            console.log('📊 Usando puntos manuales para gráfico de eficiencia por set');
         }
 
         if (datosParaEficiencia && datosParaEficiencia.length > 0) {
@@ -1257,21 +2283,14 @@ async saveAsHTML() {
             }
         }
 
-        console.log('📊 eficienciaPorSet calculado:', eficienciaPorSet);
-
-        // ============================================
-        // CALCULAR STATS POR SET PARA FILTROS (usando las variables ya calculadas)
-        // ============================================
         const localPorSet = {};
         const visitantePorSet = {};
 
-        // Si tenemos stats calculadas, usarlas para "todos"
         if (statsLocalCalculadas && statsVisitanteCalculadas) {
             localPorSet['todos'] = tablaLocal;
             visitantePorSet['todos'] = tablaVisitante;
         }
 
-        // Calcular stats por set individuales
         if (this.puntosJugadores && this.puntosJugadores.length > 0) {
             const setsUnicosPuntos = [...new Set(this.puntosJugadores.map(p => p.set))];
             

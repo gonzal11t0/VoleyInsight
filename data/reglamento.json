@@ -2,68 +2,28 @@
   "reglamento": {
     "version": "FMV 2025-2028",
     "categorias": {
-      "sub_15": {
-        "nombre": "Sub-15",
-        "max_sets": 3,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 2
-      },
-      "sub_17": {
-        "nombre": "Sub-17",
-        "max_sets": 3,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 2
-      },
-      "sub_19": {
-        "nombre": "Sub-19",
-        "max_sets": 3,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 2
-      },
-      "tercera": {
-        "nombre": "Tercera División",
-        "max_sets": 5,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 3
-      },
-      "segunda": {
-        "nombre": "Segunda División",
-        "max_sets": 5,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 3
-      },
-      "primera": {
-        "nombre": "Primera División",
-        "max_sets": 5,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 3
-      },
-      "division_honor": {
-        "nombre": "División de Honor",
-        "max_sets": 5,
-        "puntos_por_set": 25,
-        "set_decisivo_puntos": 15,
-        "sets_para_ganar": 3
-      }
+      "sub_11": { "nombre": "Sub-11", "max_sets": 3, "puntos_por_set": 15, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_12": { "nombre": "Sub-12", "max_sets": 3, "puntos_por_set": 15, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_13": { "nombre": "Sub-13", "max_sets": 3, "puntos_por_set": 15, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_14": { "nombre": "Sub-14", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_15": { "nombre": "Sub-15", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_17": { "nombre": "Sub-17", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_18": { "nombre": "Sub-18", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "sub_19": { "nombre": "Sub-19", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_21": { "nombre": "Sub-21", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+
+      "tercera": { "nombre": "Tercera División", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "cuarta": { "nombre": "Cuarta División", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "segunda": { "nombre": "Segunda División", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "primera": { "nombre": "Primera División", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "division_honor": { "nombre": "División de Honor", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
+      "mayores": { "nombre": "Mayores", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 }
     },
     "reglas_generales": {
       "diferencia_minima": 2,
       "cantidad_maxima_de_sets": 5,
       "puntos_minimos_set_normal": 25,
       "puntos_minimos_set_decisivo": 15
-    },
-      "mayores": {
-      "nombre": "Mayores",
-      "max_sets": 5,
-      "puntos_por_set": 25,
-      "set_decisivo_puntos": 15,
-      "sets_para_ganar": 3
     }
   }
 }
