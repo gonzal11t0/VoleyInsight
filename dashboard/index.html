@@ -66,6 +66,31 @@
         .seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; }
         .tab-btn { transition: all 0.2s ease; }
     </style>
+    <script>
+    // Prevenir F5, Ctrl+R, Ctrl+F5
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+            e.preventDefault();
+            mostrarAdvertencia();
+        }
+    });
+    
+    // Prevenir swipe/tirar hacia abajo en celulares
+    let touchStartY = 0;
+    document.addEventListener('touchstart', function(e) {
+        touchStartY = e.touches[0].clientY;
+    });
+    document.addEventListener('touchmove', function(e) {
+        const scrollTop = document.documentElement.scrollTop;
+        if (touchStartY < e.touches[0].clientY && scrollTop === 0) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+    
+    function mostrarAdvertencia() {
+        alert('⚠️ No actualices la página durante el partido.\nLos datos se guardan automáticamente.');
+    }
+</script>
 </head>
 <body class="bg-dark text-white">
     <!-- Skeleton loader (igual que original) -->
@@ -535,7 +560,6 @@
         <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
         
         <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
-        <button id="offlineModeBtn" class="w-full mt-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📡 Modo offline</button>
         
         <!-- SELECTOR DE PARTIDOS -->
         <div class="mt-3 pt-2 border-t border-gray-700">

@@ -49,15 +49,16 @@ constructor() {
         }
     }, { once: true });
     
+    // En el constructor, reemplazar la carga actual por:
+this.cargarReglamento().then(() => {
     this.cargarConfiguracion().then(() => {
-        this.cargarReglamento();
+        this.aplicarConfiguracionSets();  // ✅ AHORA SÍ, después de tener ambos
         this.connectWebSocket();
         this.loadData();
         this.startAutoRefresh();
         this.setupRefreshIntervalSelector();
         this.startConnectionMonitor();
         this.setupLivePanel();
-        this.setupEventListeners();
         this.setupPanelMinimizable();
         this.cargarListaPartidos();
         this.setupSelectorPartido();
@@ -69,6 +70,12 @@ constructor() {
         this.startAutoRefreshPuntos();
         this.actualizarSets();
     });
+});
+setInterval(async () => {
+    try {
+        await fetch('/keepalive');
+    } catch(e) {}
+}, 25000);
 }
 limpiarDOMCompletamente() {
     document.getElementById('homeScore').textContent = '0';
@@ -815,9 +822,7 @@ renderEvolucionChart(reportes) {
                     console.log('📊 Estado actual recibido:', data);
                     document.getElementById('homeScore').textContent = data.homeScore;
                     document.getElementById('awayScore').textContent = data.awayScore;
-                    // Si querés actualizar también el set y otros datos:
                     if (data.set) {
-                        // actualizar set si es necesario
                     }
                 });
                     setInterval(() => {
@@ -831,26 +836,20 @@ renderEvolucionChart(reportes) {
                     this.useWebSocket = false;
                 }
             }
-            async cargarReglamento() {
-                try {
-                    const response = await fetch('/data/reglamento.json');
-                    if (response.ok) {
-                        const data = await response.json();
-                        this.reglamento = data;
-                        
-                        const configResponse = await fetch('/data/config.json');
-                        if (configResponse.ok) {
-                            const config = await configResponse.json();
-                            this.categoria = config.categoria || null;
-                            this.aplicarConfiguracionSets();
-                        }
-                    } else {
-                        console.log('⚠️ No se encontró reglamento.json, usando valores por defecto');
-                    }
-                } catch(e) {
-                    console.log('Error cargando reglamento:', e);
-                }
-            }
+           async cargarReglamento() {
+    try {
+        const response = await fetch('/data/reglamento.json');
+        if (response.ok) {
+            const data = await response.json();
+            this.reglamento = data;
+            console.log('✅ Reglamento cargado');
+            return true;  // ✅ Importante: retorna algo
+        }
+    } catch(e) {
+        console.error('Error cargando reglamento:', e);
+    }
+    return false;
+}
 aplicarConfiguracionSets() {
     if (!this.reglamento || !this.categoria) {
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
@@ -1027,18 +1026,19 @@ this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitant
             }
             
             async cargarConfiguracion() {
-                try {
-                    const response = await fetch('/data/config.json');
-                    if (response.ok) {
-                        const config = await response.json();
-                        this.matchId = config.matchId;
-                        this.homeTeamName = config.homeTeam || "LOCAL";
-                        this.awayTeamName = config.awayTeam || "VISITANTE";
-                        return true;
-                    }
-                } catch(e) {}
-                return false;
-            }
+    try {
+        const response = await fetch('/data/config.json');
+        if (response.ok) {
+            const config = await response.json();
+            this.matchId = config.matchId;
+            this.homeTeamName = config.homeTeam || "LOCAL";
+            this.awayTeamName = config.awayTeam || "VISITANTE";
+            this.categoria = config.categoria || null;  // ✅ Guardar categoría
+            return true;
+        }
+    } catch(e) {}
+    return false;
+}
             
             async obtenerNombresEquiposDesdeAPI(matchId) {
                 try {
@@ -1098,7 +1098,7 @@ this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitant
                     this.mostrarSkeleton(false);
                 }
             }
-            
+        
             async cargarPuntosJugadores() {
                 const puntosKey = `puntos_${this.matchId}`;
                 const puntosGuardados = localStorage.getItem(puntosKey);
@@ -1216,7 +1216,6 @@ actualizarVistaIndividuales() {
             }
             
             setupEventListeners() {
-                document.getElementById('offlineModeBtn')?.addEventListener('click', () => this.mostrarFeedbackPartido('📡 Modo offline activado - Usando datos cacheados'));
                 document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
                 document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
                 document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
