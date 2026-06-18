@@ -1,15 +1,7 @@
 // dashboard/js/dashboard.js
 import { OfflineManager, SoundManager } from './utils.js';
 import { ReporteGenerator } from './reporteGenerator.js';
-import { 
-    calcularStatsPorJugador, 
-    actualizarTablaConStats, 
-    renderizarSoloNombres, 
-    renderizarTop5ConNombres, 
-    renderizarGraficoPuntos,
-    calcularEstadisticasServicio,
-    generarTablaHTMLSimple
-} from './StatsHelper.js';
+import { calcularStatsPorJugador, actualizarTablaConStats, renderizarSoloNombres, renderizarTop5ConNombres, renderizarGraficoPuntos,calcularEstadisticasServicio,generarTablaHTMLSimple} from './StatsHelper.js';
 
 export class VolleyballDashboard {
 constructor() {
@@ -18,7 +10,7 @@ constructor() {
     this.useWebSocket = true;
     this.data = [];
     this.charts = {};
-    this.matchId = null;
+    this.matchId = null;    
     this.homeTeamName = "LOCAL";
     this.awayTeamName = "VISITANTE";
     this.soundManager = new SoundManager();
@@ -31,7 +23,7 @@ constructor() {
     this.chartPuntosJugadores = null;
     this.jugadoresLocal = {};
     this.jugadoresVisitante = {};
-    this.reportesCargados = [];
+    this.reportesCargados = []; 
     this.chartEvolucion = null;
     this.refreshInterval = null;
     this.ultimoPuntoSonido = null;
@@ -49,34 +41,34 @@ constructor() {
         }
     }, { once: true });
     
-    // En el constructor, reemplazar la carga actual por:
-this.cargarReglamento().then(() => {
-    this.cargarConfiguracion().then(() => {
-        this.aplicarConfiguracionSets();  // ✅ AHORA SÍ, después de tener ambos
-        this.connectWebSocket();
-        this.loadData();
-        this.startAutoRefresh();
-        this.setupRefreshIntervalSelector();
-        this.startConnectionMonitor();
-        this.setupLivePanel();
-        this.setupPanelMinimizable();
-        this.cargarListaPartidos();
-        this.setupSelectorPartido();
-        this.cargarPuntosJugadores();
-        this.setupTabs();
-        this.setupFiltrosSets();    
-        this.setupEvolucionTab();
-        this.setupReportUpload();
-        this.startAutoRefreshPuntos();
-        this.actualizarSets();
+    this.cargarReglamento().then(() => {
+        this.cargarConfiguracion().then(() => {
+            this.aplicarConfiguracionSets();  
+            this.connectWebSocket();
+            this.loadData();
+            this.startAutoRefresh();
+            this.setupRefreshIntervalSelector();
+            this.startConnectionMonitor();
+            this.setupLivePanel();
+            this.setupPanelMinimizable();
+            this.cargarListaPartidos();
+            this.setupSelectorPartido();
+            this.cargarPuntosJugadores();
+            this.setupTabs();
+            this.setupFiltrosSets();    
+            this.setupEvolucionTab();
+            this.setupReportUpload();
+            this.startAutoRefreshPuntos();
+            this.actualizarSets();
+        });
     });
-});
-setInterval(async () => {
-    try {
-        await fetch('/keepalive');
-    } catch(e) {}
-}, 25000);
+    setInterval(async () => {
+        try {
+            await fetch('/keepalive');
+        } catch(e) {}
+    }, 25000);
 }
+
 limpiarDOMCompletamente() {
     document.getElementById('homeScore').textContent = '0';
     document.getElementById('awayScore').textContent = '0';
@@ -123,7 +115,8 @@ limpiarDOMCompletamente() {
     if (this.charts.runs) { this.charts.runs.destroy(); this.charts.runs = null; }
     if (this.charts.phase) { this.charts.phase.destroy(); this.charts.phase = null; }
 }
-    async cargarListaPartidos() {
+
+async cargarListaPartidos() {
     try {
         const response = await fetch('/data/config.json');
         if (response.ok) {
@@ -143,6 +136,7 @@ limpiarDOMCompletamente() {
         console.log('Error cargando lista de partidos');
     }
 }
+
 setupPanelMinimizable() {
     const panelContent = document.getElementById('panelContent');
     const toggleBtn = document.getElementById('togglePanelBtn');
@@ -319,6 +313,7 @@ setupSelectorPartido() {
         this.mostrarFeedbackPartido(`📊 Cambiado a ${this.homeTeamName} vs ${this.awayTeamName} (${nuevoId})`);
     });
 }
+
 async obtenerUrlApi() {
     try {
         const response = await fetch('/data/api_url.txt?_t=' + Date.now());
@@ -337,6 +332,7 @@ async obtenerUrlApi() {
     console.log('⚠️ Usando localhost:3002 como fallback');
     return 'http://localhost:3002';
 }
+
 setupEvolucionTab() {
     const tabEvolucion = document.getElementById('tabEvolucion');
     const vistaEvolucion = document.getElementById('vistaEvolucion');
@@ -662,7 +658,8 @@ generarAnalisisComparativo() {
         const servicioColor = r.eficienciaServicioLocal >= 10 ? 'text-green-400' : (r.eficienciaServicioLocal >= 0 ? 'text-yellow-400' : 'text-red-400');
         const eficienciaColor = r.eficienciaLocal >= 55 ? 'text-green-400' : (r.eficienciaLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
         
-        tablaHtml += `<tr class="border-b border-gray-700">
+        tablaHtml += 
+        `<tr class="border-b border-gray-700">
             <td class="py-2">
                 <div class="font-medium">${r.nombrePartido}</div>
                 <div class="text-xs text-gray-500">${r.fecha || ''} ${r.resultado ? `| ${r.resultado}` : ''}</div>
@@ -672,7 +669,7 @@ generarAnalisisComparativo() {
             <td class="text-center ${clutchColor} font-bold">${r.clutchLocal}%</td>
             <td class="text-center ${servicioColor} font-bold">${r.eficienciaServicioLocal}%</td>
             <td class="text-center ${eficienciaColor} font-bold">${r.eficienciaLocal}%</td>
-         </tr>`;
+        </tr>`;
     }
     tablaBody.innerHTML = tablaHtml;
     
@@ -764,92 +761,101 @@ renderEvolucionChart(reportes) {
             }
         }
     });
-}                   mostrarSkeleton(mostrar) {
-                const skeleton = document.getElementById('skeletonLoader');
-                const realContent = document.getElementById('realContent');
-                if (mostrar) { if(skeleton) skeleton.style.display = 'flex'; if(realContent) realContent.style.display = 'none'; }
-                else { if(skeleton) skeleton.style.display = 'none'; if(realContent) realContent.style.display = 'block'; }
-            }
+}
+
+mostrarSkeleton(mostrar) {
+    const skeleton = document.getElementById('skeletonLoader');
+    const realContent = document.getElementById('realContent');
+    if (mostrar) { if(skeleton) skeleton.style.display = 'flex'; if(realContent) realContent.style.display = 'none'; }
+        else { if(skeleton) skeleton.style.display = 'none'; if(realContent) realContent.style.display = 'block'; }
+}
+
+startAutoRefreshPuntos() { 
+    setInterval(() => { 
+        const puntosKey = `puntos_${this.matchId}`; 
+        const puntosGuardados = localStorage.getItem(puntosKey); 
+        if (puntosGuardados) { 
+            const nuevosPuntos = JSON.parse(puntosGuardados); 
+            if (JSON.stringify(this.puntosJugadores) !== JSON.stringify(nuevosPuntos)) { 
+                this.puntosJugadores = nuevosPuntos; 
+                this.cargarTimeouts();
+                this.actualizarVistaIndividuales();
+                this.actualizarSets();
+            } 
+        } 
+    }, 3000); 
+}
+
+startAutoRefresh() { setInterval(() => { this.loadData(); }, 5000); }
+setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
+
+
+startConnectionMonitor() {
+    let interval = 10000;
+    const monitor = () => { this.checkConnection(); const text = document.getElementById('connectionText'); interval = text?.textContent.includes('Sin conexión') ? 3000 : 10000; setTimeout(() => monitor(), interval); };
+    monitor(); this.checkConnection();
+}
+
+async connectWebSocket() {
+    if (!this.useWebSocket) return;
+    try {
+        const apiUrl = await this.obtenerUrlApi();
+        this.socket = io(apiUrl, {
+            transports: ['polling', 'websocket'],
+            reconnection: true
+        });
+        
+        this.socket.on('connect', () => {
+            this.socket.emit('subscribe', this.matchId);
+            this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
             
-            startAutoRefreshPuntos() { 
-                setInterval(() => { 
-                    const puntosKey = `puntos_${this.matchId}`; 
-                    const puntosGuardados = localStorage.getItem(puntosKey); 
-                    if (puntosGuardados) { 
-                        const nuevosPuntos = JSON.parse(puntosGuardados); 
-                        if (JSON.stringify(this.puntosJugadores) !== JSON.stringify(nuevosPuntos)) { 
-                            this.puntosJugadores = nuevosPuntos; 
-                            this.cargarTimeouts();
-                            this.actualizarVistaIndividuales();
-                            this.actualizarSets();
-                        } 
-                    } 
-                }, 3000); 
+            // 👇 AGREGAR EL LISTENER DENTRO DEL CONNECT
+            this.socket.on('partido_terminado', (data) => {
+                console.log('🏁 Partido terminado, guardando reporte automático...');
+                this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
+                setTimeout(() => {
+                    this.saveAsHTML();
+                    this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
+                }, 2000);
+            });
+        });
+        
+        this.socket.on('new_point', (data) => {
+            this.loadData();
+            this.actualizarSets();
+        });
+        
+        this.socket.on('disconnect', () => {
+            this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling');
+        });
+        
+        
+        setInterval(() => {
+            if (this.socket && this.socket.connected) {
+                this.socket.emit('ping_keepalive');
             }
-            
-            startAutoRefresh() { setInterval(() => { this.loadData(); }, 5000); }
-            setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
-            
-            startConnectionMonitor() {
-                let interval = 10000;
-                const monitor = () => { this.checkConnection(); const text = document.getElementById('connectionText'); interval = text?.textContent.includes('Sin conexión') ? 3000 : 10000; setTimeout(() => monitor(), interval); };
-                monitor(); this.checkConnection();
-            }
-            
-            async connectWebSocket() {
-                if (!this.useWebSocket) return;
-                try {
-                    const apiUrl = await this.obtenerUrlApi();
-                    this.socket = io(apiUrl, {
-                        transports: ['polling', 'websocket'],
-                        reconnection: true
-                    });
-                    
-                    this.socket.on('connect', () => {
-                        this.socket.emit('subscribe', this.matchId);
-                        this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
-                    });
-                    
-                    this.socket.on('new_point', (data) => {
-                        this.loadData();
-                        this.actualizarSets();
-                    });
-                    
-                    this.socket.on('disconnect', () => {
-                        this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling');
-                    });
-                    this.socket.on('match_update', (data) => {
-                    console.log('📊 Estado actual recibido:', data);
-                    document.getElementById('homeScore').textContent = data.homeScore;
-                    document.getElementById('awayScore').textContent = data.awayScore;
-                    if (data.set) {
-                    }
-                });
-                    setInterval(() => {
-                        if (this.socket && this.socket.connected) {
-                            this.socket.emit('ping_keepalive');
-                        }
-                    }, 25000);
-                    
-                } catch(e) {
-                    console.log('WebSocket no disponible, usando polling');
-                    this.useWebSocket = false;
-                }
-            }
-           async cargarReglamento() {
+        }, 25000);
+        
+    } catch(e) {
+        console.log('WebSocket no disponible, usando polling');
+        this.useWebSocket = false;
+    }
+}
+async cargarReglamento() {
     try {
         const response = await fetch('/data/reglamento.json');
         if (response.ok) {
             const data = await response.json();
             this.reglamento = data;
             console.log('✅ Reglamento cargado');
-            return true;  // ✅ Importante: retorna algo
+            return true;  
         }
     } catch(e) {
         console.error('Error cargando reglamento:', e);
     }
     return false;
 }
+
 aplicarConfiguracionSets() {
     if (!this.reglamento || !this.categoria) {
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
@@ -869,163 +875,163 @@ aplicarConfiguracionSets() {
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
     }
 }
-            async cargarTimeouts() {
-                const timeoutsKey = `timeouts_${this.matchId}`;
-                const timeoutsGuardados = localStorage.getItem(timeoutsKey);
-                this.timeouts = timeoutsGuardados ? JSON.parse(timeoutsGuardados) : [];
-                this.actualizarVistaTimeouts();
-            }
-            
-            calcularEfectividadTimeout(timeout) {
-                if (!this.data || this.data.length === 0) return timeout;
-                const timeoutDate = new Date(timeout.timestamp);
-                const puntosAntes = [];
-                for (let i = this.data.length - 1; i >= 0; i--) {
-                    const punto = this.data[i];
-                    if (new Date(punto.timestamp) < timeoutDate && puntosAntes.length < 5) puntosAntes.unshift(punto);
-                }
-                const puntosDespues = [];
-                let encontrado = false;
-                for (const punto of this.data) {
-                    if (encontrado && puntosDespues.length < 5) puntosDespues.push(punto);
-                    if (new Date(punto.timestamp) > timeoutDate && !encontrado) { encontrado = true; puntosDespues.push(punto); }
-                }
-                const equipo = timeout.equipo === 'LOCAL' ? 'HOME' : 'AWAY';
-                const rival = equipo === 'HOME' ? 'AWAY' : 'HOME';
-                const antesLocal = puntosAntes.filter(p => p.scorer === equipo).length;
-                const antesRival = puntosAntes.filter(p => p.scorer === rival).length;
-                const despuesLocal = puntosDespues.filter(p => p.scorer === equipo).length;
-                const despuesRival = puntosDespues.filter(p => p.scorer === rival).length;
-                timeout.puntosAntes = { local: antesLocal, rival: antesRival, total: puntosAntes.length };
-                timeout.puntosDespues = { local: despuesLocal, rival: despuesRival, total: puntosDespues.length };
-                timeout.eficienciaAntes = puntosAntes.length ? (antesLocal / puntosAntes.length * 100).toFixed(1) : 0;
-                timeout.eficienciaDespues = puntosDespues.length ? (despuesLocal / puntosDespues.length * 100).toFixed(1) : 0;
-                timeout.mejora = (timeout.eficienciaDespues - timeout.eficienciaAntes).toFixed(1);
-                if (timeout.mejora > 20) timeout.efectividad = 'positiva';
-                else if (timeout.mejora < -20) timeout.efectividad = 'negativa';
-                else timeout.efectividad = 'neutra';
-                return timeout;
-            }
-            
-            actualizarVistaTimeouts() {
-                const container = document.getElementById('timeoutsList');
-                if (!container) return;
-                if (!this.timeouts || this.timeouts.length === 0) { container.innerHTML = '<div class="text-center text-gray-500 py-4">Sin timeouts registrados</div>'; return; }
-                const timeoutsConEfectividad = this.timeouts.map(t => this.calcularEfectividadTimeout(t));
-                const totalTimeouts = timeoutsConEfectividad.length;
-                const efectivos = timeoutsConEfectividad.filter(t => t.efectividad === 'positiva').length;
-                const mejoraPromedio = timeoutsConEfectividad.reduce((sum, t) => sum + parseFloat(t.mejora || 0), 0) / totalTimeouts;
-                const html = `<div class="bg-dark/50 rounded-lg p-3 mb-4"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-2xl font-bold text-primary">${totalTimeouts}</div><div class="text-xs text-gray-400">Total Timeouts</div></div><div><div class="text-2xl font-bold text-green-400">${efectivos}</div><div class="text-xs text-gray-400">Efectivos</div></div><div><div class="text-2xl font-bold ${mejoraPromedio > 0 ? 'text-green-400' : 'text-red-400'}">${mejoraPromedio > 0 ? '+' : ''}${mejoraPromedio.toFixed(1)}%</div><div class="text-xs text-gray-400">Mejora promedio</div></div></div></div>${timeoutsConEfectividad.map((t, idx) => {
-                    let efectividadColor = '', efectividadIcono = '';
-                    if (t.efectividad === 'positiva') { efectividadColor = 'border-green-500 bg-green-500/10'; efectividadIcono = '✅ POSITIVA'; }
-                    else if (t.efectividad === 'negativa') { efectividadColor = 'border-red-500 bg-red-500/10'; efectividadIcono = '❌ NEGATIVA'; }
-                    else { efectividadColor = 'border-yellow-500 bg-yellow-500/10'; efectividadIcono = '⚖️ NEUTRA'; }
-                    return `<div class="bg-dark/30 rounded-lg p-3 border-l-4 ${efectividadColor}"><div class="flex justify-between items-center mb-2"><span class="font-bold text-primary">⏸️ TIMEOUT #${idx + 1}</span><span class="text-xs text-gray-500">Set ${t.set} - ${new Date(t.timestamp).toLocaleTimeString()}</span></div><div class="text-sm mb-2">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} pidió timeout (${t.marcador})</div><div class="grid grid-cols-2 gap-4 text-center text-xs"><div class="bg-gray-800/50 rounded p-2"><div class="text-gray-400 mb-1">ANTES (últimos ${t.puntosAntes?.total || 0} puntos)</div><div class="flex justify-center gap-4"><span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.local || 0}</span><span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.rival || 0}</span></div><div class="text-gray-400 mt-1">Efi: ${t.eficienciaAntes || 0}%</div></div><div class="bg-gray-800/50 rounded p-2"><div class="text-gray-400 mb-1">DESPUÉS (primeros ${t.puntosDespues?.total || 0} puntos)</div><div class="flex justify-center gap-4"><span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.local || 0}</span><span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.rival || 0}</span></div><div class="text-gray-400 mt-1">Efi: ${t.eficienciaDespues || 0}%</div></div></div><div class="mt-2 text-center"><span class="text-xs font-semibold">Mejora: ${t.mejora > 0 ? '+' : ''}${t.mejora}% - Efectividad: ${efectividadIcono}</span></div></div>`;
-                }).join('')}`;
-                container.innerHTML = html;
-            }
-            
-            async checkConnection() {
-                try {
-                    const response = await fetch(`/data/match_${this.matchId}.json?_t=${Date.now()}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data && data.length > 0) {
-                            const lastUpdate = new Date(data[data.length - 1].timestamp);
-                            const secondsSinceUpdate = (new Date() - lastUpdate) / 1000;
-                            const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText');
-                            if (secondsSinceUpdate < 10) { led.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse'; text.textContent = 'Tracker activo'; text.className = 'text-xs text-green-400'; }
-                            else if (secondsSinceUpdate < 60) { led.className = 'w-2 h-2 rounded-full bg-yellow-500'; text.textContent = `Último dato: ${Math.round(secondsSinceUpdate)}s`; text.className = 'text-xs text-yellow-400'; }
-                            else { led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Tracker inactivo'; text.className = 'text-xs text-red-400'; }
-                            return;
-                        }
-                    }
-                    const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText');
-                    led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Sin conexión'; text.className = 'text-xs text-red-400';
-                } catch(e) { const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText'); led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Error de conexión'; text.className = 'text-xs text-red-400'; }
-            }
-            
-            setupRefreshIntervalSelector() {
-                const selector = document.getElementById('refreshIntervalSelector');
-                if (!selector) return;
-                if (this.refreshInterval) clearInterval(this.refreshInterval);
-                const startInterval = (ms) => { if (this.refreshInterval) clearInterval(this.refreshInterval); this.refreshInterval = setInterval(() => this.loadData(), ms); };
-                selector.onchange = () => { const ms = parseInt(selector.value); startInterval(ms); this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`); };
-                startInterval(5000);
-            }
 
-            
-            
-            actualizarSets() {
-                const container = document.getElementById('setsList');
-                if (!container) return;
-                let datosParaSets = this.data;
-                if (!datosParaSets?.length && this.puntosJugadores?.length) datosParaSets = this.puntosJugadores;
-                if (!datosParaSets?.length) { container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>'; return; }
-                const setsMap = new Map();
-                for (const punto of datosParaSets) {
-                    const setNum = punto.set || 1;
-                    if (!setsMap.has(setNum)) setsMap.set(setNum, { home: 0, away: 0 });
-                    const setData = setsMap.get(setNum);
-                    let homeScore = punto.homeScore, awayScore = punto.awayScore;
-                    if ((homeScore === undefined || awayScore === undefined) && punto.marcadorDespues) {
-                        const [h, a] = punto.marcadorDespues.split('-');
-                        homeScore = parseInt(h); awayScore = parseInt(a);
-                    }
-                    if (!isNaN(homeScore) && !isNaN(awayScore)) { setData.home = homeScore; setData.away = awayScore; }
-                }
-                let hasValidData = false;
-                for (const [num, scores] of setsMap) { if (scores.home > 0 || scores.away > 0) { hasValidData = true; break; } }
-                if (!hasValidData) { container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>'; return; }
-                const setsArray = Array.from(setsMap.keys()).sort((a, b) => a - b);
-                const ultimoSetNum = setsArray[setsArray.length - 1];
-                const { local: setsGanadosLocal, visitante: setsGanadosVisitante } = this.calcularSetsGanados(setsMap);
-const totalSetsPosibles = this.configSets.maxSets;
-const setsParaGanar = this.configSets.setsParaGanar;
-this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitante >= setsParaGanar;
-                let setsHtml = '';
-                for (const setNum of setsArray) {
-                    const set = setsMap.get(setNum);
-                    const esUltimoSet = setNum === ultimoSetNum;
-                    const setTerminado = this.isSetTerminado(set.home, set.away, setNum, setsArray.length);
-                    let ganador = '', ganadorColor = '';
-                    if (setTerminado) { if (set.home > set.away) { ganador = `🏆 ${this.homeTeamName}`; ganadorColor = 'text-blue-400'; } else { ganador = `🏆 ${this.awayTeamName}`; ganadorColor = 'text-red-400'; } }
-                    const mostrarEnCurso = esUltimoSet && !setTerminado && !this.partidoTerminado;
-                    const bgColor = esUltimoSet && !this.partidoTerminado ? 'bg-primary/20 border-primary' : 'bg-gray-800/50 border-gray-700';
-                    const borderStyle = esUltimoSet && !this.partidoTerminado ? 'border-2' : 'border';
-                    setsHtml += `<div class="${bgColor} ${borderStyle} rounded-lg px-3 py-2 min-w-[100px] text-center"><div class="text-xs font-bold ${esUltimoSet && !this.partidoTerminado ? 'text-primary' : 'text-gray-400'}">Set ${setNum}${mostrarEnCurso ? ' 🔴 EN CURSO' : ''}</div><div class="text-sm font-bold mt-1"><span class="text-blue-400">${set.home}</span><span class="text-gray-500"> - </span><span class="text-red-400">${set.away}</span></div>${ganador ? `<div class="text-xs ${ganadorColor} mt-1">${ganador}</div>` : ''}${mostrarEnCurso ? '<div class="text-xs text-gray-400 mt-1">En juego</div>' : ''}</div>`;
-                }
-                if (this.partidoTerminado) {
-                    const campeon = setsGanadosLocal >= setsParaGanar ? this.homeTeamName : this.awayTeamName;
-                    const marcadorSets = `${setsGanadosLocal} - ${setsGanadosVisitante}`;
-                    container.innerHTML = `${setsHtml}<div class="w-full mt-3 text-center p-2 bg-green-900/30 rounded-lg border border-green-500/50"><div class="text-green-400 font-bold text-sm">🏆 PARTIDO FINALIZADO 🏆</div><div class="text-white font-bold text-base md:text-lg">${campeon} Ganador</div><div class="text-gray-400 text-xs">Sets: ${marcadorSets}</div></div>`;
-                    return;
-                }
-                container.innerHTML = setsHtml || '<div class="text-gray-500 text-xs">No hay datos de sets</div>';
+async cargarTimeouts() {
+    const timeoutsKey = `timeouts_${this.matchId}`;
+    const timeoutsGuardados = localStorage.getItem(timeoutsKey);
+    this.timeouts = timeoutsGuardados ? JSON.parse(timeoutsGuardados) : [];
+    this.actualizarVistaTimeouts();
+}
+
+calcularEfectividadTimeout(timeout) {
+    if (!this.data || this.data.length === 0) return timeout;
+    const timeoutDate = new Date(timeout.timestamp);
+    const puntosAntes = [];
+    for (let i = this.data.length - 1; i >= 0; i--) {
+        const punto = this.data[i];
+        if (new Date(punto.timestamp) < timeoutDate && puntosAntes.length < 5) puntosAntes.unshift(punto);
+    }
+    const puntosDespues = [];
+    let encontrado = false;
+    for (const punto of this.data) {
+        if (encontrado && puntosDespues.length < 5) puntosDespues.push(punto);
+        if (new Date(punto.timestamp) > timeoutDate && !encontrado) { encontrado = true; puntosDespues.push(punto); }
+    }
+    const equipo = timeout.equipo === 'LOCAL' ? 'HOME' : 'AWAY';
+    const rival = equipo === 'HOME' ? 'AWAY' : 'HOME';
+    const antesLocal = puntosAntes.filter(p => p.scorer === equipo).length;
+    const antesRival = puntosAntes.filter(p => p.scorer === rival).length;
+    const despuesLocal = puntosDespues.filter(p => p.scorer === equipo).length;
+    const despuesRival = puntosDespues.filter(p => p.scorer === rival).length;
+    timeout.puntosAntes = { local: antesLocal, rival: antesRival, total: puntosAntes.length };
+    timeout.puntosDespues = { local: despuesLocal, rival: despuesRival, total: puntosDespues.length };
+    timeout.eficienciaAntes = puntosAntes.length ? (antesLocal / puntosAntes.length * 100).toFixed(1) : 0;
+    timeout.eficienciaDespues = puntosDespues.length ? (despuesLocal / puntosDespues.length * 100).toFixed(1) : 0;
+    timeout.mejora = (timeout.eficienciaDespues - timeout.eficienciaAntes).toFixed(1);
+    if (timeout.mejora > 20) timeout.efectividad = 'positiva';
+    else if (timeout.mejora < -20) timeout.efectividad = 'negativa';
+    else timeout.efectividad = 'neutra';
+    return timeout;
+}
+
+actualizarVistaTimeouts() {
+    const container = document.getElementById('timeoutsList');
+    if (!container) return;
+    if (!this.timeouts || this.timeouts.length === 0) { container.innerHTML = '<div class="text-center text-gray-500 py-4">Sin timeouts registrados</div>'; return; }
+    const timeoutsConEfectividad = this.timeouts.map(t => this.calcularEfectividadTimeout(t));
+    const totalTimeouts = timeoutsConEfectividad.length;
+    const efectivos = timeoutsConEfectividad.filter(t => t.efectividad === 'positiva').length;
+    const mejoraPromedio = timeoutsConEfectividad.reduce((sum, t) => sum + parseFloat(t.mejora || 0), 0) / totalTimeouts;
+    const html = `<div class="bg-dark/50 rounded-lg p-3 mb-4"><div class="grid grid-cols-3 gap-4 text-center"><div><div class="text-2xl font-bold text-primary">${totalTimeouts}</div><div class="text-xs text-gray-400">Total Timeouts</div></div><div><div class="text-2xl font-bold text-green-400">${efectivos}</div><div class="text-xs text-gray-400">Efectivos</div></div><div><div class="text-2xl font-bold ${mejoraPromedio > 0 ? 'text-green-400' : 'text-red-400'}">${mejoraPromedio > 0 ? '+' : ''}${mejoraPromedio.toFixed(1)}%</div><div class="text-xs text-gray-400">Mejora promedio</div></div></div></div>${timeoutsConEfectividad.map((t, idx) => {
+        let efectividadColor = '', efectividadIcono = '';
+        if (t.efectividad === 'positiva') { efectividadColor = 'border-green-500 bg-green-500/10'; efectividadIcono = '✅ POSITIVA'; }
+        else if (t.efectividad === 'negativa') { efectividadColor = 'border-red-500 bg-red-500/10'; efectividadIcono = '❌ NEGATIVA'; }
+        else { efectividadColor = 'border-yellow-500 bg-yellow-500/10'; efectividadIcono = '⚖️ NEUTRA'; }
+        return `<div class="bg-dark/30 rounded-lg p-3 border-l-4 ${efectividadColor}"><div class="flex justify-between items-center mb-2"><span class="font-bold text-primary">⏸️ TIMEOUT #${idx + 1}</span><span class="text-xs text-gray-500">Set ${t.set} - ${new Date(t.timestamp).toLocaleTimeString()}</span></div><div class="text-sm mb-2">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} pidió timeout (${t.marcador})</div><div class="grid grid-cols-2 gap-4 text-center text-xs"><div class="bg-gray-800/50 rounded p-2"><div class="text-gray-400 mb-1">ANTES (últimos ${t.puntosAntes?.total || 0} puntos)</div><div class="flex justify-center gap-4"><span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.local || 0}</span><span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.rival || 0}</span></div><div class="text-gray-400 mt-1">Efi: ${t.eficienciaAntes || 0}%</div></div><div class="bg-gray-800/50 rounded p-2"><div class="text-gray-400 mb-1">DESPUÉS (primeros ${t.puntosDespues?.total || 0} puntos)</div><div class="flex justify-center gap-4"><span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.local || 0}</span><span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.rival || 0}</span></div><div class="text-gray-400 mt-1">Efi: ${t.eficienciaDespues || 0}%</div></div></div><div class="mt-2 text-center"><span class="text-xs font-semibold">Mejora: ${t.mejora > 0 ? '+' : ''}${t.mejora}% - Efectividad: ${efectividadIcono}</span></div></div>`;
+    }).join('')}`;
+    container.innerHTML = html;
+}
+
+async checkConnection() {
+    try {
+        const response = await fetch(`/data/match_${this.matchId}.json?_t=${Date.now()}`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lastUpdate = new Date(data[data.length - 1].timestamp);
+                const secondsSinceUpdate = (new Date() - lastUpdate) / 1000;
+                const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText');
+                if (secondsSinceUpdate < 10) { led.className = 'w-2 h-2 rounded-full bg-green-500 animate-pulse'; text.textContent = 'Tracker activo'; text.className = 'text-xs text-green-400'; }
+                else if (secondsSinceUpdate < 60) { led.className = 'w-2 h-2 rounded-full bg-yellow-500'; text.textContent = `Último dato: ${Math.round(secondsSinceUpdate)}s`; text.className = 'text-xs text-yellow-400'; }
+                else { led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Tracker inactivo'; text.className = 'text-xs text-red-400'; }
+                return;
             }
-            
-            calcularSetsGanados(setsMap) {
-                let local = 0, visitante = 0;
-                for (const [setNum, set] of setsMap) if (this.isSetTerminado(set.home, set.away, setNum, setsMap.size)) set.home > set.away ? local++ : visitante++;
-                return { local, visitante };
-            }
-            
-            isSetTerminado(home, away, setNum, totalSets) {
+        }
+        const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText');
+        led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Sin conexión'; text.className = 'text-xs text-red-400';
+    } catch(e) { const led = document.getElementById('connectionLed'); const text = document.getElementById('connectionText'); led.className = 'w-2 h-2 rounded-full bg-red-500'; text.textContent = 'Error de conexión'; text.className = 'text-xs text-red-400'; }
+}
+
+setupRefreshIntervalSelector() {
+    const selector = document.getElementById('refreshIntervalSelector');
+    if (!selector) return;
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+    const startInterval = (ms) => { if (this.refreshInterval) clearInterval(this.refreshInterval); this.refreshInterval = setInterval(() => this.loadData(), ms); };
+    selector.onchange = () => { const ms = parseInt(selector.value); startInterval(ms); this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms/1000} segundos`); };
+    startInterval(5000);
+}
+
+
+actualizarSets() {
+    const container = document.getElementById('setsList');
+    if (!container) return;
+    let datosParaSets = this.data;
+    if (!datosParaSets?.length && this.puntosJugadores?.length) datosParaSets = this.puntosJugadores;
+    if (!datosParaSets?.length) { container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>'; return; }
+    const setsMap = new Map();
+    for (const punto of datosParaSets) {
+        const setNum = punto.set || 1;
+        if (!setsMap.has(setNum)) setsMap.set(setNum, { home: 0, away: 0 });
+        const setData = setsMap.get(setNum);
+        let homeScore = punto.homeScore, awayScore = punto.awayScore;
+        if ((homeScore === undefined || awayScore === undefined) && punto.marcadorDespues) {
+            const [h, a] = punto.marcadorDespues.split('-');
+            homeScore = parseInt(h); awayScore = parseInt(a);
+        }
+        if (!isNaN(homeScore) && !isNaN(awayScore)) { setData.home = homeScore; setData.away = awayScore; }
+    }
+    let hasValidData = false;
+    for (const [num, scores] of setsMap) { if (scores.home > 0 || scores.away > 0) { hasValidData = true; break; } }
+    if (!hasValidData) { container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>'; return; }
+    const setsArray = Array.from(setsMap.keys()).sort((a, b) => a - b);
+    const ultimoSetNum = setsArray[setsArray.length - 1];
+    const { local: setsGanadosLocal, visitante: setsGanadosVisitante } = this.calcularSetsGanados(setsMap);
+    const totalSetsPosibles = this.configSets.maxSets;
+    const setsParaGanar = this.configSets.setsParaGanar;
+    this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitante >= setsParaGanar;
+    let setsHtml = '';
+    for (const setNum of setsArray) {
+        const set = setsMap.get(setNum);
+        const esUltimoSet = setNum === ultimoSetNum;
+        const setTerminado = this.isSetTerminado(set.home, set.away, setNum, setsArray.length);
+        let ganador = '', ganadorColor = '';
+        if (setTerminado) { if (set.home > set.away) { ganador = `🏆 ${this.homeTeamName}`; ganadorColor = 'text-blue-400'; } else { ganador = `🏆 ${this.awayTeamName}`; ganadorColor = 'text-red-400'; } }
+        const mostrarEnCurso = esUltimoSet && !setTerminado && !this.partidoTerminado;
+        const bgColor = esUltimoSet && !this.partidoTerminado ? 'bg-primary/20 border-primary' : 'bg-gray-800/50 border-gray-700';
+        const borderStyle = esUltimoSet && !this.partidoTerminado ? 'border-2' : 'border';
+        setsHtml += `<div class="${bgColor} ${borderStyle} rounded-lg px-3 py-2 min-w-[100px] text-center"><div class="text-xs font-bold ${esUltimoSet && !this.partidoTerminado ? 'text-primary' : 'text-gray-400'}">Set ${setNum}${mostrarEnCurso ? ' 🔴 EN CURSO' : ''}</div><div class="text-sm font-bold mt-1"><span class="text-blue-400">${set.home}</span><span class="text-gray-500"> - </span><span class="text-red-400">${set.away}</span></div>${ganador ? `<div class="text-xs ${ganadorColor} mt-1">${ganador}</div>` : ''}${mostrarEnCurso ? '<div class="text-xs text-gray-400 mt-1">En juego</div>' : ''}</div>`;
+    }
+    if (this.partidoTerminado) {
+        const campeon = setsGanadosLocal >= setsParaGanar ? this.homeTeamName : this.awayTeamName;
+        const marcadorSets = `${setsGanadosLocal} - ${setsGanadosVisitante}`;
+        container.innerHTML = `${setsHtml}<div class="w-full mt-3 text-center p-2 bg-green-900/30 rounded-lg border border-green-500/50"><div class="text-green-400 font-bold text-sm">🏆 PARTIDO FINALIZADO 🏆</div><div class="text-white font-bold text-base md:text-lg">${campeon} Ganador</div><div class="text-gray-400 text-xs">Sets: ${marcadorSets}</div></div>`;
+        return;
+    }
+    container.innerHTML = setsHtml || '<div class="text-gray-500 text-xs">No hay datos de sets</div>';
+}
+
+calcularSetsGanados(setsMap) {
+    let local = 0, visitante = 0;
+    for (const [setNum, set] of setsMap) if (this.isSetTerminado(set.home, set.away, setNum, setsMap.size)) set.home > set.away ? local++ : visitante++;
+    return { local, visitante };
+}
+
+isSetTerminado(home, away, setNum, totalSets) {
     const esSetDecisivo = setNum === totalSets && totalSets === this.configSets.maxSets;
     const puntosNecesarios = esSetDecisivo ? this.configSets.puntosSetDecisivo : this.configSets.puntosSetNormal;
     return (home >= puntosNecesarios || away >= puntosNecesarios) && Math.abs(home - away) >= 2;
 }
 
-            
-            mostrarFeedbackPartido(mensaje) {
-                const feedback = document.createElement('div');
-                feedback.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold';
-                feedback.innerText = mensaje;
-                document.body.appendChild(feedback);
-                setTimeout(() => feedback.remove(), 2000);
-            }
-            
-            async cargarConfiguracion() {
+
+mostrarFeedbackPartido(mensaje) {
+    const feedback = document.createElement('div');
+    feedback.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-semibold';
+    feedback.innerText = mensaje;
+    document.body.appendChild(feedback);
+    setTimeout(() => feedback.remove(), 2000);
+}
+
+async cargarConfiguracion() {
     try {
         const response = await fetch('/data/config.json');
         if (response.ok) {
@@ -1033,112 +1039,109 @@ this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitant
             this.matchId = config.matchId;
             this.homeTeamName = config.homeTeam || "LOCAL";
             this.awayTeamName = config.awayTeam || "VISITANTE";
-            this.categoria = config.categoria || null;  // ✅ Guardar categoría
+            this.categoria = config.categoria || null;  
             return true;
         }
     } catch(e) {}
     return false;
 }
-            
-            async obtenerNombresEquiposDesdeAPI(matchId) {
-                try {
-                    const response = await fetch(`https://metrovoley.com.ar/api/matches/${matchId}/updates`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data?.match?.homeTeam?.name && data?.match?.awayTeam?.name) return { homeTeam: data.match.homeTeam.name, awayTeam: data.match.awayTeam.name };
-                    }
-                } catch(e) {}
+
+async obtenerNombresEquiposDesdeAPI(matchId) {
+    try {
+        const response = await fetch(`https://metrovoley.com.ar/api/matches/${matchId}/updates`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data?.match?.homeTeam?.name && data?.match?.awayTeam?.name) return { homeTeam: data.match.homeTeam.name, awayTeam: data.match.awayTeam.name };
+        }
+    } catch(e) {}
+    return null;
+}
+
+async loadData() {
+    const offlineManager = new OfflineManager();
+    const jugadoresLocalGuardados = localStorage.getItem(`jugadores_${this.matchId}_local`);
+    const jugadoresVisitanteGuardados = localStorage.getItem(`jugadores_${this.matchId}_visitante`);
+    if (jugadoresLocalGuardados) this.jugadoresLocal = JSON.parse(jugadoresLocalGuardados);
+    if (jugadoresVisitanteGuardados) { this.jugadoresVisitante = JSON.parse(jugadoresVisitanteGuardados); this.actualizarVistaIndividuales(); }
+    try {
+        const response = await fetch(`/data/match_${this.matchId}.json`);
+        if (response.ok) {
+            const newData = await response.json();
+            this.data = newData;
+            await offlineManager.saveMatchData(this.matchId, newData);
+            this.updateDashboard();
+            this.actualizarSets();
+        }
+        const fullResponse = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
+        if (fullResponse.ok) {
+            const fullData = await fullResponse.json();
+            this.jugadoresLocal = {};
+            this.jugadoresVisitante = {};
+            const findCourt = (obj) => {
+                if (!obj) return null;
+                if (obj.court) return obj.court;
+                if (obj.liveState?.court) return obj.liveState.court;
+                for (let key in obj) if (typeof obj[key] === 'object') { let found = findCourt(obj[key]); if (found) return found; }
                 return null;
+            };
+            this.cargarTimeouts();
+            const court = findCourt(fullData);
+            if (court) {
+                if (court.home?.positions) for (const [pos, info] of Object.entries(court.home.positions)) if (info.number) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                if (court.home?.bench) for (const info of court.home.bench) if (info.number && !this.jugadoresLocal[info.number]) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                if (court.away?.positions) for (const [pos, info] of Object.entries(court.away.positions)) if (info.number) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                if (court.away?.bench) for (const info of court.away.bench) if (info.number && !this.jugadoresVisitante[info.number]) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
+                localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
+                this.actualizarVistaIndividuales();
             }
-            
-            
-            async loadData() {
-                const offlineManager = new OfflineManager();
-                const jugadoresLocalGuardados = localStorage.getItem(`jugadores_${this.matchId}_local`);
-                const jugadoresVisitanteGuardados = localStorage.getItem(`jugadores_${this.matchId}_visitante`);
-                if (jugadoresLocalGuardados) this.jugadoresLocal = JSON.parse(jugadoresLocalGuardados);
-                if (jugadoresVisitanteGuardados) { this.jugadoresVisitante = JSON.parse(jugadoresVisitanteGuardados); this.actualizarVistaIndividuales(); }
-                try {
-                    const response = await fetch(`/data/match_${this.matchId}.json`);
-                    if (response.ok) {
-                        const newData = await response.json();
-                        this.data = newData;
-                        await offlineManager.saveMatchData(this.matchId, newData);
-                        this.updateDashboard();
-                        this.actualizarSets();
-                    }
-                    const fullResponse = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
-                    if (fullResponse.ok) {
-                        const fullData = await fullResponse.json();
-                        this.jugadoresLocal = {};
-                        this.jugadoresVisitante = {};
-                        const findCourt = (obj) => {
-                            if (!obj) return null;
-                            if (obj.court) return obj.court;
-                            if (obj.liveState?.court) return obj.liveState.court;
-                            for (let key in obj) if (typeof obj[key] === 'object') { let found = findCourt(obj[key]); if (found) return found; }
-                            return null;
-                        };
-                        this.cargarTimeouts();
-                        const court = findCourt(fullData);
-                        if (court) {
-                            if (court.home?.positions) for (const [pos, info] of Object.entries(court.home.positions)) if (info.number) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
-                            if (court.home?.bench) for (const info of court.home.bench) if (info.number && !this.jugadoresLocal[info.number]) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
-                            if (court.away?.positions) for (const [pos, info] of Object.entries(court.away.positions)) if (info.number) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
-                            if (court.away?.bench) for (const info of court.away.bench) if (info.number && !this.jugadoresVisitante[info.number]) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
-                            localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
-                            localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
-                            this.actualizarVistaIndividuales();
-                        }
-                    }
-                    this.mostrarSkeleton(false);
-                } catch(error) {
-                    const cachedData = await offlineManager.getMatchData(this.matchId);
-                    if (cachedData) { this.data = cachedData; this.updateDashboard(); this.mostrarFeedbackPartido('⚠️ Error de conexión - Usando datos cacheados'); }
-                    this.mostrarSkeleton(false);
-                }
-            }
-        
-            async cargarPuntosJugadores() {
-                const puntosKey = `puntos_${this.matchId}`;
-                const puntosGuardados = localStorage.getItem(puntosKey);
-                if (puntosGuardados) { this.puntosJugadores = JSON.parse(puntosGuardados); this.actualizarVistaIndividuales(); return; }
-                try {
-                    const response = await fetch(`/data/jugadores_${this.matchId}.json`);
-                    if (response.ok) this.puntosJugadores = await response.json();
-                    else this.puntosJugadores = [];
-                    this.actualizarVistaIndividuales();
-                } catch(e) { this.puntosJugadores = []; }
-            }
-            
-            setupTabs() {
-                const tp = document.getElementById('tabPartido'), ti = document.getElementById('tabIndividuales'), vp = document.getElementById('vistaPartido'), vi = document.getElementById('vistaIndividuales');
-                if (!tp || !ti) return;
-                tp.addEventListener('click', () => { this.vistaActual = 'partido'; tp.classList.add('bg-primary','text-white'); tp.classList.remove('bg-gray-700','text-gray-300'); ti.classList.add('bg-gray-700','text-gray-300'); ti.classList.remove('bg-primary','text-white'); if(vp) vp.classList.remove('hidden'); if(vi) vi.classList.add('hidden'); });
-                ti.addEventListener('click', () => { this.vistaActual = 'individuales'; ti.classList.add('bg-primary','text-white'); ti.classList.remove('bg-gray-700','text-gray-300'); tp.classList.add('bg-gray-700','text-gray-300'); tp.classList.remove('bg-primary','text-white'); if(vp) vp.classList.add('hidden'); if(vi) vi.classList.remove('hidden'); this.actualizarVistaIndividuales(); });
-            }
-            
-            setupFiltrosSets() {
-                setTimeout(() => {
-                    const btns = document.querySelectorAll('.filtro-set-btn');
-                    if (!btns.length) return;
-                    btns.forEach(btn => {
-                        btn.removeEventListener('click', this.filtroSetHandler);
-                        this.filtroSetHandler = (e) => {
-                            const target = e.currentTarget;
-                            btns.forEach(b => { b.classList.remove('bg-primary','text-white'); b.classList.add('bg-gray-700','text-gray-300'); });
-                            target.classList.add('bg-primary','text-white');
-                            target.classList.remove('bg-gray-700','text-gray-300');
-                            this.filtroSet = target.dataset.set;
-                            this.actualizarVistaIndividuales();
-                        };
-                        btn.addEventListener('click', this.filtroSetHandler);
-                    });
-                }, 100);
-            }
-            
- 
-            
+        }
+        this.mostrarSkeleton(false);
+    } catch(error) {
+        const cachedData = await offlineManager.getMatchData(this.matchId);
+        if (cachedData) { this.data = cachedData; this.updateDashboard(); this.mostrarFeedbackPartido('⚠️ Error de conexión - Usando datos cacheados'); }
+        this.mostrarSkeleton(false);
+}}
+
+async cargarPuntosJugadores() {
+    const puntosKey = `puntos_${this.matchId}`;
+    const puntosGuardados = localStorage.getItem(puntosKey);
+    if (puntosGuardados) { this.puntosJugadores = JSON.parse(puntosGuardados); this.actualizarVistaIndividuales(); return; }
+    try {
+        const response = await fetch(`/data/jugadores_${this.matchId}.json`);
+        if (response.ok) this.puntosJugadores = await response.json();
+        else this.puntosJugadores = [];
+        this.actualizarVistaIndividuales();
+    } catch(e) { this.puntosJugadores = []; }
+}
+
+setupTabs() {
+    const tp = document.getElementById('tabPartido'), ti = document.getElementById('tabIndividuales'), vp = document.getElementById('vistaPartido'), vi = document.getElementById('vistaIndividuales');
+    if (!tp || !ti) return;
+    tp.addEventListener('click', () => { this.vistaActual = 'partido'; tp.classList.add('bg-primary','text-white'); tp.classList.remove('bg-gray-700','text-gray-300'); ti.classList.add('bg-gray-700','text-gray-300'); ti.classList.remove('bg-primary','text-white'); if(vp) vp.classList.remove('hidden'); if(vi) vi.classList.add('hidden'); });
+    ti.addEventListener('click', () => { this.vistaActual = 'individuales'; ti.classList.add('bg-primary','text-white'); ti.classList.remove('bg-gray-700','text-gray-300'); tp.classList.add('bg-gray-700','text-gray-300'); tp.classList.remove('bg-primary','text-white'); if(vp) vp.classList.add('hidden'); if(vi) vi.classList.remove('hidden'); this.actualizarVistaIndividuales(); });
+}
+
+setupFiltrosSets() {
+    setTimeout(() => {
+        const btns = document.querySelectorAll('.filtro-set-btn');
+        if (!btns.length) return;
+        btns.forEach(btn => {
+            btn.removeEventListener('click', this.filtroSetHandler);
+            this.filtroSetHandler = (e) => {
+                const target = e.currentTarget;
+                btns.forEach(b => { b.classList.remove('bg-primary','text-white'); b.classList.add('bg-gray-700','text-gray-300'); });
+                target.classList.add('bg-primary','text-white');
+                target.classList.remove('bg-gray-700','text-gray-300');
+                this.filtroSet = target.dataset.set;
+                this.actualizarVistaIndividuales();
+            };
+            btn.addEventListener('click', this.filtroSetHandler);
+        });
+    }, 100);
+}
+
+
 actualizarVistaIndividuales() {
     renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
     renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
@@ -1187,73 +1190,70 @@ actualizarVistaIndividuales() {
     }
 }
 
-            updateLivePanel() {
-                if (!this.data?.length) return;
-                const last = this.data[this.data.length - 1];
-                const points = this.data.filter(s => s.scorer);
-                const homePoints = points.filter(p => p.scorer === 'HOME').length;
-                const awayPoints = points.filter(p => p.scorer === 'AWAY').length;
-                const total = points.length;
-                const last5 = this.data.slice(-5).filter(s => s.scorer);
-                const homeLast5 = last5.filter(s => s.scorer === 'HOME').length;
-                const awayLast5 = last5.filter(s => s.scorer === 'AWAY').length;
-                let txt = homeLast5 > awayLast5 + 1 ? `🔥 ${this.homeTeamName} EN RACHA` : (awayLast5 > homeLast5 + 1 ? `⚡ ${this.awayTeamName} EN RACHA` : '⚖️ EQUILIBRADO');
-                let col = homeLast5 > awayLast5 + 1 ? '#667eea' : (awayLast5 > homeLast5 + 1 ? '#f43f5e' : '#9ca3af');
-                const cm = document.getElementById('coachMomentum'), cr = document.getElementById('coachRun'), cb = document.getElementById('coachBreak'), cs = document.getElementById('coachScore');
-                if (cm) { cm.innerHTML = txt; cm.style.color = col; }
-                if (cr) cr.innerHTML = `🔥 Racha: ${this.homeTeamName} ${last.homeRun} - ${last.awayRun} ${this.awayTeamName}`;
-                if (cb) { const br = this.data.filter(s => s.event?.includes('BREAK')); cb.innerHTML = `💪 Rompes: ${br.filter(b => b.event === 'BREAK_HOME').length} - ${br.filter(b => b.event === 'BREAK_AWAY').length}`; }
-                if (cs) cs.innerHTML = `📊 ${last.homeScore} - ${last.awayScore} | ${Math.round((homePoints/total)*100)}% eficiencia`;
-            }
-            
-            actualizarBadgeSaque(serving) {
-                const bc = document.getElementById('servingBadge');
-                if (!bc) return;
-                if (this.partidoTerminado || !serving) { bc.innerHTML = ''; bc.classList.add('hidden'); return; }
-                const isHome = serving === 'HOME';
-                bc.innerHTML = `<div class="${isHome ? 'bg-blue-900/30' : 'bg-red-900/30'} border ${isHome ? 'border-blue-500/50' : 'border-red-500/50'} rounded-full px-3 py-1 md:px-4 md:py-1.5 flex items-center gap-1 md:gap-2 animate-pulse"><span class="text-xs md:text-base">🏐</span><span class="text-xs md:text-sm font-bold ${isHome ? 'text-blue-400' : 'text-red-400'} uppercase tracking-wide">SACA ${isHome ? this.homeTeamName : this.awayTeamName}</span></div>`;
-                bc.classList.remove('hidden');
-            }
-            
-            setupEventListeners() {
-                document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
-                document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
-                document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
-                    const enabled = this.soundManager.toggle(); 
-                    document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; 
-                    if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); 
-                });
-                
-                const menuBtn = document.getElementById('menuHamburguesaBtn');
-                const menuDesplegable = document.getElementById('menuDesplegable');
-                
-                if (menuBtn && menuDesplegable) {
-                    const newMenuBtn = menuBtn.cloneNode(true);
-                    menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
-                    
-                    newMenuBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+updateLivePanel() {
+    if (!this.data?.length) return;
+    const last = this.data[this.data.length - 1];
+    const points = this.data.filter(s => s.scorer);
+    const homePoints = points.filter(p => p.scorer === 'HOME').length;
+    const awayPoints = points.filter(p => p.scorer === 'AWAY').length;
+    const total = points.length;
+    const last5 = this.data.slice(-5).filter(s => s.scorer);
+    const homeLast5 = last5.filter(s => s.scorer === 'HOME').length;
+    const awayLast5 = last5.filter(s => s.scorer === 'AWAY').length;
+    let txt = homeLast5 > awayLast5 + 1 ? `🔥 ${this.homeTeamName} EN RACHA` : (awayLast5 > homeLast5 + 1 ? `⚡ ${this.awayTeamName} EN RACHA` : '⚖️ EQUILIBRADO');
+    let col = homeLast5 > awayLast5 + 1 ? '#667eea' : (awayLast5 > homeLast5 + 1 ? '#f43f5e' : '#9ca3af');
+    const cm = document.getElementById('coachMomentum'), cr = document.getElementById('coachRun'), cb = document.getElementById('coachBreak'), cs = document.getElementById('coachScore');
+    if (cm) { cm.innerHTML = txt; cm.style.color = col; }
+    if (cr) cr.innerHTML = `🔥 Racha: ${this.homeTeamName} ${last.homeRun} - ${last.awayRun} ${this.awayTeamName}`;
+    if (cb) { const br = this.data.filter(s => s.event?.includes('BREAK')); cb.innerHTML = `💪 Rompes: ${br.filter(b => b.event === 'BREAK_HOME').length} - ${br.filter(b => b.event === 'BREAK_AWAY').length}`; }
+    if (cs) cs.innerHTML = `📊 ${last.homeScore} - ${last.awayScore} | ${Math.round((homePoints/total)*100)}% eficiencia`;
+}
+
+actualizarBadgeSaque(serving) {
+
+    const bc = document.getElementById('servingBadge');
+    if (!bc) return;
+    if (this.partidoTerminado || !serving) { bc.innerHTML = ''; bc.classList.add('hidden'); return; }
+    const isHome = serving === 'HOME';
+    bc.innerHTML = `<div class="${isHome ? 'bg-blue-900/30' : 'bg-red-900/30'} border ${isHome ? 'border-blue-500/50' : 'border-red-500/50'} rounded-full px-3 py-1 md:px-4 md:py-1.5 flex items-center gap-1 md:gap-2 animate-pulse"><span class="text-xs md:text-base">🏐</span><span class="text-xs md:text-sm font-bold ${isHome ? 'text-blue-400' : 'text-red-400'} uppercase tracking-wide">SACA ${isHome ? this.homeTeamName : this.awayTeamName}</span></div>`;
+    bc.classList.remove('hidden');}setupEventListeners() {
+    document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
+    document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
+    document.getElementById('soundToggleBtn')?.addEventListener('click', () => { 
+        const enabled = this.soundManager.toggle(); 
+        document.getElementById('soundToggleBtn').innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF'; 
+        if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume(); 
+    });
+
+    const menuBtn = document.getElementById('menuHamburguesaBtn');
+    const menuDesplegable = document.getElementById('menuDesplegable');
+
+    if (menuBtn && menuDesplegable) {
+        const newMenuBtn = menuBtn.cloneNode(true);
+        menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
                         
-                        if (menuDesplegable.classList.contains('hidden')) {
-                            menuDesplegable.classList.remove('hidden');
-                            menuDesplegable.classList.add('show');
-                            menuDesplegable.style.display = 'flex';
-                        } else {
-                            menuDesplegable.classList.add('hidden');
-                            menuDesplegable.classList.remove('show');
-                            menuDesplegable.style.display = 'none';
-                        }
-                    });
-                    
-                    document.addEventListener('click', (e) => {
-                        if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
-                            menuDesplegable.classList.add('hidden');
-                            menuDesplegable.classList.remove('show');
-                            menuDesplegable.style.display = 'none';
-                        }
-                    });
-                }
+        newMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+                            
+            if (menuDesplegable.classList.contains('hidden')) {
+                menuDesplegable.classList.remove('hidden');
+                menuDesplegable.classList.add('show');
+                menuDesplegable.style.display = 'flex';
+            } else {
+                menuDesplegable.classList.add('hidden');
+                menuDesplegable.classList.remove('show');
+                menuDesplegable.style.display = 'none';
+            }
+        });
+        document.addEventListener('click', (e) => {
+        if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
+            menuDesplegable.classList.add('hidden');
+            menuDesplegable.classList.remove('show');
+            menuDesplegable.style.display = 'none';
+        }
+    });
+    }
     
                 const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
                 if (saveHTMLBtnMobile) {
@@ -2299,7 +2299,8 @@ async saveAsHTML() {
                 const statsVisitanteSet = calcularStatsPorJugador(puntosSet, 'VISITANTE');
                 
                 localPorSet[setNum] = generarTablaHTMLSimple(statsLocalSet, this.jugadoresLocal);
-visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);            }
+                visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);
+            }
         }
         
         const datosReporte = {
@@ -2322,7 +2323,7 @@ visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugador
         a.download = `reporte_${homeTeam}_vs_${awayTeam}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.html`;
         a.click();
         URL.revokeObjectURL(url);
-        
+
         this.mostrarFeedbackPartido('📄 Reporte generado correctamente');
         
     } catch(e) {

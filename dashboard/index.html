@@ -67,7 +67,6 @@
         .tab-btn { transition: all 0.2s ease; }
     </style>
     <script>
-    // Prevenir F5, Ctrl+R, Ctrl+F5
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
             e.preventDefault();
@@ -75,7 +74,6 @@
         }
     });
     
-    // Prevenir swipe/tirar hacia abajo en celulares
     let touchStartY = 0;
     document.addEventListener('touchstart', function(e) {
         touchStartY = e.touches[0].clientY;

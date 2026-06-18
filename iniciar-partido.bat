@@ -1,9 +1,9 @@
 @echo off
-title VoleyInsight - Sistema Completo
+title VoleyInsight 
 color 0A
 chcp 65001 >nul
+cd /d "C:\Users\User\Desktop\voley"
 
-cd /d "%~dp0"
 
 :: Matar procesos previos
 taskkill /f /im cloudflared.exe >nul 2>&1
@@ -91,39 +91,11 @@ echo    Iniciando Serveo Tunnel para API...
 start "Serveo API" cmd /k "ssh -R 80:localhost:3002 serveo.net"
 timeout /t 5 /nobreak >nul
 
-:: ========================================
-:: NO ABRIR NAVEGADOR
-:: ========================================
 echo.
 echo ========================================
 echo    🚀 SISTEMA ACTIVO
 echo ========================================
 echo.
-echo 📡 CONSOLAS ABIERTAS:
-echo    - Servidor Local (puerto 5500)
-echo    - API Server (puerto 3002)
-echo    - Tracker
-echo    - Cloudflare Tunnel (Dashboard)
-echo    - Serveo Tunnel (API)
-echo.
-echo 📱 PARA COMPARTIR:
-echo    Revisa la ventana "Cloudflare Tunnel"
-echo    Busca una URL como: https://xxxx.trycloudflare.com
-echo    Compartir: https://xxxx.trycloudflare.com/dashboard/index.html
-echo.
-echo 🔌 URL DE LA API (para api_url.txt):
-echo    Revisa la ventana "Serveo API"
-echo    Busca una URL como: https://xxxx.serveo.net
-echo    Copiala en data/api_url.txt
-echo.
-echo ========================================
-echo    IMPORTANTE:
-echo ========================================
-echo    - NO cierres las 5 ventanas negras
-echo    - Copia la URL de Serveo a data/api_url.txt
-echo    - Los puntos se guardan en localStorage de cada dispositivo
-echo    - Para ver los mismos puntos, que anote UNA sola persona
-echo ========================================
-echo.
+
 
 pause

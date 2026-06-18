@@ -22,7 +22,7 @@ class MatchTracker {
         this.pollInterval = null;
         this.saveInterval = null;
         this.statsInterval = null;
-        this.configMonitorInterval = null;  // ✅ NUEVO: para monitorear config.json
+        this.configMonitorInterval = null;  
         this.notifier = null;
         this.socket = null;
         this.connectWebSocket();
@@ -31,7 +31,37 @@ class MatchTracker {
         this.reconnectDelay = 1000;
         this.maxReconnectDelay = 60000;
         this.lastSuccessfulFetch = null;
+        this.partidoTerminado = false; 
+        this.ultimoPuntoTimestamp = null;
+        this.tiempoSinPuntos = 0; 
     }
+
+detectarFinalPartido(snapshot) {
+    if (snapshot && snapshot.scorer) {
+        this.ultimoPuntoTimestamp = Date.now();
+        this.partidoTerminado = false;
+        return;
+    }
+    
+    if (this.ultimoPuntoTimestamp && this.repository.snapshots.length > 1) {
+        const tiempoSinPuntos = (Date.now() - this.ultimoPuntoTimestamp) / 1000;
+        if (tiempoSinPuntos > 120 && !this.partidoTerminado) { 
+            this.partidoTerminado = true;
+            this.notificarPartidoTerminado();
+        }
+    }
+}
+
+notificarPartidoTerminado() {
+    logger.info(`🏁 PARTIDO TERMINADO - ${this.matchId}`);
+    
+    if (this.socket && this.socket.connected) {
+        this.socket.emit('partido_terminado', { 
+            matchId: this.matchId,
+            timestamp: new Date().toISOString()
+        });
+    }
+}
 
     connectWebSocket() {
         try {
@@ -51,7 +81,6 @@ class MatchTracker {
                 logger.info(`📡 Suscrito a partido ${data.matchId}`);
             });
             
-            // ✅ NUEVO: Escuchar evento de cambio de partido desde el dashboard
             this.socket.on('cambiar_partido', async (data) => {
                 logger.info(`🔄 Recibido cambio de partido a ${data.matchId} via WebSocket`);
                 if (data.matchId && data.matchId !== this.matchId) {
@@ -64,45 +93,36 @@ class MatchTracker {
         }
     }
 
-    // ✅ NUEVO: Método para cambiar de partido dinámicamente
     async cambiarPartido(nuevoMatchId) {
         logger.info(`🔄 Cambiando partido de ${this.matchId} a ${nuevoMatchId}`);
         
-        // Guardar datos actuales antes de cambiar
         if (this.repository.snapshots.length > 0) {
             await this.repository.saveJSON();
             logger.info(`💾 Datos del partido ${this.matchId} guardados`);
         }
         
-        // Actualizar ID y reinicializar componentes
         this.matchId = nuevoMatchId;
         this.api = new MetroVoleyAPI(this.matchId);
         this.repository = new DataRepository(this.matchId);
         
-        // Crear archivo si no existe
         await this.crearArchivoPartidoVacio(this.matchId);
         
-        // Limpiar snapshots actuales
         this.repository.snapshots = [];
         
-        // Resuscribir WebSocket al nuevo partido
         if (this.socket && this.socket.connected) {
             this.socket.emit('unsubscribe');
             this.socket.emit('subscribe', this.matchId);
         }
         
-        // Resetear contadores de errores
         this.consecutiveErrors = 0;
         this.isReconnecting = false;
         this.reconnectDelay = 1000;
         
-        // Forzar una actualización inmediata
         setTimeout(() => this.fetchAndProcess(), 1000);
         
         logger.info(`✅ Partido cambiado a ${nuevoMatchId}`);
     }
 
-    // ✅ NUEVO: Crear archivo de partido vacío si no existe
     async crearArchivoPartidoVacio(matchId) {
         try {
             const filePath = path.join('./data', `match_${matchId}.json`);
@@ -127,7 +147,6 @@ class MatchTracker {
                 await fs.writeFile(filePath, JSON.stringify(estructuraInicial, null, 2), 'utf-8');
                 logger.info(`📄 Archivo creado para partido ${matchId}`);
                 
-                // También crear full_ vacío
                 const fullPath = path.join('./data', `full_${matchId}.json`);
                 const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
                 if (!fullExiste) {
@@ -139,7 +158,6 @@ class MatchTracker {
         }
     }
 
-    // ✅ NUEVO: Monitorear cambios en config.json
     async iniciarMonitoreoConfig() {
         let ultimoMatchId = this.matchId;
         
@@ -156,16 +174,14 @@ class MatchTracker {
                     if (configFile.matchId !== this.matchId) {
                         await this.cambiarPartido(configFile.matchId);
                         
-                        // Actualizar nombres de equipos si están en config
                         if (configFile.homeTeam && configFile.awayTeam) {
                             logger.info(`📋 Equipos: ${configFile.homeTeam} vs ${configFile.awayTeam}`);
                         }
                     }
                 }
             } catch(e) {
-                // Silencioso, archivo puede no existir temporalmente
             }
-        }, 5000); // Revisar cada 5 segundos
+        }, 5000); 
     }
 
     async fetchAndProcess() {
@@ -191,6 +207,7 @@ class MatchTracker {
             if (snapshot) {
                 this.repository.addSnapshot(snapshot);
                 this.logSnapshot(snapshot);
+                this.detectarFinalPartido(snapshot);
                 if (this.socket && this.socket.connected) {
                     if (snapshot.scorer) {
                         this.socket.emit('new_point', {
@@ -229,6 +246,7 @@ class MatchTracker {
                     const courtPath = path.join('./data', `court_${this.matchId}.json`);
                     await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
                 } else {
+                    this.detectarFinalPartido(null);
                     console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
                 }
             } catch (e) {
@@ -405,10 +423,8 @@ class MatchTracker {
         this.isRunning = true;
         logger.info(`🚀 Iniciando tracker para partido ${this.matchId} con reconexión automática`);
         
-        // Crear archivo si no existe
         await this.crearArchivoPartidoVacio(this.matchId);
         
-        // ✅ NUEVO: Iniciar monitoreo de config.json
         await this.iniciarMonitoreoConfig();
         
         await this.fetchAndProcess();
@@ -474,7 +490,7 @@ class MatchTracker {
         if (this.pollInterval) clearInterval(this.pollInterval);
         if (this.saveInterval) clearInterval(this.saveInterval);
         if (this.statsInterval) clearInterval(this.statsInterval);
-        if (this.configMonitorInterval) clearInterval(this.configMonitorInterval); // ✅ NUEVO
+        if (this.configMonitorInterval) clearInterval(this.configMonitorInterval);  
         
         await this.repository.saveCSV();
         await this.repository.saveJSON();
