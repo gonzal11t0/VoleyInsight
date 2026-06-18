@@ -47185,3 +47185,160 @@
 {"timestamp":"2026-06-18T14:47:51.605Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
 {"timestamp":"2026-06-18T14:47:58.739Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
 {"timestamp":"2026-06-18T14:47:58.742Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
+{"timestamp":"2026-06-18T17:54:13.235Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-06-18T17:54:13.237Z","level":"info","message":"🚀 Iniciando tracker para partido 158700 con reconexión automática"}
+{"timestamp":"2026-06-18T17:54:13.244Z","level":"info","message":"📄 Archivo creado para partido 158700"}
+{"timestamp":"2026-06-18T17:54:13.513Z","level":"info","message":"🎯 LOCAL 24 - 26 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":-2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T17:54:13.517Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:54:16.480Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-06-18T17:54:16.483Z","level":"info","message":"📡 Suscrito a partido 158700"}
+{"timestamp":"2026-06-18T17:54:23.704Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:54:33.717Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:54:43.718Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:54:53.726Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:54:59.465Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
+{"timestamp":"2026-06-18T17:55:11.232Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-06-18T17:55:11.234Z","level":"info","message":"🚀 Iniciando tracker para partido 158700 con reconexión automática"}
+{"timestamp":"2026-06-18T17:55:11.284Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-06-18T17:55:11.296Z","level":"info","message":"📡 Suscrito a partido 158700"}
+{"timestamp":"2026-06-18T17:55:11.458Z","level":"info","message":"🎯 LOCAL 24 - 26 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":-2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T17:55:11.460Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:55:21.633Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:55:31.643Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:55:41.652Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:55:51.653Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:01.657Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:11.635Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:56:11.637Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T17:56:11.665Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:21.674Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:31.683Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:41.693Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:56:46.222Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
+{"timestamp":"2026-06-18T17:57:08.040Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-06-18T17:57:08.042Z","level":"info","message":"🚀 Iniciando tracker para partido 158700 con reconexión automática"}
+{"timestamp":"2026-06-18T17:57:08.102Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-06-18T17:57:08.105Z","level":"info","message":"📡 Suscrito a partido 158700"}
+{"timestamp":"2026-06-18T17:57:08.262Z","level":"info","message":"🎯 LOCAL 24 - 26 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":-2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T17:57:08.264Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:57:18.440Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:57:28.447Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:57:38.450Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:57:48.455Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:57:58.453Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:58:08.437Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:58:08.439Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T17:58:08.453Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:58:18.459Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:58:28.473Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:58:38.484Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:58:41.076Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
+{"timestamp":"2026-06-18T17:59:12.958Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-06-18T17:59:12.960Z","level":"info","message":"🚀 Iniciando tracker para partido 158700 con reconexión automática"}
+{"timestamp":"2026-06-18T17:59:13.013Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-06-18T17:59:13.021Z","level":"info","message":"📡 Suscrito a partido 158700"}
+{"timestamp":"2026-06-18T17:59:13.211Z","level":"info","message":"🎯 LOCAL 24 - 26 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":-2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T17:59:13.214Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T17:59:23.402Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:59:33.412Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:59:43.416Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T17:59:53.417Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:03.419Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:13.402Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:00:13.404Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:00:13.432Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:23.440Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:33.454Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:43.464Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:00:53.474Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:03.481Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:13.404Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:01:13.406Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:01:13.482Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:23.495Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:33.502Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:43.516Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:01:53.530Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:03.537Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:13.408Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:02:13.410Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:02:13.548Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:23.566Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:33.575Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:43.584Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:02:53.589Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:03.600Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:13.410Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:03:13.411Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:03:13.602Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:23.607Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:33.610Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:43.624Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:03:53.621Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:03.635Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:13.417Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:04:13.419Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:04:13.639Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:23.643Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:33.651Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:43.669Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:04:53.672Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:03.673Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:13.432Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:05:13.440Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:05:13.682Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:23.698Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:33.704Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:43.721Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:05:53.737Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:06:03.736Z","level":"info","message":"CSV saved","filename":"data\\match_158700.csv","records":1}
+{"timestamp":"2026-06-18T18:06:13.439Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:06:13.440Z","level":"info","message":"Analysis saved","filename":"data\\analysis_158700.json"}
+{"timestamp":"2026-06-18T18:06:13.639Z","level":"info","message":"📋 [MONITOR] config.json cambió: 158700 -> 231152"}
+{"timestamp":"2026-06-18T18:06:13.639Z","level":"info","message":"🔄 Cambiando partido de 158700 a 231152"}
+{"timestamp":"2026-06-18T18:06:13.641Z","level":"info","message":"JSON saved","filename":"data\\match_158700.json"}
+{"timestamp":"2026-06-18T18:06:13.642Z","level":"info","message":"💾 Datos del partido 158700 guardados"}
+{"timestamp":"2026-06-18T18:06:13.644Z","level":"info","message":"📄 Archivo creado para partido 231152"}
+{"timestamp":"2026-06-18T18:06:13.646Z","level":"info","message":"✅ Partido cambiado a 231152"}
+{"timestamp":"2026-06-18T18:06:13.647Z","level":"info","message":"📋 Equipos: BPLP vs CAI"}
+{"timestamp":"2026-06-18T18:06:13.649Z","level":"info","message":"📡 Suscrito a partido 231152"}
+{"timestamp":"2026-06-18T18:06:14.825Z","level":"info","message":"⚡ LOCAL 25 - 19 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":6,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T18:06:15.658Z","level":"info","message":"JSON saved","filename":"data\\match_231152.json"}
+{"timestamp":"2026-06-18T18:06:23.750Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:06:33.757Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:06:43.765Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:06:53.779Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:03.792Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:13.445Z","level":"info","message":"JSON saved","filename":"data\\match_231152.json"}
+{"timestamp":"2026-06-18T18:07:13.447Z","level":"info","message":"Analysis saved","filename":"data\\analysis_231152.json"}
+{"timestamp":"2026-06-18T18:07:13.804Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:23.812Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:33.941Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:43.834Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:07:53.841Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:08:03.847Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:08:13.447Z","level":"info","message":"JSON saved","filename":"data\\match_231152.json"}
+{"timestamp":"2026-06-18T18:08:13.454Z","level":"info","message":"Analysis saved","filename":"data\\analysis_231152.json"}
+{"timestamp":"2026-06-18T18:08:13.857Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:08:23.901Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:08:33.913Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:08:35.808Z","level":"warn","message":"⚠️ WebSocket desconectado, reintentando en 5s"}
+{"timestamp":"2026-06-18T18:09:05.165Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-06-18T18:09:05.167Z","level":"info","message":"🚀 Iniciando tracker para partido 231152 con reconexión automática"}
+{"timestamp":"2026-06-18T18:09:05.173Z","level":"info","message":"📄 Archivo creado para partido 231152"}
+{"timestamp":"2026-06-18T18:09:05.223Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-06-18T18:09:05.237Z","level":"info","message":"📡 Suscrito a partido 231152"}
+{"timestamp":"2026-06-18T18:09:05.400Z","level":"info","message":"🎯 LOCAL 25 - 19 VISITANTE","set":2,"scorer":null,"event":"POINT","lead":6,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-06-18T18:09:05.403Z","level":"info","message":"JSON saved","filename":"data\\match_231152.json"}
+{"timestamp":"2026-06-18T18:09:15.588Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:09:25.600Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:09:35.615Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:09:45.620Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:09:55.626Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:10:05.586Z","level":"info","message":"JSON saved","filename":"data\\match_231152.json"}
+{"timestamp":"2026-06-18T18:10:05.588Z","level":"info","message":"Analysis saved","filename":"data\\analysis_231152.json"}
+{"timestamp":"2026-06-18T18:10:05.633Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:10:15.638Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:10:25.643Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:10:35.646Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}
+{"timestamp":"2026-06-18T18:10:45.663Z","level":"info","message":"CSV saved","filename":"data\\match_231152.csv","records":1}

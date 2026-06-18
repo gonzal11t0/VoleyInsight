@@ -6,6 +6,46 @@ const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
 
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (error) => {
+    console.error('❌ Uncaught Exception:', error);
+});
+
+const app = express();
+const corsOptions = {
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+});
+
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: true,
+        methods: ['GET', 'POST'],
+        credentials: true,
+        transports: ['polling', 'websocket']
+    }
+});
+
+const PORT = process.env.PORT || 3002;
+const connectedClients = new Map();
+
 async function obtenerEstadoPartido(matchId) {
     try {
         const filePath = path.join(__dirname, 'data', `match_${matchId}.json`);
@@ -27,85 +67,38 @@ async function obtenerEstadoPartido(matchId) {
     }
     return null;
 }
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-    console.error('❌ Uncaught Exception:', error);
-});
-
-const app = express();
-const corsOptions = {
-    origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-};
-
-app.use(cors(corsOptions));
-const server = http.createServer(app);
-const io = socketIo(server, {
-    cors: {
-        origin: true,
-        methods: ['GET', 'POST'],
-        credentials: true,
-        transports: ['polling', 'websocket']
-    }
-});
-
-const PORT = process.env.PORT || 3002;
-
-
-app.use(cors());
-app.use(express.json());
-
-app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    next();
-});
-
-
-
-const connectedClients = new Map(); 
 
 io.on('connection', (socket) => {
     console.log('🔌 Cliente conectado:', socket.id);
     
     socket.on('subscribe', async (matchId) => {
-    socket.matchId = matchId;
-    if (!connectedClients.has(matchId)) {
-        connectedClients.set(matchId, new Set());
-    }
-    connectedClients.get(matchId).add(socket);
-    console.log(`📡 Cliente ${socket.id} suscrito a partido ${matchId}`);
-     
-    socket.emit('subscribed', { matchId, status: 'ok' });
-    
-    const estadoActual = await obtenerEstadoPartido(matchId);
-    if (estadoActual) {
-        socket.emit('match_update', estadoActual);
-        console.log(`📤 Estado actual enviado a ${socket.id}: ${estadoActual.homeScore} - ${estadoActual.awayScore}`);
-    }
-});
-    
-socket.on('unsubscribe', (matchId) => {
-    socket.leave(`match_${matchId}`);
-    
-    if (connectedClients.has(matchId)) {
-        connectedClients.get(matchId).delete(socket);
-        if (connectedClients.get(matchId).size === 0) {
-            connectedClients.delete(matchId);
+        socket.matchId = matchId;
+        if (!connectedClients.has(matchId)) {
+            connectedClients.set(matchId, new Set());
         }
-    }
-    
-    console.log(`📡 Cliente ${socket.id} desuscrito de partido ${matchId}`);
-});
-    socket.on('ping_keepalive', () => {
+        connectedClients.get(matchId).add(socket);
+        console.log(`📡 Cliente ${socket.id} suscrito a partido ${matchId}`);
+        
+        socket.emit('subscribed', { matchId, status: 'ok' });
+        const estadoActual = await obtenerEstadoPartido(matchId);
+        if (estadoActual) {
+            socket.emit('match_update', estadoActual);
+            console.log(`📤 Estado actual enviado a ${socket.id}: ${estadoActual.homeScore} - ${estadoActual.awayScore}`);
+        }
     });
+    
+    socket.on('unsubscribe', (matchId) => {
+        if (connectedClients.has(matchId)) {
+            connectedClients.get(matchId).delete(socket);
+            if (connectedClients.get(matchId).size === 0) {
+                connectedClients.delete(matchId);
+            }
+        }
+        console.log(`📡 Cliente ${socket.id} desuscrito de partido ${matchId}`);
+    });
+    
+    socket.on('ping_keepalive', () => {});
+    
     socket.on('disconnect', () => {
         if (socket.matchId && connectedClients.has(socket.matchId)) {
             connectedClients.get(socket.matchId).delete(socket);
@@ -123,7 +116,6 @@ function emitNewPoint(matchId, pointData) {
         console.log(`📤 Punto emitido a ${clients.size} clientes para partido ${matchId}`);
     }
 }
-
 
 app.post('/api/webhook/point', (req, res) => {
     const { matchId, point } = req.body;
@@ -167,7 +159,6 @@ app.get('/api/matches', async (req, res) => {
                 }
             } catch(e) {}
         }
-        
         res.json({ success: true, count: matches.length, data: matches });
     } catch(e) {
         res.status(500).json({ success: false, error: e.message });
@@ -379,7 +370,6 @@ app.post('/api/config', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
-
 
 app.use(express.static('./'));
 

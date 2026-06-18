@@ -4,14 +4,14 @@ const path = require('path');
 const PerformanceAnalyzer = require('../analytics/performanceAnalyzer');
 
 class HTMLExporter {
-  constructor(matchId, snapshots) {
-    this.matchId = matchId;
-    this.analyzer = new PerformanceAnalyzer(snapshots);
-    this.report = this.analyzer.generateFullReport();
-  }
+    constructor(matchId, snapshots) {
+        this.matchId = matchId;
+        this.analyzer = new PerformanceAnalyzer(snapshots);
+        this.report = this.analyzer.generateFullReport();
+    }
 
-  async generateHTML() {
-    const html = `
+    async generateHTML() {
+        const html = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -147,7 +147,6 @@ class HTMLExporter {
         </div>
         
         <div class="content">
-            <!-- Eficiencia General -->
             <div class="section">
                 <h2>🎯 Eficiencia General</h2>
                 <div class="two-columns">
@@ -172,7 +171,6 @@ class HTMLExporter {
                 </div>
             </div>
             
-            <!-- Métricas Clave -->
             <div class="section">
                 <h2>📈 Métricas Clave</h2>
                 <div class="stats-grid">
@@ -195,7 +193,6 @@ class HTMLExporter {
                 </div>
             </div>
             
-            <!-- Análisis de Presión -->
             <div class="section">
                 <h2>⚡ Rendimiento Bajo Presión</h2>
                 <div class="two-columns">
@@ -227,7 +224,6 @@ class HTMLExporter {
                 </div>
             </div>
             
-            <!-- Insights Clave -->
             <div class="section">
                 <h2>💡 Insights Clave</h2>
                 ${this.report.keyInsights.map(insight => `
@@ -236,7 +232,6 @@ class HTMLExporter {
                 ${this.report.keyInsights.length === 0 ? '<p>No se detectaron insights significativos en este partido.</p>' : ''}
             </div>
             
-            <!-- Recomendaciones -->
             <div class="section">
                 <h2>🎯 Recomendaciones Tácticas</h2>
                 ${this.report.recommendations.map(rec => `
@@ -245,7 +240,6 @@ class HTMLExporter {
                 ${this.report.recommendations.length === 0 ? '<p>No hay recomendaciones específicas para este partido.</p>' : ''}
             </div>
             
-            <!-- Momentum Swings -->
             <div class="section">
                 <h2>🔄 Cambios de Momentum</h2>
                 <div class="stats-grid">
@@ -263,7 +257,6 @@ class HTMLExporter {
                 </div>
             </div>
             
-            <!-- Patrones Detectados -->
             <div class="section">
                 <h2>🔍 Patrones Detectados</h2>
                 ${this.report.patterns.closeGames.length > 0 ? `
@@ -287,11 +280,11 @@ class HTMLExporter {
 </body>
 </html>
     `;
-    
-    const outputPath = path.join('./data', `report_${this.matchId}.html`);
-    await fs.writeFile(outputPath, html, 'utf-8');
-    return outputPath;
-  }
+
+        const outputPath = path.join('./data', `report_${this.matchId}.html`);
+        await fs.writeFile(outputPath, html, 'utf-8');
+        return outputPath;
+    }
 }
 
 module.exports = HTMLExporter;

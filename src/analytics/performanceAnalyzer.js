@@ -1,9 +1,16 @@
 const VolleyballMetrics = require('./volleyballMetrics');
 
 class PerformanceAnalyzer {
-    constructor(snapshots){ this.snapshots = snapshots; this.metrics = new VolleyballMetrics(snapshots); }
-    generateFullReport(){ return this.metrics.generateFullReport(); }
-    exportForDashboard(){
+    constructor(snapshots) {
+        this.snapshots = snapshots;
+        this.metrics = new VolleyballMetrics(snapshots);
+    }
+
+    generateFullReport() {
+        return this.metrics.generateFullReport();
+    }
+
+    exportForDashboard() {
         const r = this.generateFullReport();
         return {
             matchInfo: r.matchInfo,
@@ -23,4 +30,5 @@ class PerformanceAnalyzer {
         };
     }
 }
+
 module.exports = PerformanceAnalyzer;

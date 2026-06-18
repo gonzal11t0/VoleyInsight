@@ -18,7 +18,6 @@ setInterval(() => {
       if (data.totalPoints !== lastPoints) {
         lastPoints = data.totalPoints;
         
-        // Limpiar consola (opcional)
         console.clear();
         
         console.log('='.repeat(50));
@@ -34,7 +33,5 @@ setInterval(() => {
         console.log('='.repeat(50));
       }
     }
-  } catch (error) {
-    // Esperando datos...
-  }
+  } catch (error) {}
 }, 2000);

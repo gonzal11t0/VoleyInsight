@@ -2,10 +2,60 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="0; url=/dashboard/index.html">
-    <title>Redirigiendo a VoleyInsight...</title>
+    <title>VoleyInsight</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0c15;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: #1a1f2e;
+            border-radius: 20px;
+            border: 1px solid #2d3748;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .loader {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #2d3748;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <p>Redirigiendo al dashboard... <a href="/dashboard/index.html">Hacé clic aquí</a></p>
+    <div class="container">
+        <div class="loader"></div>
+        <h1>🏐 VoleyInsight</h1>
+        <p>Redirigiendo al dashboard...</p>
+        <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+            Si no eres redirigido automáticamente, 
+            <a href="/dashboard/index.html">hacé clic aquí</a>
+        </p>
+    </div>
 </body>
 </html>

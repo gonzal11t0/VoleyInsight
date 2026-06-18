@@ -22,7 +22,7 @@ class MatchTracker {
         this.pollInterval = null;
         this.saveInterval = null;
         this.statsInterval = null;
-        this.configMonitorInterval = null;  
+        this.configMonitorInterval = null;
         this.notifier = null;
         this.socket = null;
         this.connectWebSocket();
@@ -31,95 +31,80 @@ class MatchTracker {
         this.reconnectDelay = 1000;
         this.maxReconnectDelay = 60000;
         this.lastSuccessfulFetch = null;
-        this.partidoTerminado = false; 
+        this.partidoTerminado = false;
         this.ultimoPuntoTimestamp = null;
-        this.tiempoSinPuntos = 0; 
+        this.tiempoSinPuntos = 0;
     }
 
-detectarFinalPartido(snapshot) {
-    if (snapshot && snapshot.scorer) {
-        this.ultimoPuntoTimestamp = Date.now();
-        this.partidoTerminado = false;
-        return;
-    }
-    
-    if (this.ultimoPuntoTimestamp && this.repository.snapshots.length > 1) {
-        const tiempoSinPuntos = (Date.now() - this.ultimoPuntoTimestamp) / 1000;
-        if (tiempoSinPuntos > 120 && !this.partidoTerminado) { 
-            this.partidoTerminado = true;
-            this.notificarPartidoTerminado();
+    detectarFinalPartido(snapshot) {
+        if (snapshot && snapshot.scorer) {
+            this.ultimoPuntoTimestamp = Date.now();
+            this.partidoTerminado = false;
+            return;
+        }
+        if (this.ultimoPuntoTimestamp && this.repository.snapshots.length > 1) {
+            const tiempoSinPuntos = (Date.now() - this.ultimoPuntoTimestamp) / 1000;
+            if (tiempoSinPuntos > 120 && !this.partidoTerminado) {
+                this.partidoTerminado = true;
+                this.notificarPartidoTerminado();
+            }
         }
     }
-}
 
-notificarPartidoTerminado() {
-    logger.info(`🏁 PARTIDO TERMINADO - ${this.matchId}`);
-    
-    if (this.socket && this.socket.connected) {
-        this.socket.emit('partido_terminado', { 
-            matchId: this.matchId,
-            timestamp: new Date().toISOString()
-        });
+    notificarPartidoTerminado() {
+        logger.info(`🏁 PARTIDO TERMINADO - ${this.matchId}`);
+        if (this.socket && this.socket.connected) {
+            this.socket.emit('partido_terminado', {
+                matchId: this.matchId,
+                timestamp: new Date().toISOString()
+            });
+        }
     }
-}
 
     connectWebSocket() {
         try {
             this.socket = io('http://localhost:3002');
-            
             this.socket.on('connect', () => {
                 logger.info('🔌 WebSocket conectado al servidor');
                 this.socket.emit('subscribe', this.matchId);
             });
-            
             this.socket.on('disconnect', () => {
                 logger.warn('⚠️ WebSocket desconectado, reintentando en 5s');
                 setTimeout(() => this.connectWebSocket(), 5000);
             });
-            
             this.socket.on('subscribed', (data) => {
                 logger.info(`📡 Suscrito a partido ${data.matchId}`);
             });
-            
             this.socket.on('cambiar_partido', async (data) => {
                 logger.info(`🔄 Recibido cambio de partido a ${data.matchId} via WebSocket`);
                 if (data.matchId && data.matchId !== this.matchId) {
                     await this.cambiarPartido(data.matchId);
                 }
             });
-            
-        } catch(e) {
+        } catch (e) {
             logger.error('Error conectando WebSocket:', e.message);
         }
     }
 
     async cambiarPartido(nuevoMatchId) {
         logger.info(`🔄 Cambiando partido de ${this.matchId} a ${nuevoMatchId}`);
-        
         if (this.repository.snapshots.length > 0) {
             await this.repository.saveJSON();
             logger.info(`💾 Datos del partido ${this.matchId} guardados`);
         }
-        
         this.matchId = nuevoMatchId;
         this.api = new MetroVoleyAPI(this.matchId);
         this.repository = new DataRepository(this.matchId);
-        
         await this.crearArchivoPartidoVacio(this.matchId);
-        
         this.repository.snapshots = [];
-        
         if (this.socket && this.socket.connected) {
             this.socket.emit('unsubscribe');
             this.socket.emit('subscribe', this.matchId);
         }
-        
         this.consecutiveErrors = 0;
         this.isReconnecting = false;
         this.reconnectDelay = 1000;
-        
         setTimeout(() => this.fetchAndProcess(), 1000);
-        
         logger.info(`✅ Partido cambiado a ${nuevoMatchId}`);
     }
 
@@ -127,7 +112,6 @@ notificarPartidoTerminado() {
         try {
             const filePath = path.join('./data', `match_${matchId}.json`);
             const existe = await fs.access(filePath).then(() => true).catch(() => false);
-            
             if (!existe) {
                 const estructuraInicial = [{
                     "timestamp": new Date().toISOString(),
@@ -146,42 +130,36 @@ notificarPartidoTerminado() {
                 }];
                 await fs.writeFile(filePath, JSON.stringify(estructuraInicial, null, 2), 'utf-8');
                 logger.info(`📄 Archivo creado para partido ${matchId}`);
-                
                 const fullPath = path.join('./data', `full_${matchId}.json`);
                 const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
                 if (!fullExiste) {
                     await fs.writeFile(fullPath, JSON.stringify({ matchId, liveState: { court: null } }, null, 2), 'utf-8');
                 }
             }
-        } catch(e) {
+        } catch (e) {
             logger.warn('Error creando archivo:', e.message);
         }
     }
 
     async iniciarMonitoreoConfig() {
         let ultimoMatchId = this.matchId;
-        
         this.configMonitorInterval = setInterval(async () => {
             try {
                 const configPath = path.join('./data', 'config.json');
                 const configData = await fs.readFile(configPath, 'utf-8');
                 const configFile = JSON.parse(configData);
-                
                 if (configFile.matchId && configFile.matchId !== ultimoMatchId) {
                     logger.info(`📋 [MONITOR] config.json cambió: ${ultimoMatchId} -> ${configFile.matchId}`);
                     ultimoMatchId = configFile.matchId;
-                    
                     if (configFile.matchId !== this.matchId) {
                         await this.cambiarPartido(configFile.matchId);
-                        
                         if (configFile.homeTeam && configFile.awayTeam) {
                             logger.info(`📋 Equipos: ${configFile.homeTeam} vs ${configFile.awayTeam}`);
                         }
                     }
                 }
-            } catch(e) {
-            }
-        }, 5000); 
+            } catch (e) {}
+        }, 5000);
     }
 
     async fetchAndProcess() {
@@ -189,21 +167,16 @@ notificarPartidoTerminado() {
             logger.debug('Already reconnecting, skipping fetch');
             return;
         }
-        
         try {
             const data = await this.api.fetchUpdates();
-            
             if (this.consecutiveErrors > 0) {
                 logger.info(`✅ Conexión restablecida después de ${this.consecutiveErrors} errores`);
                 this.consecutiveErrors = 0;
                 this.reconnectDelay = 1000;
                 await this.notifyConnectionRestored();
             }
-            
             this.lastSuccessfulFetch = new Date();
-            
             const snapshot = this.processor.processUpdate(data);
-            
             if (snapshot) {
                 this.repository.addSnapshot(snapshot);
                 this.logSnapshot(snapshot);
@@ -214,7 +187,6 @@ notificarPartidoTerminado() {
                             matchId: this.matchId,
                             point: snapshot
                         });
-                        
                         try {
                             const fetch = require('node-fetch');
                             await fetch('http://localhost:3002/api/webhook/point', {
@@ -225,23 +197,20 @@ notificarPartidoTerminado() {
                                     point: snapshot
                                 })
                             });
-                        } catch(e) {
+                        } catch (e) {
                             logger.debug('Webhook fallback error:', e.message);
                         }
                     }
                 }
-                
                 try {
                     await this.repository.saveJSON();
                 } catch (saveError) {
                     console.error('Error guardando JSON:', saveError.message);
                 }
             }
-            
             try {
                 const fullDataPath = path.join('./data', `full_${this.matchId}.json`);
                 await fs.writeFile(fullDataPath, JSON.stringify(data, null, 2), 'utf-8');
-                
                 if (data.court) {
                     const courtPath = path.join('./data', `court_${this.matchId}.json`);
                     await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
@@ -252,16 +221,10 @@ notificarPartidoTerminado() {
             } catch (e) {
                 console.error('Error guardando datos completos:', e.message);
             }
-            
             await this.fetchStats();
-            
         } catch (error) {
             this.consecutiveErrors++;
-            logger.error(`❌ Error en fetch (${this.consecutiveErrors} consecutivos):`, {
-                error: error.message,
-                name: error.name
-            });
-            
+            logger.error(`❌ Error en fetch (${this.consecutiveErrors} consecutivos):`, { error: error.message, name: error.name });
             if (this.consecutiveErrors >= 3 && !this.isReconnecting) {
                 await this.attemptReconnection();
             }
@@ -270,19 +233,12 @@ notificarPartidoTerminado() {
 
     async attemptReconnection() {
         this.isReconnecting = true;
-        
         const delay = Math.min(this.reconnectDelay * Math.pow(2, this.consecutiveErrors - 3), this.maxReconnectDelay);
-        
         logger.warn(`🔄 Intentando reconexión... (delay: ${delay}ms, error #${this.consecutiveErrors})`);
-        
         await this.notifyReconnecting(delay);
-        
         await this.sleep(delay);
-        
         this.reconnectDelay = Math.min(this.reconnectDelay * 2, this.maxReconnectDelay);
-        
         this.isReconnecting = false;
-        
         await this.fetchAndProcess();
     }
 
@@ -311,13 +267,9 @@ notificarPartidoTerminado() {
             };
             const statusPath = path.join('./data', `tracker_status_${this.matchId}.json`);
             await fs.writeFile(statusPath, JSON.stringify(status, null, 2), 'utf-8');
-            
             setTimeout(async () => {
-                try {
-                    await fs.unlink(statusPath);
-                } catch(e) {}
+                try { await fs.unlink(statusPath); } catch (e) {}
             }, 5000);
-            
             console.log(`\n✅ CONEXIÓN RESTABLECIDA - Tracker sincronizado nuevamente\n`);
         } catch (e) {
             logger.debug('Could not write tracker status', { error: e.message });
@@ -352,9 +304,7 @@ notificarPartidoTerminado() {
                     serving: data.serving
                 }
             };
-            
             const snapshot = this.processor.processUpdate(apiCompatible);
-            
             if (snapshot) {
                 this.repository.addSnapshot(snapshot);
                 this.logSnapshot(snapshot);
@@ -366,7 +316,6 @@ notificarPartidoTerminado() {
 
     handleWebSocketError(error) {
         logger.warn('WebSocket error', { error: error.message });
-        
         if (!this.isReconnecting && this.consecutiveErrors >= 2) {
             this.attemptReconnection();
         }
@@ -374,10 +323,7 @@ notificarPartidoTerminado() {
 
     logSnapshot(snapshot) {
         const { set, homeTeam, homeScore, awayScore, awayTeam, scorer, event } = snapshot;
-        
-        const eventEmoji =  event.includes('BREAK') ? '⚡' : 
-                            event.includes('SIDEOUT') ? '🔄' : '🎯';
-        
+        const eventEmoji = event.includes('BREAK') ? '⚡' : event.includes('SIDEOUT') ? '🔄' : '🎯';
         logger.info(`${eventEmoji} ${homeTeam} ${homeScore} - ${awayScore} ${awayTeam}`, {
             set,
             scorer,
@@ -396,15 +342,12 @@ notificarPartidoTerminado() {
 
     startWebSocket() {
         if (!config.websocket.enabled) return;
-        
         logger.info('Starting WebSocket mode');
-        
         this.ws = new WebSocketService(
             this.matchId,
             (data) => this.handleWebSocketMessage(data),
             (error) => this.handleWebSocketError(error)
         );
-        
         this.ws.connect();
     }
 
@@ -412,7 +355,6 @@ notificarPartidoTerminado() {
         this.saveInterval = setInterval(async () => {
             await this.repository.saveCSV();
         }, config.match.saveIntervalMs);
-        
         this.statsInterval = setInterval(async () => {
             await this.repository.saveJSON();
             await this.repository.saveAnalysis();
@@ -422,81 +364,60 @@ notificarPartidoTerminado() {
     async start() {
         this.isRunning = true;
         logger.info(`🚀 Iniciando tracker para partido ${this.matchId} con reconexión automática`);
-        
         await this.crearArchivoPartidoVacio(this.matchId);
-        
         await this.iniciarMonitoreoConfig();
-        
         await this.fetchAndProcess();
-        
         this.pollInterval = setInterval(async () => {
             if (this.isRunning) {
                 await this.fetchAndProcess();
             }
         }, config.match.pollIntervalMs || 3000);
-        
         this.startSaving();
         this.startWebSocket();
     }
 
     async generateAnalysisReport() {
         if (this.repository.snapshots.length === 0) return;
-        
         const analyzer = new PerformanceAnalyzer(this.repository.snapshots);
         const report = analyzer.exportForDashboard();
-        
         const reportPath = path.join('./data', `analysis_${this.matchId}.json`);
         await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
-        
-        logger.info('📊 Análisis avanzado generado', { 
+        logger.info('📊 Análisis avanzado generado', {
             path: reportPath,
             insights: report.insights?.length || 0,
             recommendations: report.recommendations?.length || 0
         });
-        
         if (report.executiveSummary) console.log(`\n${report.executiveSummary}\n`);
-        
         if (report.insights && report.insights.length > 0) {
             report.insights.forEach(i => console.log(`   ${i}`));
         }
-        
         if (report.recommendations && report.recommendations.length > 0) {
             report.recommendations.forEach(r => console.log(`   ${r}`));
         }
-        
         console.log('\n' + '='.repeat(60));
     }
 
     async generateFinalReport() {
         const analyzer = new PerformanceAnalyzer(this.repository.snapshots);
         const report = analyzer.generateFullReport();
-        
         const reportPath = path.join('./data', `analysis_${this.matchId}.json`);
         await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
-        
         const htmlExporter = new HTMLExporter(this.matchId, this.repository.snapshots);
         const htmlPath = await htmlExporter.generateHTML();
-        
         logger.info('Reports generated', { json: reportPath, html: htmlPath });
-        
         return report;
     }
 
     async stop() {
         if (!this.isRunning) return;
-        
         logger.info('⛔ Stopping tracker...');
-        
         if (this.pollInterval) clearInterval(this.pollInterval);
         if (this.saveInterval) clearInterval(this.saveInterval);
         if (this.statsInterval) clearInterval(this.statsInterval);
-        if (this.configMonitorInterval) clearInterval(this.configMonitorInterval);  
-        
+        if (this.configMonitorInterval) clearInterval(this.configMonitorInterval);
         await this.repository.saveCSV();
         await this.repository.saveJSON();
-        
         await this.generateAnalysisReport();
-        
         this.isRunning = false;
         logger.info('✅ Tracker stopped');
     }
