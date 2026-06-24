@@ -1,0 +1,2 @@
+timestamp,set,home_team,away_team,home_score,away_score,scorer,serving,home_run,away_run,lead,phase,event
+2026-06-24T00:41:05.278Z,1,LOCAL,VISITANTE,12,16,HOME,AWAY,3,0,-4,LATE,BREAK_HOME

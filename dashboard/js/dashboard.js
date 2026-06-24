@@ -23,7 +23,7 @@ export class VolleyballDashboard {
         this.partidoTerminado = false;
         this.vistaActual = 'partido';
         this.filtroSet = 'all';
-        this.puntosJugadores = null;
+        this.puntosJugadores = [];
         this.chartPuntosJugadores = null;
         this.jugadoresLocal = {};
         this.jugadoresVisitante = {};
@@ -74,6 +74,121 @@ export class VolleyballDashboard {
             } catch (e) {}
         }, 25000);
     }
+
+    async obtenerUrlApi() {
+        try {
+            const response = await fetch('/data/api_url.txt?_t=' + Date.now());
+            if (response.ok) {
+                let url = await response.text();
+                url = url.trim();
+                if (url && (url.startsWith('https') || url.startsWith('http'))) {
+                    return url;
+                }
+            }
+        } catch (e) { console.log('Error leyendo api_url.txt:', e); }
+        return 'http://localhost:3002';
+    }
+
+    // ============================================================
+    // NUEVO: Cargar puntos manuales desde el servidor
+    // ============================================================
+
+    async cargarPuntosJugadores() {
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/puntos/${this.matchId}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.puntosJugadores = data.data || [];
+                this.actualizarVistaIndividuales();
+                return;
+            }
+        } catch (e) {
+            console.log('Error cargando puntos manuales:', e);
+        }
+        this.puntosJugadores = [];
+        this.actualizarVistaIndividuales();
+    }
+
+    // ============================================================
+    // NUEVO: Recargar puntos manuales (usado por WebSocket)
+    // ============================================================
+
+    async recargarPuntosManuales() {
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/puntos/${this.matchId}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.puntosJugadores = data.data || [];
+                this.actualizarVistaIndividuales();
+            }
+        } catch (e) {
+            console.log('Error recargando puntos manuales:', e);
+        }
+    }
+
+    // ============================================================
+    // MODIFICADO: startAutoRefreshPuntos - ya no usa localStorage
+    // ============================================================
+
+    startAutoRefreshPuntos() {
+        // Ya no es necesario, los puntos se actualizan via WebSocket
+        // pero lo dejamos como respaldo cada 10 segundos
+        setInterval(() => {
+            this.recargarPuntosManuales();
+        }, 10000);
+    }
+
+    // ============================================================
+    // MODIFICADO: connectWebSocket - agregar listener para punto_manual
+    // ============================================================
+
+    async connectWebSocket() {
+        if (!this.useWebSocket) return;
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            this.socket = io(apiUrl, { transports: ['polling', 'websocket'], reconnection: true });
+            
+            this.socket.on('connect', () => {
+                this.socket.emit('subscribe', this.matchId);
+                this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
+                
+                this.socket.on('partido_terminado', (data) => {
+                    console.log('🏁 Partido terminado, guardando reporte automático...');
+                    this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
+                    setTimeout(() => {
+                        this.saveAsHTML();
+                        this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
+                    }, 2000);
+                });
+
+                // NUEVO: Escuchar puntos manuales de otros dispositivos
+                this.socket.on('punto_manual', (punto) => {
+                    console.log('📝 Punto manual recibido:', punto);
+                    this.recargarPuntosManuales();
+                });
+            });
+            
+            this.socket.on('new_point', (data) => {
+                this.loadData();
+                this.actualizarSets();
+            });
+            
+            this.socket.on('disconnect', () => this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling'));
+            
+            setInterval(() => {
+                if (this.socket && this.socket.connected) this.socket.emit('ping_keepalive');
+            }, 25000);
+        } catch (e) {
+            console.log('WebSocket no disponible, usando polling');
+            this.useWebSocket = false;
+        }
+    }
+
+    // ============================================================
+    // EL RESTO DEL CÓDIGO ES IGUAL (no se modifica)
+    // ============================================================
 
     limpiarDOMCompletamente() {
         const elementos = ['homeScore', 'awayScore', 'tablaLocalBody', 'tablaVisitanteBody', 'maxRunHome', 'maxRunAway',
@@ -162,6 +277,11 @@ export class VolleyballDashboard {
             ['puntos', 'timeouts', 'breaks', 'jugadores'].forEach(prefix => {
                 localStorage.removeItem(`${prefix}_${this.matchId}`);
             });
+            if (window.anotador) {
+                window.anotador.matchIdActual = nuevoId;
+                window.anotador.cargarConfiguracion();
+                window.anotador.cargarPuntosManuales();
+            }
             this.data = [];
             this.puntosJugadores = [];
             this.timeouts = [];
@@ -222,22 +342,6 @@ export class VolleyballDashboard {
             this.actualizarVistaIndividuales();
             this.mostrarFeedbackPartido(`📊 Cambiado a ${this.homeTeamName} vs ${this.awayTeamName} (${nuevoId})`);
         });
-    }
-
-    async obtenerUrlApi() {
-        try {
-            const response = await fetch('/data/api_url.txt?_t=' + Date.now());
-            if (response.ok) {
-                let url = await response.text();
-                url = url.trim();
-                if (url && (url.startsWith('https') || url.startsWith('http'))) {
-                    console.log('✅ API URL desde archivo:', url);
-                    return url;
-                }
-            }
-        } catch (e) { console.log('Error leyendo api_url.txt:', e); }
-        console.log('⚠️ Usando localhost:3002 como fallback');
-        return 'http://localhost:3002';
     }
 
     setupEvolucionTab() {
@@ -526,22 +630,6 @@ export class VolleyballDashboard {
         }
     }
 
-    startAutoRefreshPuntos() {
-        setInterval(() => {
-            const puntosKey = `puntos_${this.matchId}`;
-            const puntosGuardados = localStorage.getItem(puntosKey);
-            if (puntosGuardados) {
-                const nuevosPuntos = JSON.parse(puntosGuardados);
-                if (JSON.stringify(this.puntosJugadores) !== JSON.stringify(nuevosPuntos)) {
-                    this.puntosJugadores = nuevosPuntos;
-                    this.cargarTimeouts();
-                    this.actualizarVistaIndividuales();
-                    this.actualizarSets();
-                }
-            }
-        }, 3000);
-    }
-
     startAutoRefresh() { setInterval(() => { this.loadData(); }, 5000); }
     setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
 
@@ -555,37 +643,6 @@ export class VolleyballDashboard {
         };
         monitor();
         this.checkConnection();
-    }
-
-    async connectWebSocket() {
-        if (!this.useWebSocket) return;
-        try {
-            const apiUrl = await this.obtenerUrlApi();
-            this.socket = io(apiUrl, { transports: ['polling', 'websocket'], reconnection: true });
-            this.socket.on('connect', () => {
-                this.socket.emit('subscribe', this.matchId);
-                this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
-                this.socket.on('partido_terminado', (data) => {
-                    console.log('🏁 Partido terminado, guardando reporte automático...');
-                    this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
-                    setTimeout(() => {
-                        this.saveAsHTML();
-                        this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
-                    }, 2000);
-                });
-            });
-            this.socket.on('new_point', (data) => {
-                this.loadData();
-                this.actualizarSets();
-            });
-            this.socket.on('disconnect', () => this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling'));
-            setInterval(() => {
-                if (this.socket && this.socket.connected) this.socket.emit('ping_keepalive');
-            }, 25000);
-        } catch (e) {
-            console.log('WebSocket no disponible, usando polling');
-            this.useWebSocket = false;
-        }
     }
 
     async cargarReglamento() {
@@ -963,22 +1020,6 @@ export class VolleyballDashboard {
             }
             this.mostrarSkeleton(false);
         }
-    }
-
-    async cargarPuntosJugadores() {
-        const puntosKey = `puntos_${this.matchId}`;
-        const puntosGuardados = localStorage.getItem(puntosKey);
-        if (puntosGuardados) {
-            this.puntosJugadores = JSON.parse(puntosGuardados);
-            this.actualizarVistaIndividuales();
-            return;
-        }
-        try {
-            const response = await fetch(`/data/jugadores_${this.matchId}.json`);
-            if (response.ok) this.puntosJugadores = await response.json();
-            else this.puntosJugadores = [];
-            this.actualizarVistaIndividuales();
-        } catch (e) { this.puntosJugadores = []; }
     }
 
     setupTabs() {

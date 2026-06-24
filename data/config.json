@@ -1,26 +1,20 @@
 {
-  "matchId": 231152,
-  "homeTeam": "BPLP",
-  "awayTeam": "CAI",
-  "categoria": "sub_16",
+  "matchId": 158711,
+  "homeTeam": "UNTREF B",
+  "awayTeam": "PIEDAD",
+  "categoria": "mayores",
   "partidos": [
     {
-      "id": 231152,
-      "homeTeam": "BPLP",
-      "awayTeam": "CAI",
-      "categoria": "sub_16"
+      "id": 155638,
+      "homeTeam": "UNTREF B",
+      "awayTeam": "PIEDAD",
+      "categoria": "mayores"
     },
     {
-      "id": 205058,
-      "homeTeam": "MLOMASZ",
-      "awayTeam": "VELEZ",
-      "categoria": "sub-18"
-    },
-    {
-      "id": 158700,
-      "homeTeam": "CASM",
-      "awayTeam": "MunMarg",
-      "categoria": "Mayores"
+      "id": 158711,
+      "homeTeam": "MUNMARG",
+      "awayTeam": "CAMG",
+      "categoria": "mayores"
     }
   ]
 }

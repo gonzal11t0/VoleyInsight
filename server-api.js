@@ -68,6 +68,90 @@ async function obtenerEstadoPartido(matchId) {
     return null;
 }
 
+// ============================================================
+// NUEVAS FUNCIONES PARA PUNTOS MANUALES
+// ============================================================
+
+async function guardarPuntosManuales(matchId, puntos) {
+    try {
+        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+        await fs.writeFile(filePath, JSON.stringify(puntos, null, 2), 'utf-8');
+        return true;
+    } catch (e) {
+        console.error('Error guardando puntos manuales:', e.message);
+        return false;
+    }
+}
+
+async function leerPuntosManuales(matchId) {
+    try {
+        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+        const data = await fs.readFile(filePath, 'utf-8');
+        return JSON.parse(data);
+    } catch (e) {
+        return [];
+    }
+}
+
+function emitPuntoManual(matchId, punto) {
+    if (connectedClients.has(matchId)) {
+        const clients = connectedClients.get(matchId);
+        clients.forEach(client => {
+            client.emit('punto_manual', punto);
+        });
+        console.log(`📤 Punto manual emitido a ${clients.size} clientes para partido ${matchId}`);
+    }
+}
+
+// ============================================================
+// ENDPOINTS NUEVOS PARA PUNTOS MANUALES
+// ============================================================
+
+app.post('/api/puntos', async (req, res) => {
+    try {
+        const { matchId, punto } = req.body;
+        if (!matchId || !punto) {
+            return res.status(400).json({ success: false, error: 'Faltan datos: matchId y punto son requeridos' });
+        }
+
+        const puntos = await leerPuntosManuales(matchId);
+        puntos.push(punto);
+        await guardarPuntosManuales(matchId, puntos);
+
+        emitPuntoManual(matchId, punto);
+
+        res.json({ success: true, message: 'Punto guardado correctamente' });
+    } catch (e) {
+        console.error('Error en POST /api/puntos:', e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.get('/api/puntos/:matchId', async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId);
+        const puntos = await leerPuntosManuales(matchId);
+        res.json({ success: true, count: puntos.length, data: puntos });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.delete('/api/puntos/:matchId', async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId);
+        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+        await fs.unlink(filePath).catch(() => {});
+        res.json({ success: true, message: 'Puntos eliminados' });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// ============================================================
+// WEBSOCKET - AGREGAR EVENTO punto_manual
+// ============================================================
+
 io.on('connection', (socket) => {
     console.log('🔌 Cliente conectado:', socket.id);
     
@@ -106,6 +190,10 @@ io.on('connection', (socket) => {
         console.log('🔌 Cliente desconectado:', socket.id);
     });
 });
+
+// ============================================================
+// RESTAURANTE DEL CÓDIGO (igual que antes)
+// ============================================================
 
 function emitNewPoint(matchId, pointData) {
     if (connectedClients.has(matchId)) {

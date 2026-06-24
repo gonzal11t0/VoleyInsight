@@ -16,6 +16,7 @@ export class AnotadorManager {
         this.matchIdActual = null;
         this.homeTeamName = "LOCAL";
         this.awayTeamName = "VISITANTE";
+        this.puntosManuales = [];
         this.init();
     }
 
@@ -30,6 +31,7 @@ export class AnotadorManager {
             await this.cargarJugadoresDesdeAPI();
             this.renderConfig();
         }
+        await this.cargarPuntosManuales();
         this.initKeyboardShortcuts();
         this.setupEventListeners();
     }
@@ -54,6 +56,50 @@ export class AnotadorManager {
             }
         } catch (e) {}
         return 257929;
+    }
+
+    async cargarPuntosManuales() {
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/puntos/${this.matchIdActual}`);
+            if (response.ok) {
+                const data = await response.json();
+                this.puntosManuales = data.data || [];
+                this.actualizarHistorialDesdePuntos();
+            }
+        } catch (e) {
+            console.log('Error cargando puntos manuales:', e);
+        }
+    }
+
+    async obtenerUrlApi() {
+        try {
+            const response = await fetch('/data/api_url.txt?_t=' + Date.now());
+            if (response.ok) {
+                let url = await response.text();
+                url = url.trim();
+                if (url && (url.startsWith('https') || url.startsWith('http'))) {
+                    return url;
+                }
+            }
+        } catch (e) {}
+        return 'http://localhost:3002';
+    }
+
+    actualizarHistorialDesdePuntos() {
+        if (this.puntosManuales.length > 0) {
+            this.estado.historial = [...this.puntosManuales];
+            this.estado.punto = this.puntosManuales.length;
+            const ultimo = this.puntosManuales[this.puntosManuales.length - 1];
+            if (ultimo) {
+                const partes = ultimo.marcadorDespues.split('-');
+                this.estado.local.score = parseInt(partes[0]) || 0;
+                this.estado.visitante.score = parseInt(partes[1]) || 0;
+                this.estado.set = ultimo.set || 1;
+            }
+            this.actualizarMarcador();
+            this.renderHistorial();
+        }
     }
 
     mostrarFeedback(msg, tipo = 'success') {
@@ -154,6 +200,7 @@ export class AnotadorManager {
         this.estado.accion = null;
         this.jugadorSeleccionado = null;
         this.equipoQueSaca = "LOCAL";
+        this.puntosManuales = [];
         this.actualizarBadgeSaque();
         this.actualizarCancha();
         this.renderizarBanco();
@@ -365,7 +412,7 @@ export class AnotadorManager {
         return this.estado.equipo;
     }
 
-    guardarPunto() {
+    async guardarPunto() {
         if (!this.estado.accion) {
             this.mostrarFeedback('❌ Seleccioná una ACCIÓN', 'error');
             return;
@@ -400,23 +447,37 @@ export class AnotadorManager {
             marcadorAntes: marcadorAntes,
             marcadorDespues: marcadorDespues
         };
-        let puntosGuardados = JSON.parse(localStorage.getItem(`puntos_${this.matchIdActual}`) || '[]');
-        puntosGuardados.push(punto);
-        localStorage.setItem(`puntos_${this.matchIdActual}`, JSON.stringify(puntosGuardados));
-        this.estado.punto++;
-        this.estado.historial.push(punto);
-        this.actualizarMarcador();
-        this.renderHistorial();
-        this.jugadorSeleccionado = null;
-        this.estado.accion = null;
-        document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
-            btn.classList.remove('seleccionado');
-        });
-        this.toggleSaque();
-        if (jugadorQueAnota) {
-            this.mostrarFeedback(`✅ Punto de ${equipoQueAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName} - J${jugadorQueAnota}`, 'success');
-        } else {
-            this.mostrarFeedback(`✅ Punto para ${equipoQueAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName}`, 'success');
+
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/puntos`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matchId: this.matchIdActual, punto: punto })
+            });
+            if (!response.ok) throw new Error('Error al guardar el punto en el servidor');
+            
+            this.puntosManuales.push(punto);
+            this.estado.punto++;
+            this.estado.historial.push(punto);
+            this.actualizarMarcador();
+            this.renderHistorial();
+
+            this.jugadorSeleccionado = null;
+            this.estado.accion = null;
+            document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
+                btn.classList.remove('seleccionado');
+            });
+            this.toggleSaque();
+            
+            if (jugadorQueAnota) {
+                this.mostrarFeedback(`✅ Punto de ${equipoQueAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName} - J${jugadorQueAnota}`, 'success');
+            } else {
+                this.mostrarFeedback(`✅ Punto para ${equipoQueAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName}`, 'success');
+            }
+        } catch (e) {
+            console.error('Error guardando punto:', e);
+            this.mostrarFeedback('❌ Error al guardar el punto en el servidor', 'error');
         }
     }
 
