@@ -43,7 +43,7 @@ const io = socketIo(server, {
     }
 });
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 5501;
 const connectedClients = new Map();
 
 async function obtenerEstadoPartido(matchId) {
@@ -458,9 +458,12 @@ app.post('/api/config', async (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
-
 app.use(express.static('./'));
 
+app.use('/dashboard', express.static('./dashboard'));
+app.get('/', (req, res) => {
+    res.redirect('/dashboard/index.html');
+});
 server.listen(PORT, () => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════╗

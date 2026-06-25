@@ -76,18 +76,11 @@ export class VolleyballDashboard {
     }
 
     async obtenerUrlApi() {
-        try {
-            const response = await fetch('/data/api_url.txt?_t=' + Date.now());
-            if (response.ok) {
-                let url = await response.text();
-                url = url.trim();
-                if (url && (url.startsWith('https') || url.startsWith('http'))) {
-                    return url;
-                }
-            }
-        } catch (e) { console.log('Error leyendo api_url.txt:', e); }
-        return 'http://localhost:3002';
-    }
+    // Usar la misma URL que el dashboard (Cloudflare o localhost)
+    const url = window.location.origin;
+    console.log('📡 API URL (misma que dashboard):', url);
+    return url;
+}
 
     // ============================================================
     // NUEVO: Cargar puntos manuales desde el servidor

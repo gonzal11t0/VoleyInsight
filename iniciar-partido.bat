@@ -49,14 +49,7 @@ if %errorlevel%==0 (
 )
 echo.
 
-:: ========================================
-:: INICIAR SERVIDOR LOCAL (puerto 5500)
-:: ========================================
-echo [3/6] Iniciando servidor local...
-start "Servidor Local" cmd /k "npx serve . -p 5501"
-timeout /t 3 /nobreak >nul
-echo OK Servidor en http://localhost:5501
-echo.
+
 
 :: ========================================
 :: INICIAR SERVIDOR API (puerto 3002)
@@ -87,12 +80,9 @@ timeout /t 5 /nobreak >nul
 :: ========================================
 :: INICIAR TUNEL SERVEO (API)
 :: ========================================
-echo    Iniciando Serveo Tunnel para API...
-start "Serveo API" cmd /k "ssh -o ServerAliveInterval=60 -R 80:localhost:3002 serveo.net"
-timeout /t 3 /nobreak >nul
-start "Guardar URL" cmd /c "powershell -Command \"$line = ssh -R 80:localhost:3002 serveo.net 2>&1 | Select-Object -First 1; if ($line -match 'https://[a-z0-9-]+\.serveousercontent\.com') { $url = $matches[0]; $url | Out-File -FilePath data\api_url.txt -Encoding utf8 }\""
-timeout /t 2 /nobreak >nul
-echo.
+echo [6/6] Iniciando túnel Cloudflare...
+start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5501"
+timeout /t 5 /nobreak >nul
 echo ========================================
 echo    🚀 SISTEMA ACTIVO
 echo ========================================

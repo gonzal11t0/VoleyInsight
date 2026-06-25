@@ -1,7 +1,9 @@
 // dashboard/js/anotador.js
 export class AnotadorManager {
     constructor() {
-        this.config = { local: { jugadores: [], liberos: [] }, visitante: { jugadores: [], liberos: [] } };
+        this.config = { 
+            local: { jugadores: [], liberos: [], nombres: {} }, 
+            visitante: { jugadores: [], liberos: [], nombres: {} } };
         this.estado = {
             local: { score: 0, jugadoresLista: [] },
             visitante: { score: 0, jugadoresLista: [] },
@@ -73,18 +75,11 @@ export class AnotadorManager {
     }
 
     async obtenerUrlApi() {
-        try {
-            const response = await fetch('/data/api_url.txt?_t=' + Date.now());
-            if (response.ok) {
-                let url = await response.text();
-                url = url.trim();
-                if (url && (url.startsWith('https') || url.startsWith('http'))) {
-                    return url;
-                }
-            }
-        } catch (e) {}
-        return 'http://localhost:3002';
-    }
+    // Usar la misma URL que el dashboard (Cloudflare o localhost)
+    const url = window.location.origin;
+    console.log('📡 API URL (misma que dashboard):', url);
+    return url;
+}
 
     actualizarHistorialDesdePuntos() {
         if (this.puntosManuales.length > 0) {
@@ -150,19 +145,27 @@ export class AnotadorManager {
         this.mostrarFeedback(`⚡ BREAK! ${this.estado.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} rompe el saque (${breakPoint.marcador})`, 'success');
     }
 
-    renderConfig() {
-        const render = (equipo, data, containerId, liberosContainerId) => {
-            const container = document.getElementById(containerId);
-            const liberosContainer = document.getElementById(liberosContainerId);
-            if (container) {
-                container.innerHTML = data.jugadores.map(n => `<button class="config-jugador bg-gray-700 w-12 h-12 rounded-xl font-bold" data-equipo="${equipo}" data-num="${n}">${n}</button>`).join('');
-            }
-            if (liberosContainer) {
-                liberosContainer.innerHTML = data.jugadores.map(n => `<button class="config-libero ${data.liberos.includes(n) ? 'bg-yellow-500 text-black' : 'bg-gray-600'} px-3 py-1 rounded text-sm" data-equipo="${equipo}" data-num="${n}">${data.liberos.includes(n) ? '🛡️' : '[L]'}</button>`).join('');
-            }
-        };
-        render('local', this.config.local, 'configLocal', 'configLocalLiberos');
-        render('visitante', this.config.visitante, 'configVisitante', 'configVisitanteLiberos');
+renderConfig() {
+    const render = (equipo, data, containerId, liberosContainerId) => {
+        const container = document.getElementById(containerId);
+        const liberosContainer = document.getElementById(liberosContainerId);
+        if (container) {
+            container.innerHTML = data.jugadores.map(n => {
+                const nombre = data.nombres?.[n] || `Jugador ${n}`;
+                const nombreCorto = nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre;
+                return `<button class="config-jugador bg-gray-700 w-auto min-w-12 h-12 px-2 rounded-xl font-bold text-xs" data-equipo="${equipo}" data-num="${n}">${nombreCorto}</button>`;
+            }).join('');
+        }
+        if (liberosContainer) {
+            liberosContainer.innerHTML = data.jugadores.map(n => {
+                const nombre = data.nombres?.[n] || `Jugador ${n}`;
+                const nombreCorto = nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre;
+                return `<button class="config-libero ${data.liberos.includes(n) ? 'bg-yellow-500 text-black' : 'bg-gray-600'} px-3 py-1 rounded text-sm" data-equipo="${equipo}" data-num="${n}">${data.liberos.includes(n) ? '🛡️' : '[L]'}</button>`;
+            }).join('');
+        }
+    };
+    render('local', this.config.local, 'configLocal', 'configLocalLiberos');
+    render('visitante', this.config.visitante, 'configVisitante', 'configVisitanteLiberos');
         document.querySelectorAll('.config-jugador').forEach(btn => {
             btn.onclick = () => {
                 let eq = btn.dataset.equipo;
@@ -226,18 +229,21 @@ export class AnotadorManager {
         this.actualizarBadgeSaque();
     }
 
-    actualizarCancha() {
-        let jugadoresLista = this.estado.equipo === 'LOCAL' ? this.estado.local.jugadoresLista : this.estado.visitante.jugadoresLista;
-        const primeros6 = jugadoresLista.slice(0, 6);
-        const container = document.getElementById('canchaGrid');
-        if (!container) return;
-        container.innerHTML = primeros6.map(n => `
-            <button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold text-xl ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">
-                ${n}
-            </button>
-        `).join('');
-        document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
-            b.onclick = () => {
+        actualizarCancha() {
+    let jugadoresLista = this.estado.equipo === 'LOCAL' ? this.estado.local.jugadoresLista : this.estado.visitante.jugadoresLista;
+    const nombres = this.estado.equipo === 'LOCAL' ? this.config.local.nombres : this.config.visitante.nombres;
+    const primeros6 = jugadoresLista.slice(0, 6);
+    const container = document.getElementById('canchaGrid');
+    if (!container) return;
+    
+    container.innerHTML = primeros6.map(n => {
+        const nombre = nombres?.[n] || `Jugador ${n}`;
+        const nombreCorto = nombre.length > 8 ? nombre.substring(0,6) + '…' : nombre;
+        return `<button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold text-sm ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">
+            ${nombreCorto}
+        </button>`;
+}).join('');
+document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {            b.onclick = () => {
                 const num = parseInt(b.dataset.jugador);
                 this.jugadorSeleccionado = num;
                 this.mostrarFeedback(`👕 Jugador ${this.jugadorSeleccionado} seleccionado`, 'info');
@@ -248,34 +254,33 @@ export class AnotadorManager {
     }
 
     renderizarBanco() {
-        let bancoEquipo, nombreEquipo, claseEquipo;
-        if (this.estado.equipo === 'LOCAL') {
-            bancoEquipo = this.estado.local.jugadoresLista.slice(6);
-            nombreEquipo = this.homeTeamName;
-            claseEquipo = 'local';
-        } else {
-            bancoEquipo = this.estado.visitante.jugadoresLista.slice(6);
-            nombreEquipo = this.awayTeamName;
-            claseEquipo = 'visitante';
-        }
-        const container = document.getElementById('bancoContainer');
-        if (!container) return;
-        if (bancoEquipo.length > 0) {
-            let html = `<div class="banco-seccion">
-                <div class="banco-header">
-                    <span class="banco-equipo-nombre ${claseEquipo}">${this.estado.equipo === 'LOCAL' ? '🔵' : '🔴'} ${nombreEquipo}</span>
-                    <span class="banco-badge">suplentes</span>
-                </div>
-                <div class="banco-grid">
-            `;
-            bancoEquipo.forEach(n => {
-                html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${n}</button>`;
-            });
-            html += `</div></div>`;
-            container.innerHTML = html;
-        } else {
-            container.innerHTML = '<div class="text-gray-500 text-center text-sm">Sin suplentes</div>';
-        }
+    let bancoEquipo, nombreEquipo, claseEquipo, nombres;
+    if (this.estado.equipo === 'LOCAL') {
+        bancoEquipo = this.estado.local.jugadoresLista.slice(6);
+        nombreEquipo = this.homeTeamName;
+        claseEquipo = 'local';
+        nombres = this.config.local.nombres;
+    } else {
+        bancoEquipo = this.estado.visitante.jugadoresLista.slice(6);
+        nombreEquipo = this.awayTeamName;
+        claseEquipo = 'visitante';
+        nombres = this.config.visitante.nombres;
+    }
+    const container = document.getElementById('bancoContainer');
+    if (!container) return;
+    if (bancoEquipo.length > 0) {
+        let html = `<div class="banco-seccion">`;
+        bancoEquipo.forEach(n => {
+            const nombre = nombres?.[n] || `Jugador ${n}`;
+            const nombreCorto = nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre;
+            html += `<button class="banco-item bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm font-bold ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}">${nombreCorto}</button>`;
+        });
+        html += `</div></div>`;
+        container.innerHTML = html;
+    } else {
+        container.innerHTML = '<div class="text-gray-500 text-center text-sm">Sin suplentes</div>';
+    }
+        
         document.querySelectorAll('#bancoContainer .banco-item').forEach(b => {
             b.onclick = () => {
                 const num = parseInt(b.dataset.jugador);
@@ -344,66 +349,76 @@ export class AnotadorManager {
     }
 
     async cargarJugadoresDesdeAPI() {
-        if (this.config.local.jugadores.length > 0 || this.config.visitante.jugadores.length > 0) return true;
-        try {
-            const response = await fetch(`/data/full_${this.matchIdActual}.json?_t=${Date.now()}`);
-            if (response.ok) {
-                const fullData = await response.json();
-                const court = fullData.liveState?.court;
-                if (court) {
-                    const jugadoresLocal = [],
-                        jugadoresVisitante = [],
-                        liberosLocal = [],
-                        liberosVisitante = [];
-                    if (court.home?.positions) {
-                        for (const [pos, info] of Object.entries(court.home.positions)) {
-                            if (info.number && info.lastName) {
-                                jugadoresLocal.push(info.number);
-                                if (info.isLibero) liberosLocal.push(info.number);
-                            }
+    if (this.config.local.jugadores.length > 0 || this.config.visitante.jugadores.length > 0) return true;
+    try {
+        const response = await fetch(`/data/full_${this.matchIdActual}.json?_t=${Date.now()}`);
+        if (response.ok) {
+            const fullData = await response.json();
+            const court = fullData.liveState?.court;
+            if (court) {
+                const jugadoresLocal = [],
+                    jugadoresVisitante = [],
+                    liberosLocal = [],
+                    liberosVisitante = [];
+                
+                // ✅ Limpiar nombres anteriores
+                this.config.local.nombres = {};
+                this.config.visitante.nombres = {};
+
+                if (court.home?.positions) {
+                    for (const [pos, info] of Object.entries(court.home.positions)) {
+                        if (info.number && info.lastName) {
+                            jugadoresLocal.push(info.number);
+                            this.config.local.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            if (info.isLibero) liberosLocal.push(info.number);
                         }
                     }
-                    if (court.home?.bench) {
-                        for (const info of court.home.bench) {
-                            if (info.number && info.lastName && !jugadoresLocal.includes(info.number)) {
-                                jugadoresLocal.push(info.number);
-                                if (info.isLibero) liberosLocal.push(info.number);
-                            }
-                        }
-                    }
-                    if (court.away?.positions) {
-                        for (const [pos, info] of Object.entries(court.away.positions)) {
-                            if (info.number && info.lastName) {
-                                jugadoresVisitante.push(info.number);
-                                if (info.isLibero) liberosVisitante.push(info.number);
-                            }
-                        }
-                    }
-                    if (court.away?.bench) {
-                        for (const info of court.away.bench) {
-                            if (info.number && info.lastName && !jugadoresVisitante.includes(info.number)) {
-                                jugadoresVisitante.push(info.number);
-                                if (info.isLibero) liberosVisitante.push(info.number);
-                            }
-                        }
-                    }
-                    if (jugadoresLocal.length) {
-                        this.config.local.jugadores = jugadoresLocal.sort((a, b) => a - b);
-                        this.config.local.liberos = liberosLocal;
-                    }
-                    if (jugadoresVisitante.length) {
-                        this.config.visitante.jugadores = jugadoresVisitante.sort((a, b) => a - b);
-                        this.config.visitante.liberos = liberosVisitante;
-                    }
-                    this.renderConfig();
-                    return true;
                 }
+                if (court.home?.bench) {
+                    for (const info of court.home.bench) {
+                        if (info.number && info.lastName && !jugadoresLocal.includes(info.number)) {
+                            jugadoresLocal.push(info.number);
+                            this.config.local.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            if (info.isLibero) liberosLocal.push(info.number);
+                        }
+                    }
+                }
+                if (court.away?.positions) {
+                    for (const [pos, info] of Object.entries(court.away.positions)) {
+                        if (info.number && info.lastName) {
+                            jugadoresVisitante.push(info.number);
+                            this.config.visitante.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            if (info.isLibero) liberosVisitante.push(info.number);
+                        }
+                    }
+                }
+                if (court.away?.bench) {
+                    for (const info of court.away.bench) {
+                        if (info.number && info.lastName && !jugadoresVisitante.includes(info.number)) {
+                            jugadoresVisitante.push(info.number);
+                            this.config.visitante.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            if (info.isLibero) liberosVisitante.push(info.number);
+                        }
+                    }
+                }
+
+                if (jugadoresLocal.length) {
+                    this.config.local.jugadores = jugadoresLocal.sort((a, b) => a - b);
+                    this.config.local.liberos = liberosLocal;
+                }
+                if (jugadoresVisitante.length) {
+                    this.config.visitante.jugadores = jugadoresVisitante.sort((a, b) => a - b);
+                    this.config.visitante.liberos = liberosVisitante;
+                }
+                this.renderConfig();
+                return true;
             }
-        } catch (e) {
-            console.log('Error cargando jugadores desde API:', e);
         }
-        return false;
+    } catch (e) {
+        console.log('Error cargando jugadores desde API:', e);
     }
+    return false;
+}
 
     determinarEquipoQueAnota() {
         if (this.estado.accion === 'ERROR' || this.estado.accion === 'FALTA') {
