@@ -1963,59 +1963,88 @@ export class VolleyballDashboard {
                 };
                 statsLocalCalculadas = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
                 statsVisitanteCalculadas = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
-                const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
-                    if (!stats || Object.keys(stats).length === 0) {
-                        return `<tr><td colspan="13" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
-                    }
-                    let html = '';
-                    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
-                    for (const [numJugador, s] of ordenados) {
-                        const num = parseInt(numJugador);
-                        if (isNaN(num)) continue;
-                        let nombre = jugadoresMap[num];
-                        if (!nombre) {
-                            nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
-                        }
-                        const puntos = s.puntos || 0;
-                        const ataquesTotales = s.ataques || 0;
-                        const ataquesConvertidos = s.ataquesConvertidos || 0;
-                        const bloqueos = s.bloqueos || 0;
-                        const aces = s.aces || 0;
-                        const erroresAtaque = s.erroresAtaque || 0;
-                        const asistencias = s.asistencias || 0;
-                        const acesServicio = s.acesServicio || 0;
-                        const erroresServicio = s.erroresServicio || 0;
-                        const totalSaques = s.totalSaques || 0;
-                        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
-                        let eficienciaAtaque = '0';
-                        if (ataquesTotales > 0) {
-                            eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
-                        }
-                        let eficienciaServicio = '0';
-                        if (totalSaques > 0) {
-                            eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
-                        }
-                        const efAtaqueNum = parseFloat(eficienciaAtaque);
-                        const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
-                        const efServNum = parseFloat(eficienciaServicio);
-                        const efServColor = efServNum > 10 ? '#10b981' : (efServNum < 0 ? '#ef4444' : '#f59e0b');
-                        html += `<tr style="border-bottom:1px solid #374151;">
-                            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
-                            <td style="text-align:center;font-weight:bold;color:#667eea;">${puntos}</td>
-                            <td style="text-align:center;">${ataquesTexto}</td>
-                            <td style="text-align:center;">${bloqueos}</td>
-                            <td style="text-align:center;">${aces}</td>
-                            <td style="text-align:center;color:#ef4444;">${erroresAtaque}</td>
-                            <td style="text-align:center;">${asistencias}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efAtaqueColor};">${eficienciaAtaque}%</td>
-                            <td style="text-align:center;color:#3b82f6;">${acesServicio}</td>
-                            <td style="text-align:center;color:#ef4444;">${erroresServicio}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efServColor};">${eficienciaServicio}%</td>
-                            <td style="text-align:center;font-weight:bold;">${totalSaques}</td>
-                        </tr>`;
-                    }
-                    return html;
-                };
+               const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
+    if (!stats || Object.keys(stats).length === 0) {
+        return `<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
+    }
+    let html = '';
+    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
+    for (const [numJugador, s] of ordenados) {
+        const num = parseInt(numJugador);
+        if (isNaN(num)) continue;
+        let nombre = jugadoresMap[num];
+        if (!nombre) {
+            nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
+        }
+        const puntos = s.puntos || 0;
+        const ataquesTotales = s.ataques || 0;
+        const ataquesConvertidos = s.ataquesConvertidos || 0;
+        const bloqueos = s.bloqueos || 0;
+        const aces = s.aces || 0;
+        const erroresAtaque = s.erroresAtaque || 0;
+        const asistencias = s.asistencias || 0;
+        const acesServicio = s.acesServicio || 0;
+        const erroresServicio = s.erroresServicio || 0;
+        const totalSaques = s.totalSaques || 0;
+        
+        // 🆕 Nuevas métricas
+        const recepcionesPositivas = s.recepcionesPositivas || 0;
+        const recepcionesNegativas = s.recepcionesNegativas || 0;
+        const totalRecepciones = s.totalRecepciones || 0;
+        const defensasPositivas = s.defensasPositivas || 0;
+        const defensasNegativas = s.defensasNegativas || 0;
+        const totalDefensas = s.totalDefensas || 0;
+        
+        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
+        let eficienciaAtaque = '0';
+        if (ataquesTotales > 0) {
+            eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
+        }
+        let eficienciaServicio = '0';
+        if (totalSaques > 0) {
+            eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
+        }
+        
+        // 🆕 Eficiencias de recepción y defensa
+        let eficienciaRecepcion = '0';
+        if (totalRecepciones > 0) {
+            eficienciaRecepcion = ((recepcionesPositivas / totalRecepciones) * 100).toFixed(1);
+        }
+        let eficienciaDefensa = '0';
+        if (totalDefensas > 0) {
+            eficienciaDefensa = ((defensasPositivas / totalDefensas) * 100).toFixed(1);
+        }
+        
+        const efAtaqueNum = parseFloat(eficienciaAtaque);
+        const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
+        const efServNum = parseFloat(eficienciaServicio);
+        const efServColor = efServNum > 10 ? '#10b981' : (efServNum < 0 ? '#ef4444' : '#f59e0b');
+        const efRecNum = parseFloat(eficienciaRecepcion);
+        const efRecColor = efRecNum > 60 ? '#10b981' : (efRecNum > 40 ? '#f59e0b' : '#ef4444');
+        const efDefNum = parseFloat(eficienciaDefensa);
+        const efDefColor = efDefNum > 60 ? '#10b981' : (efDefNum > 40 ? '#f59e0b' : '#ef4444');
+        
+        html += `<tr style="border-bottom:1px solid #374151;">
+            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
+            <td style="text-align:center;font-weight:bold;color:#667eea;">${puntos}</td>
+            <td style="text-align:center;">${ataquesTexto}</td>
+            <td style="text-align:center;">${bloqueos}</td>
+            <td style="text-align:center;">${aces}</td>
+            <td style="text-align:center;color:#ef4444;">${erroresAtaque}</td>
+            <td style="text-align:center;">${asistencias}</td>
+            <td style="text-align:center;font-weight:bold;color:${efAtaqueColor};">${eficienciaAtaque}%</td>
+            <td style="text-align:center;color:#3b82f6;">${recepcionesPositivas}/${totalRecepciones}</td>
+            <td style="text-align:center;font-weight:bold;color:${efRecColor};">${eficienciaRecepcion}%</td>
+            <td style="text-align:center;color:#8b5cf6;">${defensasPositivas}/${totalDefensas}</td>
+            <td style="text-align:center;font-weight:bold;color:${efDefColor};">${eficienciaDefensa}%</td>
+            <td style="text-align:center;color:#3b82f6;">${acesServicio}</td>
+            <td style="text-align:center;color:#ef4444;">${erroresServicio}</td>
+            <td style="text-align:center;font-weight:bold;color:${efServColor};">${eficienciaServicio}%</td>
+            <td style="text-align:center;font-weight:bold;">${totalSaques}</td>
+        </tr>`;
+    }
+    return html;
+};
                 tablaLocal = generarTablaHTML(statsLocalCalculadas, this.jugadoresLocal, homeTeam, false);
                 tablaVisitante = generarTablaHTML(statsVisitanteCalculadas, this.jugadoresVisitante, awayTeam, true);
             } else {

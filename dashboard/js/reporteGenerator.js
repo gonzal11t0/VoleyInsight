@@ -204,9 +204,26 @@ export class ReporteGenerator {
             <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
-                    <thead>
-                        <tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>🎯 ACES</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr>
-                    </thead>
+                   <thead>
+    <tr>
+        <th>Jugador</th>
+        <th>PTS</th>
+        <th>ATA</th>
+        <th>BLO</th>
+        <th>ACE</th>
+        <th>ERR</th>
+        <th>ASIS</th>
+        <th>EFI%</th>
+        <th>📥 REC</th>
+        <th>REC%</th>
+        <th>🛡️ DEF</th>
+        <th>DEF%</th>
+        <th>🎯 ACES</th>
+        <th>❌ ERR SERV</th>
+        <th>📊 EFI SERV%</th>
+        <th>🏐 TOT SERV</th>
+    </tr>
+</thead>
                     <tbody>${tablaLocal || '<tr><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
@@ -216,8 +233,25 @@ export class ReporteGenerator {
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
-                        <tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>🎯 ACES</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr>
-                    </thead>
+    <tr>
+        <th>Jugador</th>
+        <th>PTS</th>
+        <th>ATA</th>
+        <th>BLO</th>
+        <th>ACE</th>
+        <th>ERR</th>
+        <th>ASIS</th>
+        <th>EFI%</th>
+        <th>📥 REC</th>
+        <th>REC%</th>
+        <th>🛡️ DEF</th>
+        <th>DEF%</th>
+        <th>🎯 ACES</th>
+        <th>❌ ERR SERV</th>
+        <th>📊 EFI SERV%</th>
+        <th>🏐 TOT SERV</th>
+    </tr>
+</thead>
                     <tbody>${tablaVisitante || '<tr><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
