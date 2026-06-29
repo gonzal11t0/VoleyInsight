@@ -1,61 +1,60 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>VoleyInsight | Dashboard Profesional</title>
-    
-    <meta name="description" content="VoleyInsight - Dashboard profesional de análisis de voleibol en tiempo real. Estadísticas, reportes y seguimiento de partidos.">
-    <meta name="keywords" content="voleibol, análisis deportivo, estadísticas voley, dashboard voley, scouting voley, FMV">
-    <meta name="author" content="VoleyInsight">
-    <meta name="robots" content="index, follow">
-    <meta name="language" content="Spanish">
-    <meta name="revisit-after" content="7 days">
-    
-    <meta property="og:title" content="VoleyInsight | Dashboard Profesional de Voleibol">
-    <meta property="og:description" content="Sistema de análisis de partidos de voleibol en tiempo real. Estadísticas, reportes y seguimiento profesional.">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://voleyinsight.com/og-image.jpg">
-    <meta property="og:url" content="https://voleyinsight.com/dashboard/index.html">
-    <meta property="og:site_name" content="VoleyInsight - Análisis Profesional de Voleibol">
-    <meta property="og:locale" content="es_AR">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="VoleyInsight - Dashboard de Voleibol">
-    <meta name="twitter:description" content="Análisis profesional de voleibol en tiempo real.">
-    
-    <meta name="geo.region" content="AR">
-    <meta name="geo.country" content="Argentina">
-    
-    <meta name="theme-color" content="#0a0c15">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <link rel="icon" type="image/x-icon" href="/dashboard/logo.png">
-    <link rel="shortcut icon" href="/dashboard/logo.png">
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+        <title>VoleyInsight | Dashboard Profesional</title>
+        
+        <meta name="description" content="VoleyInsight - Dashboard profesional de análisis de voleibol en tiempo real. Estadísticas, reportes y seguimiento de partidos.">
+        <meta name="keywords" content="voleibol, análisis deportivo, estadísticas voley, dashboard voley, scouting voley, FMV">
+        <meta name="author" content="VoleyInsight">
+        <meta name="robots" content="index, follow">
+        <meta name="language" content="Spanish">
+        <meta name="revisit-after" content="7 days">
+        
+        <meta property="og:title" content="VoleyInsight | Dashboard Profesional de Voleibol">
+        <meta property="og:description" content="Sistema de análisis de partidos de voleibol en tiempo real. Estadísticas, reportes y seguimiento profesional.">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="https://voleyinsight.com/og-image.jpg">
+        <meta property="og:url" content="https://voleyinsight.com/dashboard/index.html">
+        <meta property="og:site_name" content="VoleyInsight - Análisis Profesional de Voleibol">
+        <meta property="og:locale" content="es_AR">
+        
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="VoleyInsight - Dashboard de Voleibol">
+        <meta name="twitter:description" content="Análisis profesional de voleibol en tiempo real.">
+        
+        <meta name="geo.region" content="AR">
+        <meta name="geo.country" content="Argentina">
+        
+        <meta name="theme-color" content="#0a0c15">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        
+        <link rel="icon" type="image/x-icon" href="/dashboard/logo.png">
+        <link rel="shortcut icon" href="/dashboard/logo.png">
 
-    
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="/dashboard/css/styles.css">
+        
+        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <link rel="stylesheet" href="/dashboard/css/styles.css">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#667eea',
-                        secondary: '#764ba2',
-                        dark: '#0a0c15',
-                        card: '#1a1f2e'
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: '#667eea',
+                            secondary: '#764ba2',
+                            dark: '#0a0c15',
+                            card: '#1a1f2e'
+                        }
                     }
                 }
             }
-        }
-    </script>
-    
-    <style>
+        </script>
+     <style>
         .accion-rapida-btn { transition: all 0.2s ease; min-height: 70px; }
         .accion-rapida-btn.seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; transform: scale(0.98); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
         .accion-rapida-btn:active { transform: scale(0.95); }
@@ -76,515 +75,658 @@
         .jugador-btn, .banco-item { transition: background 0.15s ease; cursor: pointer; min-width: 60px; }
         .seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; }
         .tab-btn { transition: all 0.2s ease; }
+
+        /* ============================================================
+           ESTILOS DEL NUEVO ANOTADOR (SOLO DENTRO DEL ANOTADOR)
+           ============================================================ */
+        #vistaAnotador .btn-accion {
+            transition: all 0.15s ease;
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 4px;
+            color: white;
+            border: none;
+            width: 100%;
+        }
+        #vistaAnotador .btn-accion:active { transform: scale(0.95); }
+        #vistaAnotador .btn-accion .icono { font-size: 20px; }
+        #vistaAnotador .btn-accion .label { font-size: 10px; margin-top: 2px; opacity: 0.8; }
+
+        #vistaAnotador .btn-punto-ganado { background: linear-gradient(135deg, #059669, #047857); }
+        #vistaAnotador .btn-neutro { background: linear-gradient(135deg, #d97706, #b45309); }
+        #vistaAnotador .btn-punto-perdido { background: linear-gradient(135deg, #dc2626, #991b1b); }
+
+        #vistaAnotador .btn-seleccionado {
+            outline: 2px solid white;
+            outline-offset: 2px;
+            transform: scale(0.98);
+        }
+
+        /* SUPLENTES MÁS CHICOS - SOLO EN EL ANOTADOR */
+        #vistaAnotador .suplente-btn {
+            font-size: 11px !important;
+            padding: 4px 2px !important;
+            min-height: 42px !important;
+            border-radius: 8px !important;
+        }
+        #vistaAnotador .suplente-btn .nombre {
+            font-size: 7px !important;
+        }
+
+        @media (max-width: 480px) {
+            #vistaAnotador .btn-accion { min-height: 48px; }
+            #vistaAnotador .btn-accion .icono { font-size: 18px; }
+            #vistaAnotador .btn-accion .label { font-size: 9px; }
+            #vistaAnotador .suplente-btn { min-height: 36px !important; font-size: 10px !important; }
+            #vistaAnotador .suplente-btn .nombre { font-size: 6px !important; }
+        }
+
+        #vistaAnotador .separador {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 6px 0;
+        }
+        #vistaAnotador .separador-linea {
+            flex: 1;
+            height: 1px;
+            background: #2a2f42;
+        }
+        #vistaAnotador .separador-texto {
+            font-size: 9px;
+            color: #6b7280;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
     </style>
-    
-    <script>
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
-            e.preventDefault();
-            mostrarAdvertencia();
+        
+        <script>
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r') || (e.ctrlKey && e.key === 'R')) {
+                e.preventDefault();
+                mostrarAdvertencia();
+            }
+        });
+        let touchStartY = 0;
+        document.addEventListener('touchstart', function(e) {
+            touchStartY = e.touches[0].clientY;
+        });
+        document.addEventListener('touchmove', function(e) {
+            const scrollTop = document.documentElement.scrollTop;
+            if (touchStartY < e.touches[0].clientY && scrollTop === 0) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        function mostrarAdvertencia() {
+            alert('⚠️ No actualices la página durante el partido.\nLos datos se guardan automáticamente.');
         }
-    });
-    let touchStartY = 0;
-    document.addEventListener('touchstart', function(e) {
-        touchStartY = e.touches[0].clientY;
-    });
-    document.addEventListener('touchmove', function(e) {
-        const scrollTop = document.documentElement.scrollTop;
-        if (touchStartY < e.touches[0].clientY && scrollTop === 0) {
-            e.preventDefault();
-        }
-    }, { passive: false });
-    function mostrarAdvertencia() {
-        alert('⚠️ No actualices la página durante el partido.\nLos datos se guardan automáticamente.');
-    }
-    </script>
-</head>
-<body class="bg-dark text-white">
-    <div id="skeletonLoader" class="max-w-[1400px] mx-auto p-3 md:p-6">
-        <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
-            <div class="skeleton skeleton-title mx-auto mb-4" style="width: 200px;"></div>
-            <div class="flex justify-center gap-8">
-                <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
-                <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
-                <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
-            </div>
-            <div class="skeleton skeleton-badge mx-auto mt-4"></div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
-            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-            <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
-            <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-            <div class="skeleton-card lg:col-span-2"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart"></div></div>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
-            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
-        </div>
-    </div>
-
-    <div id="realContent" class="max-w-[1400px] mx-auto p-3 md:p-6" style="display: none;">
-        <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
-            <div class="text-center md:text-left">
-                <div class="flex items-center justify-center md:justify-start gap-2">
-                    <img src="/dashboard/logo.png" alt="VoleyInsight" class="h-8 md:h-10 w-auto">
-                    <div>
-                        <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VoleyInsight</h1>
-                        <p class="text-xs text-gray-400 hidden md:block">Análisis Técnico Profesional</p>
-                    </div>
-                </div>              
-            </div>
-            <div class="flex justify-center items-center gap-3 md:gap-8 mt-3 md:mt-4">
-                <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="homeTeamName">LOCAL</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="homeScore">0</div></div>
-                <div class="text-base md:text-xl text-gray-500 font-bold">VS</div>
-                <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="awayTeamName">VISITANTE</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="awayScore">0</div></div>
-            </div>
-            <div class="flex justify-center mt-2"><div id="servingBadge" class="hidden"></div></div>
-            <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
-        </div>
-
-        <div class="flex flex-col gap-3 mb-4 md:mb-6">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex gap-1 md:gap-2">
-                    <button id="tabPartido" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-primary text-white text-sm md:text-base">📊 PARTIDO</button>
-                    <button id="tabIndividuales" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">👕 INDIVIDUALES</button>
-                    <button id="tabEvolucion" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">📈 EVOLUCIÓN</button>
-                    <button id="tabAnotador" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">🏐 ANOTADOR</button>
+        </script>
+    </head>
+    <body class="bg-dark text-white">
+        <div id="skeletonLoader" class="max-w-[1400px] mx-auto p-3 md:p-6">
+            <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
+                <div class="skeleton skeleton-title mx-auto mb-4" style="width: 200px;"></div>
+                <div class="flex justify-center gap-8">
+                    <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
+                    <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+                    <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
                 </div>
-                <div class="hidden md:flex gap-1 items-center">
-                    <button id="saveHTMLBtn" class="bg-primary hover:bg-secondary text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">💾 Guardar</button>
-                    <button id="soundToggleBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">🔊 Sonidos</button>
-                    <select id="refreshIntervalSelector" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1.5 rounded-lg text-xs transition-all">
-                        <option value="2000">⏱️ 2s</option><option value="3000" selected>⏱️ 3s</option>
-                        <option value="5000">⏱️ 5s</option><option value="10000">⏱️ 10s</option>
-                    </select>
-                </div>
-                <button id="menuHamburguesaBtn" class="md:hidden bg-gray-700 p-2 rounded-lg transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                </button>
+                <div class="skeleton skeleton-badge mx-auto mt-4"></div>
             </div>
-            <div id="menuDesplegable" class="hidden md:hidden bg-card rounded-xl p-3 border border-white/10 flex flex-col gap-2">
-                <button id="saveHTMLBtnMobile" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">💾 Guardar</button>
-                <button id="soundToggleBtnMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-all w-full">🔊 Sonidos</button>
-                <div class="flex gap-2"><select id="refreshIntervalSelectorMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-sm flex-1"><option value="2000">⏱️ 2 seg</option><option value="3000" selected>⏱️ 3 seg</option><option value="5000">⏱️ 5 seg</option><option value="10000">⏱️ 10 seg</option></select></div>
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
+                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
             </div>
-        </div>
-
-        <div id="vistaPartido">
-            <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Rompes LOCAL</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Rompes VISITA</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📊</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyHome">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia LOCAL</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📈</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyAway">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia VISITA</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎭</div><div class="text-xl md:text-2xl font-bold text-primary" id="clutchHome">0%</div><div class="text-xs text-gray-400 uppercase">Bajo presión</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⏱️</div><div class="text-xl md:text-2xl font-bold text-primary" id="totalPoints">0</div><div class="text-xs text-gray-400 uppercase">Puntos Totales</div></div>
-            </div>
-
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-blue-400">🏐 SERVICIO - LOCAL</h3>
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesHome">0</div><div class="text-xs text-gray-400">ACES</div></div>
-                        <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsHome">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
-                        <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyHome">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
-                    </div>
-                </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-red-400">🏐 SERVICIO - VISITANTE</h3>
-                    <div class="grid grid-cols-3 gap-4 text-center">
-                        <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesAway">0</div><div class="text-xs text-gray-400">ACES</div></div>
-                        <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsAway">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
-                        <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyAway">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
-                    </div>
-                </div>
+                <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
+                <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 lg:col-span-2 chart-container">
-                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📈 Evolución del Marcador</h3><p class="text-xs text-gray-400">Progresión de puntos durante el partido</p></div>
-                    <canvas id="scoreEvolutionChart" class="max-h-[200px] md:max-h-[300px] w-full"></canvas>
-                </div>
+                <div class="skeleton-card lg:col-span-2"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart"></div></div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">⚡ Índice de Momentum</h3><p class="text-xs text-gray-400">Dominancia en los últimos 5 puntos</p></div>
-                    <canvas id="momentumChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🔥 Mapa de Rachas</h3><p class="text-xs text-gray-400">Intensidad de las rachas por equipo</p></div>
-                    <canvas id="runsHeatmap" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🎯 Eficiencia por Fase</h3><p class="text-xs text-gray-400">Rendimiento en Early, Mid y Late Game</p></div>
-                    <canvas id="phaseEfficiencyChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📊 Dominancia por Set</h3><p class="text-xs text-gray-400">Control del partido set por set</p></div>
-                    <div id="setDominance" class="space-y-2 md:space-y-3"><div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div></div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
-                    <div class="bg-dark rounded-full h-6 md:h-8 flex overflow-hidden mb-2">
-                        <div id="clutchBarHome" class="bg-gradient-to-r from-primary to-secondary h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
-                        <div id="clutchBarAway" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
-                    </div>
-                    <div class="flex justify-between text-xs text-gray-400 mb-3 md:mb-4"><span>LOCAL</span><span>VISITANTE</span></div>
-                    <div id="clutchInsight" class="bg-primary/10 border-l-4 border-primary p-2 md:p-3 rounded text-xs md:text-sm text-gray-300">Cargando análisis...</div>
-                </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Puntos de Quiebre</h3>
-                    <div id="breakPointsList" class="max-h-[200px] overflow-y-auto space-y-2"><div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div></div>
-                </div>
-            </div>
-
-            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">💡 Insights Automáticos</h2>
-                <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3"></div>
-            </div>
-
-            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-4 md:mb-6">
-                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">📖 QUÉ SIGNIFICAN ESTOS NÚMEROS</h3>
-                <div id="metricInterpretations" class="space-y-1 md:space-y-2 text-sm"></div>
-            </div>
-
-            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">🎯 QUÉ CAMBIAR PARA EL PRÓXIMO PARTIDO</h3>
-                <div id="actionableRecommendations" class="space-y-1 md:space-y-2 text-sm"></div>
-            </div>
-
-            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">⏱️ Timeline de Eventos Críticos</h2>
-                <div id="timeline" class="max-h-[300px] overflow-y-auto space-y-2"></div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-blue-400">📊 SIDEOUT%</h3>
-                    <div class="text-center mb-2">
-                        <span class="text-blue-400 font-bold" id="sideoutLocalLabel">0%</span>
-                        <span class="text-gray-500 mx-2">-</span>
-                        <span class="text-red-400 font-bold" id="sideoutVisitanteLabel">0%</span>
-                    </div>
-                    <div class="bg-dark rounded-full h-4 overflow-hidden">
-                        <div id="sideoutBarLocal" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
-                    </div>
-                    <div class="text-xs text-gray-500 text-center mt-2">💡 Eficiencia cuando se tiene el saque</div>
-                </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-purple-400">⚡ BREAKPOINT%</h3>
-                    <div class="text-center mb-2">
-                        <span class="text-blue-400 font-bold" id="breakpointLocalLabel">0%</span>
-                        <span class="text-gray-500 mx-2">-</span>
-                        <span class="text-red-400 font-bold" id="breakpointVisitanteLabel">0%</span>
-                    </div>
-                    <div class="bg-dark rounded-full h-4 overflow-hidden">
-                        <div id="breakpointBarLocal" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
-                    </div>
-                    <div class="text-xs text-gray-500 text-center mt-2">💡 Capacidad de romper el saque rival</div>
-                </div>
+                <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
+                <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
             </div>
         </div>
 
-        <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
-            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
-                <p class="text-sm text-gray-400 mb-3">Subí los archivos HTML generados por VoleyInsight para analizar la evolución del equipo</p>
-                <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
-                    <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
-                    <div class="flex flex-col items-center gap-2">
-                        <span class="text-3xl">📁</span>
-                        <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
-                        <span class="text-xs text-gray-500">Podés subir múltiples reportes</span>
-                    </div>
+        <div id="realContent" class="max-w-[1400px] mx-auto p-3 md:p-6" style="display: none;">
+            <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
+                <div class="text-center md:text-left">
+                    <div class="flex items-center justify-center md:justify-start gap-2">
+                        <img src="/dashboard/logo.png" alt="VoleyInsight" class="h-8 md:h-10 w-auto">
+                        <div>
+                            <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VoleyInsight</h1>
+                            <p class="text-xs text-gray-400 hidden md:block">Análisis Técnico Profesional</p>
+                        </div>
+                    </div>              
                 </div>
-                <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
-                <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 ANALIZAR EVOLUCIÓN</button>
+                <div class="flex justify-center items-center gap-3 md:gap-8 mt-3 md:mt-4">
+                    <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="homeTeamName">LOCAL</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="homeScore">0</div></div>
+                    <div class="text-base md:text-xl text-gray-500 font-bold">VS</div>
+                    <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="awayTeamName">VISITANTE</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="awayScore">0</div></div>
+                </div>
+                <div class="flex justify-center mt-2"><div id="servingBadge" class="hidden"></div></div>
+                <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
             </div>
-            <div id="analisisResultados" class="hidden">
-                <div class="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-4 md:p-6 border border-primary/30">
-                    <h3 class="text-base md:text-lg font-semibold mb-2">📋 RESUMEN EJECUTIVO</h3>
-                    <p id="resumenEjecutivo" class="text-gray-300 italic">Cargá reportes para ver el análisis...</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-green-500/30">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">✅ FORTALEZAS DETECTADAS</h3>
-                        <div id="fortalezasList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+
+            <div class="flex flex-col gap-3 mb-4 md:mb-6">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex gap-1 md:gap-2">
+                        <button id="tabPartido" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-primary text-white text-sm md:text-base">📊 PARTIDO</button>
+                        <button id="tabIndividuales" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">👕 INDIVIDUALES</button>
+                        <button id="tabEvolucion" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">📈 EVOLUCIÓN</button>
+                        <button id="tabAnotador" class="tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-sm md:text-base">🏐 ANOTADOR</button>
                     </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-red-500/30">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 text-red-400">⚠️ DEBILIDADES A MEJORAR</h3>
-                        <div id="debilidadesList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+                    <div class="hidden md:flex gap-1 items-center">
+                        <button id="saveHTMLBtn" class="bg-primary hover:bg-secondary text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">💾 Guardar</button>
+                        <button id="soundToggleBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">🔊 Sonidos</button>
+                        <select id="refreshIntervalSelector" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1.5 rounded-lg text-xs transition-all">
+                            <option value="2000">⏱️ 2s</option><option value="3000" selected>⏱️ 3s</option>
+                            <option value="5000">⏱️ 5s</option><option value="10000">⏱️ 10s</option>
+                        </select>
+                    </div>
+                    <button id="menuHamburguesaBtn" class="md:hidden bg-gray-700 p-2 rounded-lg transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    </button>
+                </div>
+                <div id="menuDesplegable" class="hidden md:hidden bg-card rounded-xl p-3 border border-white/10 flex flex-col gap-2">
+                    <button id="saveHTMLBtnMobile" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">💾 Guardar</button>
+                    <button id="soundToggleBtnMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-all w-full">🔊 Sonidos</button>
+                    <div class="flex gap-2"><select id="refreshIntervalSelectorMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-sm flex-1"><option value="2000">⏱️ 2 seg</option><option value="3000" selected>⏱️ 3 seg</option><option value="5000">⏱️ 5 seg</option><option value="10000">⏱️ 10 seg</option></select></div>
+                </div>
+            </div>
+
+            <div id="vistaPartido">
+                <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Rompes LOCAL</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Rompes VISITA</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📊</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyHome">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia LOCAL</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📈</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyAway">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia VISITA</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎭</div><div class="text-xl md:text-2xl font-bold text-primary" id="clutchHome">0%</div><div class="text-xs text-gray-400 uppercase">Bajo presión</div></div>
+                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⏱️</div><div class="text-xl md:text-2xl font-bold text-primary" id="totalPoints">0</div><div class="text-xs text-gray-400 uppercase">Puntos Totales</div></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-blue-400">🏐 SERVICIO - LOCAL</h3>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesHome">0</div><div class="text-xs text-gray-400">ACES</div></div>
+                            <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsHome">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
+                            <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyHome">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
+                        </div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-red-400">🏐 SERVICIO - VISITANTE</h3>
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesAway">0</div><div class="text-xs text-gray-400">ACES</div></div>
+                            <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsAway">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
+                            <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyAway">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 lg:col-span-2 chart-container">
+                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📈 Evolución del Marcador</h3><p class="text-xs text-gray-400">Progresión de puntos durante el partido</p></div>
+                        <canvas id="scoreEvolutionChart" class="max-h-[200px] md:max-h-[300px] w-full"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">⚡ Índice de Momentum</h3><p class="text-xs text-gray-400">Dominancia en los últimos 5 puntos</p></div>
+                        <canvas id="momentumChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🔥 Mapa de Rachas</h3><p class="text-xs text-gray-400">Intensidad de las rachas por equipo</p></div>
+                        <canvas id="runsHeatmap" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🎯 Eficiencia por Fase</h3><p class="text-xs text-gray-400">Rendimiento en Early, Mid y Late Game</p></div>
+                        <canvas id="phaseEfficiencyChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📊 Dominancia por Set</h3><p class="text-xs text-gray-400">Control del partido set por set</p></div>
+                        <div id="setDominance" class="space-y-2 md:space-y-3"><div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
+                        <div class="bg-dark rounded-full h-6 md:h-8 flex overflow-hidden mb-2">
+                            <div id="clutchBarHome" class="bg-gradient-to-r from-primary to-secondary h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
+                            <div id="clutchBarAway" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-400 mb-3 md:mb-4"><span>LOCAL</span><span>VISITANTE</span></div>
+                        <div id="clutchInsight" class="bg-primary/10 border-l-4 border-primary p-2 md:p-3 rounded text-xs md:text-sm text-gray-300">Cargando análisis...</div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Puntos de Quiebre</h3>
+                        <div id="breakPointsList" class="max-h-[200px] overflow-y-auto space-y-2"><div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div></div>
+                    </div>
+                </div>
+
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                    <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">💡 Insights Automáticos</h2>
+                    <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3"></div>
+                </div>
+
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-4 md:mb-6">
+                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">📖 QUÉ SIGNIFICAN ESTOS NÚMEROS</h3>
+                    <div id="metricInterpretations" class="space-y-1 md:space-y-2 text-sm"></div>
+                </div>
+
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">🎯 QUÉ CAMBIAR PARA EL PRÓXIMO PARTIDO</h3>
+                    <div id="actionableRecommendations" class="space-y-1 md:space-y-2 text-sm"></div>
+                </div>
+
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                    <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">⏱️ Timeline de Eventos Críticos</h2>
+                    <div id="timeline" class="max-h-[300px] overflow-y-auto space-y-2"></div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-blue-400">📊 SIDEOUT%</h3>
+                        <div class="text-center mb-2">
+                            <span class="text-blue-400 font-bold" id="sideoutLocalLabel">0%</span>
+                            <span class="text-gray-500 mx-2">-</span>
+                            <span class="text-red-400 font-bold" id="sideoutVisitanteLabel">0%</span>
+                        </div>
+                        <div class="bg-dark rounded-full h-4 overflow-hidden">
+                            <div id="sideoutBarLocal" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 text-center mt-2">💡 Eficiencia cuando se tiene el saque</div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-purple-400">⚡ BREAKPOINT%</h3>
+                        <div class="text-center mb-2">
+                            <span class="text-blue-400 font-bold" id="breakpointLocalLabel">0%</span>
+                            <span class="text-gray-500 mx-2">-</span>
+                            <span class="text-red-400 font-bold" id="breakpointVisitanteLabel">0%</span>
+                        </div>
+                        <div class="bg-dark rounded-full h-4 overflow-hidden">
+                            <div id="breakpointBarLocal" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
+                        </div>
+                        <div class="text-xs text-gray-500 text-center mt-2">💡 Capacidad de romper el saque rival</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 EVOLUCIÓN POR PARTIDO</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs md:text-sm">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
+                    <p class="text-sm text-gray-400 mb-3">Subí los archivos HTML generados por VoleyInsight para analizar la evolución del equipo</p>
+                    <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
+                        <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-3xl">📁</span>
+                            <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
+                            <span class="text-xs text-gray-500">Podés subir múltiples reportes</span>
+                        </div>
+                    </div>
+                    <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
+                    <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 ANALIZAR EVOLUCIÓN</button>
+                </div>
+                <div id="analisisResultados" class="hidden">
+                    <div class="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-4 md:p-6 border border-primary/30">
+                        <h3 class="text-base md:text-lg font-semibold mb-2">📋 RESUMEN EJECUTIVO</h3>
+                        <p id="resumenEjecutivo" class="text-gray-300 italic">Cargá reportes para ver el análisis...</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div class="bg-card rounded-2xl p-4 md:p-6 border border-green-500/30">
+                            <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">✅ FORTALEZAS DETECTADAS</h3>
+                            <div id="fortalezasList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+                        </div>
+                        <div class="bg-card rounded-2xl p-4 md:p-6 border border-red-500/30">
+                            <h3 class="text-base md:text-lg font-semibold mb-3 text-red-400">⚠️ DEBILIDADES A MEJORAR</h3>
+                            <div id="debilidadesList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+                        </div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 EVOLUCIÓN POR PARTIDO</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs md:text-sm">
+                                <thead class="text-gray-400 border-b border-gray-700">
+                                    <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Clutch%</th><th class="text-center">Efi. Servicio</th><th class="text-center">Eficiencia</th></tr>
+                                </thead>
+                                <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA DE MÉTRICAS CLAVE</h3>
+                        <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
+                    <div class="flex flex-wrap gap-1 md:gap-2">
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="1">Set 1</button>
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2">Set 2</button>
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3">Set 3</button>
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4">Set 4</button>
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5">Set 5</button>
+                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-yellow-600 text-white text-xs md:text-sm" data-set="all">📊 TODOS</button>
+                    </div>
+                </div>
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
+                        <h3 class="text-base md:text-lg font-semibold text-blue-400">🔵 EQUIPO LOCAL</h3>
+                        <div class="flex gap-3 text-xs"><span class="text-gray-400" id="localTotalPts">Total: 0 pts</span><span class="text-gray-400" id="localTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="localTotalServErrors">❌ Err Serv: 0</span></div>
+                    </div>
+                    <div class="overflow-x-auto table-container">
+                        <table class="w-full text-xs md:text-sm min-w-[800px]">
                             <thead class="text-gray-400 border-b border-gray-700">
-                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Clutch%</th><th class="text-center">Efi. Servicio</th><th class="text-center">Eficiencia</th></tr>
+                                <tr>
+                                    <th class="text-left py-1.5 md:py-2">Jugador</th>
+                                    <th class="text-center">PTS</th>
+                                    <th class="text-center">ATA</th>
+                                    <th class="text-center">BLO</th>
+                                    <th class="text-center">ACE</th>
+                                    <th class="text-center">ERR</th>
+                                    <th class="text-center">ASIS</th>
+                                    <th class="text-center">EFI%</th>
+                                    <th class="text-center bg-blue-900/30">📥 REC</th>
+                                    <th class="text-center bg-green-900/30">REC%</th>
+                                    <th class="text-center bg-purple-900/30">🛡️ DEF</th>
+                                    <th class="text-center bg-yellow-900/30">DEF%</th>
+                                    <th class="text-center bg-blue-900/30">🎯 ACES</th>
+                                    <th class="text-center bg-red-900/30">❌ ERR SERV</th>
+                                    <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
+                                    <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
+                                </tr>
                             </thead>
-                            <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
+                            <tbody id="tablaLocalBody"></tbody>
                         </table>
                     </div>
                 </div>
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA DE MÉTRICAS CLAVE</h3>
-                    <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
+                        <h3 class="text-base md:text-lg font-semibold text-red-400">🔴 EQUIPO VISITANTE</h3>
+                        <div class="flex gap-3 text-xs"><span class="text-gray-400" id="visitanteTotalPts">Total: 0 pts</span><span class="text-gray-400" id="visitanteTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="visitanteTotalServErrors">❌ Err Serv: 0</span></div>
+                    </div>
+                    <div class="overflow-x-auto table-container">
+                        <table class="w-full text-xs md:text-sm min-w-[800px]">
+<thead class="text-gray-400 border-b border-gray-700">
+                                <tr>
+                                    <th class="text-left py-1.5 md:py-2">Jugador</th>
+                                    <th class="text-center">PTS</th>
+                                    <th class="text-center">ATA</th>
+                                    <th class="text-center">BLO</th>
+                                    <th class="text-center">ACE</th>
+                                    <th class="text-center">ERR</th>
+                                    <th class="text-center">ASIS</th>
+                                    <th class="text-center">EFI%</th>
+                                    <th class="text-center bg-blue-900/30">📥 REC</th>
+                                    <th class="text-center bg-green-900/30">REC%</th>
+                                    <th class="text-center bg-purple-900/30">🛡️ DEF</th>
+                                    <th class="text-center bg-yellow-900/30">DEF%</th>
+                                    <th class="text-center bg-blue-900/30">🎯 ACES</th>
+                                    <th class="text-center bg-red-900/30">❌ ERR SERV</th>
+                                    <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
+                                    <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
+                                </tr>
+                            </thead>                            <tbody id="tablaVisitanteBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2"><span>⏸️</span> ANÁLISIS DE TIEMPOS MUERTOS</h3>
+                    <div id="timeoutsList" class="space-y-3 max-h-[500px] overflow-y-auto"><div class="text-center text-gray-500 py-4">Sin timeouts registrados</div></div>
+                </div>
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">🏆 TOP 5 DEL PARTIDO</h3>
+                    <div id="top5List" class="space-y-1 md:space-y-2"></div>
+                </div>
+                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">📊 PUNTOS POR JUGADOR (LOCAL)</h3>
+                    <canvas id="puntosJugadoresChart" class="w-full h-48 md:h-64"></canvas>
                 </div>
             </div>
-        </div>
 
-        <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
-                <div class="flex flex-wrap gap-1 md:gap-2">
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="1">Set 1</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2">Set 2</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3">Set 3</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4">Set 4</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5">Set 5</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-yellow-600 text-white text-xs md:text-sm" data-set="all">📊 TODOS</button>
-                </div>
-            </div>
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
-                    <h3 class="text-base md:text-lg font-semibold text-blue-400">🔵 EQUIPO LOCAL</h3>
-                    <div class="flex gap-3 text-xs"><span class="text-gray-400" id="localTotalPts">Total: 0 pts</span><span class="text-gray-400" id="localTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="localTotalServErrors">❌ Err Serv: 0</span></div>
-                </div>
-                <div class="overflow-x-auto table-container">
-                    <table class="w-full text-xs md:text-sm min-w-[800px]">
-                        <thead class="text-gray-400 border-b border-gray-700"><tr><th class="text-left py-1.5 md:py-2">Jugador</th><th class="text-center">PTS</th><th class="text-center">ATA</th><th class="text-center">BLO</th><th class="text-center">ACE</th><th class="text-center">ERR</th><th class="text-center">ASIS</th><th class="text-center">EFI%</th><th class="text-center bg-blue-900/30">🎯 ACES</th><th class="text-center bg-red-900/30">❌ ERR SERV</th><th class="text-center bg-green-900/30">📊 EFI SERV%</th><th class="text-center bg-purple-900/30">🏐 TOT SERV</th></tr></thead>
-                        <tbody id="tablaLocalBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
-                    <h3 class="text-base md:text-lg font-semibold text-red-400">🔴 EQUIPO VISITANTE</h3>
-                    <div class="flex gap-3 text-xs"><span class="text-gray-400" id="visitanteTotalPts">Total: 0 pts</span><span class="text-gray-400" id="visitanteTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="visitanteTotalServErrors">❌ Err Serv: 0</span></div>
-                </div>
-                <div class="overflow-x-auto table-container">
-                    <table class="w-full text-xs md:text-sm min-w-[800px]">
-                        <thead class="text-gray-400 border-b border-gray-700"><tr><th class="text-left py-1.5 md:py-2">Jugador</th><th class="text-center">PTS</th><th class="text-center">ATA</th><th class="text-center">BLO</th><th class="text-center">ACE</th><th class="text-center">ERR</th><th class="text-center">ASIS</th><th class="text-center">EFI%</th><th class="text-center bg-blue-900/30">🎯 ACES</th><th class="text-center bg-red-900/30">❌ ERR SERV</th><th class="text-center bg-green-900/30">📊 EFI SERV%</th><th class="text-center bg-purple-900/30">🏐 TOT SERV</th></tr></thead>
-                        <tbody id="tablaVisitanteBody"></tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2"><span>⏸️</span> ANÁLISIS DE TIEMPOS MUERTOS</h3>
-                <div id="timeoutsList" class="space-y-3 max-h-[500px] overflow-y-auto"><div class="text-center text-gray-500 py-4">Sin timeouts registrados</div></div>
-            </div>
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">🏆 TOP 5 DEL PARTIDO</h3>
-                <div id="top5List" class="space-y-1 md:space-y-2"></div>
-            </div>
-            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">📊 PUNTOS POR JUGADOR (LOCAL)</h3>
-                <canvas id="puntosJugadoresChart" class="w-full h-48 md:h-64"></canvas>
-            </div>
-        </div>
-
-        <div id="vistaAnotador" class="hidden">
-            <div id="pantallaConfig" class="max-w-2xl mx-auto">
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-6 text-center">
-                    <h1 class="text-2xl font-bold">⚙️ Configurar equipos</h1>
-                    <p class="text-sm">Agregá los números de los jugadores</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-800 rounded-2xl p-4">
-                        <h2 class="text-xl font-bold mb-3 text-blue-400">🔵 LOCAL</h2>
-                        <div id="configLocal" class="flex flex-wrap gap-2 mb-3"></div>
-                        <div class="flex gap-2 mb-3"><input type="number" id="nuevoLocal" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2"><button id="addLocal" class="bg-blue-600 px-4 py-2 rounded">+</button></div>
-                        <div class="text-sm">🛡️ Líberos:</div>
-                        <div id="configLocalLiberos" class="flex flex-wrap gap-2 mt-2"></div>
+                    <!-- ============================================================ -->
+            <!-- VISTA ANOTADOR (NUEVO DISEÑO) -->
+            <!-- ============================================================ -->
+            <div id="vistaAnotador" class="hidden">
+                <!-- PANTALLA DE CONFIGURACIÓN -->
+                <div id="pantallaConfig" class="max-w-2xl mx-auto">
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-6 text-center">
+                        <h1 class="text-2xl font-bold">⚙️ Configurar equipos</h1>
+                        <p class="text-sm">Agregá los números de los jugadores</p>
                     </div>
-                    <div class="bg-gray-800 rounded-2xl p-4">
-                        <h2 class="text-xl font-bold mb-3 text-red-400">🔴 VISITANTE</h2>
-                        <div id="configVisitante" class="flex flex-wrap gap-2 mb-3"></div>
-                        <div class="flex gap-2 mb-3"><input type="number" id="nuevoVisitante" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2"><button id="addVisitante" class="bg-red-600 px-4 py-2 rounded">+</button></div>
-                        <div class="text-sm">🛡️ Líberos:</div>
-                        <div id="configVisitanteLiberos" class="flex flex-wrap gap-2 mt-2"></div>
-                    </div>
-                </div>
-                <button id="comenzarBtn" class="w-full mt-6 py-4 rounded-xl bg-green-600 font-bold text-lg">▶️ COMENZAR</button>
-            </div>
-            <div id="pantallaAnotacion" class="max-w-2xl mx-auto hidden">
-                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-4 text-center">
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1"><div class="text-xs" id="localLabel">LOCAL</div><div class="text-4xl font-bold" id="localScore">0</div></div>
-                        <div class="text-2xl">VS</div>
-                        <div class="flex-1"><div class="text-xs" id="visitanteLabel">VISITANTE</div><div class="text-4xl font-bold" id="visitanteScore">0</div></div>
-                    </div>
-                    <div class="flex justify-center items-center gap-4 mt-2">
-                        <div class="flex items-center gap-2"><span class="text-xs text-gray-200">📊 SET</span>
-                            <select id="selectorSet" class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm font-bold border border-white/20">
-                                <option value="1">Set 1</option><option value="2">Set 2</option><option value="3">Set 3</option><option value="4">Set 4</option><option value="5">Set 5</option>
-                            </select>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-gray-800 rounded-2xl p-4">
+                            <h2 class="text-xl font-bold mb-3 text-blue-400">🔵 LOCAL</h2>
+                            <div id="configLocal" class="flex flex-wrap gap-2 mb-3"></div>
+                            <div class="flex gap-2 mb-3">
+                                <input type="number" id="nuevoLocal" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2">
+                                <button id="addLocal" class="bg-blue-600 px-4 py-2 rounded">+</button>
+                            </div>
+                            <div class="text-sm">🛡️ Líberos:</div>
+                            <div id="configLocalLiberos" class="flex flex-wrap gap-2 mt-2"></div>
                         </div>
-                        <div class="text-xs text-gray-200">🎯 Punto <span id="currentPoint">0</span></div>
+                        <div class="bg-gray-800 rounded-2xl p-4">
+                            <h2 class="text-xl font-bold mb-3 text-red-400">🔴 VISITANTE</h2>
+                            <div id="configVisitante" class="flex flex-wrap gap-2 mb-3"></div>
+                            <div class="flex gap-2 mb-3">
+                                <input type="number" id="nuevoVisitante" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2">
+                                <button id="addVisitante" class="bg-red-600 px-4 py-2 rounded">+</button>
+                            </div>
+                            <div class="text-sm">🛡️ Líberos:</div>
+                            <div id="configVisitanteLiberos" class="flex flex-wrap gap-2 mt-2"></div>
+                        </div>
                     </div>
-                    <div><span class="serving-badge" id="servingBadge">🏐 SACA LOCAL</span></div>
+                    <button id="comenzarBtn" class="w-full mt-6 py-4 rounded-xl bg-green-600 font-bold text-lg">▶️ COMENZAR</button>
                 </div>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button id="btnLocal" class="py-3 rounded-xl font-bold bg-blue-700 transition-all">🔵 LOCAL</button>
-                    <button id="btnVisitante" class="py-3 rounded-xl font-bold bg-gray-700 transition-all">🔴 VISITANTE</button>
-                </div>
-                <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-                    <div class="flex justify-between items-center mb-3">
-                        <div class="text-xs text-gray-400">🏐 EN CANCHA</div>
-                        <div class="text-xs text-gray-500">👆 Tocá un número</div>
+
+                <!-- PANTALLA DE ANOTACIÓN (NUEVO DISEÑO) -->
+                <div id="pantallaAnotacion" class="max-w-2xl mx-auto hidden">
+                    <!-- HEADER -->
+                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-4 text-center">
+                        <div class="flex justify-between items-center">
+                            <div class="flex-1">
+                                <div class="text-xs" id="localLabel">LOCAL</div>
+                                <div class="text-4xl font-bold" id="localScore">0</div>
+                            </div>
+                            <div class="text-2xl">VS</div>
+                            <div class="flex-1">
+                                <div class="text-xs" id="visitanteLabel">VISITANTE</div>
+                                <div class="text-4xl font-bold" id="visitanteScore">0</div>
+                            </div>
+                        </div>
+                        <div class="flex justify-center items-center gap-4 mt-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-gray-200">📊 SET</span>
+                                <select id="selectorSet" class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm font-bold border border-white/20">
+                                    <option value="1">Set 1</option>
+                                    <option value="2">Set 2</option>
+                                    <option value="3">Set 3</option>
+                                    <option value="4">Set 4</option>
+                                    <option value="5">Set 5</option>
+                                </select>
+                            </div>
+                            <div class="text-xs text-gray-200">🎯 Punto <span id="currentPoint">0</span></div>
+                        </div>
+                        <div><span class="serving-badge" id="servingBadge">🏐 SACA LOCAL</span></div>
                     </div>
-                    <div id="canchaGrid" class="cancha-grid"></div>
-                </div>
-                <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-                    <div class="text-xs text-gray-400 mb-3">🪑 SUPLENTES</div>
-                    <div id="bancoContainer"></div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button id="confirmarBtn" class="py-4 rounded-xl font-bold bg-green-600 transition-all">✅ CONFIRMAR PUNTO</button>
-                    <button id="deshacerBtn" class="py-4 rounded-xl font-bold bg-red-600 transition-all">↩️ DESHACER</button>
-                </div>
-                <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-                    <div class="text-xs text-gray-400 text-center mb-2">⚡ ACCIÓN RÁPIDA</div>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="ATAQUE"><span class="text-2xl">🎯</span><span class="text-xs mt-1">ATAQUE</span></button>
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="BLOQUEO"><span class="text-2xl">🧱</span><span class="text-xs mt-1">BLOQUEO</span></button>
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="ACE"><span class="text-2xl">🏐</span><span class="text-xs mt-1">ACE</span></button>
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="ERROR"><span class="text-2xl">❌</span><span class="text-xs mt-1">ERROR</span></button>
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="FALTA"><span class="text-2xl">🚫</span><span class="text-xs mt-1">FALTA</span></button>
-                        <button class="accion-rapida-btn py-3 rounded-xl bg-gray-700 flex flex-col items-center justify-center transition-all" data-accion="OTRO"><span class="text-2xl">🎲</span><span class="text-xs mt-1">OTRO</span></button>
+
+                    <!-- SELECCIÓN DE EQUIPO -->
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button id="btnLocal" class="bg-blue-700 hover:bg-blue-600 py-3 rounded-xl font-bold text-white transition-all">🔵 LOCAL</button>
+                        <button id="btnVisitante" class="bg-gray-700 hover:bg-gray-600 py-3 rounded-xl font-bold text-white transition-all">🔴 VISITANTE</button>
                     </div>
-                </div>
-                <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-                    <div class="text-xs text-gray-400 text-center mb-2">⏸️ TIEMPO MUERTO</div>
-                    <button id="btnTimeout" class="w-full py-4 rounded-xl font-bold bg-yellow-600 hover:bg-yellow-700 transition-all text-white text-lg flex items-center justify-center gap-2">
-                        <span class="text-2xl">⏸️</span>TIMEOUT<span class="text-xs bg-black/30 px-2 py-1 rounded">Tecla T</span>
-                    </button>
-                    <div class="text-xs text-center text-gray-500 mt-2">💡 Registra un tiempo muerto en el momento actual</div>
-                </div>
-                <div class="bg-gray-800 rounded-2xl p-4 mb-4">
-                    <div class="text-xs text-gray-400 text-center mb-2">⚡ BREAK (romper saque rival)</div>
-                    <button id="btnBreak" class="w-full py-4 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all text-white text-lg flex items-center justify-center gap-2">
-                        <span class="text-2xl">⚡</span>BREAK<span class="text-xs bg-black/30 px-2 py-1 rounded">Tecla B</span>
-                    </button>
-                    <div class="text-xs text-center text-gray-500 mt-2">💡 Usá esto cuando tu equipo anota sin estar sacando (rompe el saque del rival)</div>
-                </div>
-                <div class="bg-gray-800/50 rounded-xl p-3 mt-4">
-                    <div class="text-xs text-gray-400">📋 ÚLTIMOS PUNTOS</div>
-                    <div id="historial" class="text-xs space-y-1 max-h-32 overflow-y-auto"></div>
+
+                    <!-- SELECCIÓN DE JUGADOR -->
+                    <div class="bg-gray-800/70 rounded-2xl p-3 mb-4 border border-white/5">
+                        <div class="text-xs text-gray-400 mb-2 text-center">👤 SELECCIONÁ UN JUGADOR</div>
+                        <div id="canchaGrid" class="grid grid-cols-3 gap-2"></div>
+                        <div id="bancoContainer" class="mt-3"></div>
+                    </div>
+
+                    <!-- ACCIONES DEL PUNTO (NUEVO DISEÑO) -->
+                    <div class="bg-gray-800/50 rounded-2xl p-3 mb-4 border border-white/5">
+                        <div class="text-xs text-gray-400 text-center mb-2">🏆 PUNTO GANADO</div>
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <button class="btn-accion btn-punto-ganado" data-accion="ATAQUE">
+                                <span class="icono">🎯</span><span class="label">ATAQUE</span>
+                            </button>
+                            <button class="btn-accion btn-punto-ganado" data-accion="BLOQUEO">
+                                <span class="icono">🧱</span><span class="label">BLOQUEO</span>
+                            </button>
+                            <button class="btn-accion btn-punto-ganado" data-accion="ACE">
+                                <span class="icono">🏐</span><span class="label">ACE</span>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-400 text-center mb-2">📊 FUNDAMENTOS (NO suman punto)</div>
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <button class="btn-accion btn-neutro" data-accion="RECEPCION_POSITIVA">
+                                <span class="icono">📥✅</span><span class="label">REC+</span>
+                            </button>
+                            <button class="btn-accion btn-neutro" data-accion="RECEPCION_NEGATIVA">
+                                <span class="icono">📥❌</span><span class="label">REC-</span>
+                            </button>
+                            <button class="btn-accion btn-neutro" data-accion="DEFENSA_POSITIVA">
+                                <span class="icono">🛡️✅</span><span class="label">DEF+</span>
+                            </button>
+                            <button class="btn-accion btn-neutro" data-accion="DEFENSA_NEGATIVA">
+                                <span class="icono">🛡️❌</span><span class="label">DEF-</span>
+                            </button>
+                        </div>
+                        <div class="text-xs text-gray-400 text-center mb-2">❌ PUNTO PERDIDO</div>
+                        <div class="grid grid-cols-1">
+                            <button class="btn-accion btn-punto-perdido" data-accion="ERROR">
+                                <span class="icono">❌</span><span class="label">ERROR</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CONFIRMAR Y DESHACER -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="confirmarBtn" class="py-4 rounded-xl font-bold bg-green-600 text-white text-lg transition-all active:scale-95">✅ CONFIRMAR</button>
+                        <button id="deshacerBtn" class="py-4 rounded-xl font-bold bg-red-600 text-white text-lg transition-all active:scale-95">↩️ DESHACER</button>
+                    </div>
+
+                    <!-- TIEMPO MUERTO Y BREAK -->
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <button id="btnTimeout" class="py-3 rounded-xl font-bold bg-yellow-600 hover:bg-yellow-700 transition-all text-white text-sm">⏸️ TIMEOUT</button>
+                        <button id="btnBreak" class="py-3 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all text-white text-sm">⚡ BREAK</button>
+                    </div>
+
+                    <!-- HISTORIAL -->
+                    <div class="bg-gray-800/50 rounded-xl p-3 mt-4">
+                        <div class="text-xs text-gray-400">📋 ÚLTIMOS PUNTOS</div>
+                        <div id="historial" class="text-xs space-y-1 max-h-32 overflow-y-auto"></div>
+                    </div>
+
+                    <!-- FEEDBACK -->
+                    <div id="feedback" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold hidden z-50"></div>
                 </div>
             </div>
-            <div id="feedback" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold hidden z-50"></div>
-            <div class="fixed bottom-4 left-4 bg-gray-900/90 backdrop-blur rounded-lg p-2 text-xs text-gray-400 border border-primary/30 z-50 hidden md:block">
-                <div class="font-bold text-primary mb-1">🎮 ATAJOS</div>
-                <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
-                    <div><kbd class="px-1 bg-gray-700 rounded">Q</kbd> LOCAL</div><div><kbd class="px-1 bg-gray-700 rounded">W</kbd> VISIT</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">A</kbd> ATAQ</div><div><kbd class="px-1 bg-gray-700 rounded">S</kbd> BLOQ</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">D</kbd> ACE</div><div><kbd class="px-1 bg-gray-700 rounded">F</kbd> ERR RIVAL</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">R</kbd> ERROR</div><div><kbd class="px-1 bg-gray-700 rounded">B</kbd> BREAK</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">T</kbd> TIMEOUT</div><div><kbd class="px-1 bg-gray-700 rounded">H</kbd> OTRO</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">0-9</kbd> JUG</div><div><kbd class="px-1 bg-gray-700 rounded">+/-</kbd> NAV</div>
-                    <div><kbd class="px-1 bg-gray-700 rounded">⏎</kbd> GUARD</div><div><kbd class="px-1 bg-gray-700 rounded">Z</kbd> DESH</div>
-                </div>
+            <!-- ============================================================ -->
+            <!-- FIN VISTA ANOTADOR -->
+            <!-- ============================================================ -->
+
+            <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
+                <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.6 - Estadísticas de servicio por jugador</p>
             </div>
         </div>
 
-        <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.6 - Estadísticas de servicio por jugador</p>
+        <div id="coachPanel" class="fixed bottom-4 right-4 bg-dark rounded-xl shadow-lg border border-primary/30 z-50" style="min-width: 250px;">
+            <div class="flex justify-between items-center p-2 border-b border-gray-700 cursor-pointer" id="panelHeader">
+                <span class="text-xs font-bold text-primary">📊 VOLEYINSIGHT</span>
+                <button id="togglePanelBtn" class="text-gray-400 hover:text-white text-lg">−</button>
+            </div>
+            <div id="panelContent" class="p-3">
+                <div class="text-xs text-gray-400 mb-2">📊 ESTADO DEL SISTEMA</div>
+                <div class="flex items-center gap-2 mb-2">
+                    <div id="connectionLed" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    <span id="connectionText" class="text-xs text-green-400">Tracker activo</span>
+                </div>
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs">🕐</span>
+                    <span id="lastPointTime" class="text-xs text-gray-400">Último punto: --</span>
+                </div>
+                <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
+                <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
+                <div class="mt-3 pt-2 border-t border-gray-700">
+                    <div class="text-xs text-gray-400 mb-1">📅 CAMBIAR PARTIDO</div>
+                    <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
+                    <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
+                </div>
+                <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
+            </div>
         </div>
-    </div>
 
-    <div id="coachPanel" class="fixed bottom-4 right-4 bg-dark rounded-xl shadow-lg border border-primary/30 z-50" style="min-width: 250px;">
-        <div class="flex justify-between items-center p-2 border-b border-gray-700 cursor-pointer" id="panelHeader">
-            <span class="text-xs font-bold text-primary">📊 VOLEYINSIGHT</span>
-            <button id="togglePanelBtn" class="text-gray-400 hover:text-white text-lg">−</button>
-        </div>
-        <div id="panelContent" class="p-3">
-            <div class="text-xs text-gray-400 mb-2">📊 ESTADO DEL SISTEMA</div>
-            <div class="flex items-center gap-2 mb-2">
-                <div id="connectionLed" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                <span id="connectionText" class="text-xs text-green-400">Tracker activo</span>
-            </div>
-            <div class="flex items-center gap-2 mb-3">
-                <span class="text-xs">🕐</span>
-                <span id="lastPointTime" class="text-xs text-gray-400">Último punto: --</span>
-            </div>
-            <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
-            <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
-            <div class="mt-3 pt-2 border-t border-gray-700">
-                <div class="text-xs text-gray-400 mb-1">📅 CAMBIAR PARTIDO</div>
-                <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
-                <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
-            </div>
-            <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
-        </div>
-    </div>
-
-    <script type="module">
-        import { VolleyballDashboard } from '/dashboard/js/dashboard.js';
-        import { OfflineManager, SoundManager } from '/dashboard/js/utils.js';
-        import { ReporteGenerator } from '/dashboard/js/reporteGenerator.js';
-        import { AnotadorManager } from '/dashboard/js/anotador.js';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            window.dashboard = new VolleyballDashboard();
-            window.anotador = new AnotadorManager();
+        <script type="module">
+            import { VolleyballDashboard } from '/dashboard/js/dashboard.js';
+            import { OfflineManager, SoundManager } from '/dashboard/js/utils.js';
+            import { ReporteGenerator } from '/dashboard/js/reporteGenerator.js';
+            import { AnotadorManager } from '/dashboard/js/anotador.js';
             
-            const tabPartido = document.getElementById('tabPartido');
-            const tabIndividuales = document.getElementById('tabIndividuales');
-            const tabAnotador = document.getElementById('tabAnotador');
-            const tabEvolucion = document.getElementById('tabEvolucion');
-            const vistaPartido = document.getElementById('vistaPartido');
-            const vistaIndividuales = document.getElementById('vistaIndividuales');
-            const vistaAnotador = document.getElementById('vistaAnotador');
-            const vistaEvolucion = document.getElementById('vistaEvolucion');
+            document.addEventListener('DOMContentLoaded', () => {
+                window.dashboard = new VolleyballDashboard();
+                window.anotador = new AnotadorManager();
+                
+                const tabPartido = document.getElementById('tabPartido');
+                const tabIndividuales = document.getElementById('tabIndividuales');
+                const tabAnotador = document.getElementById('tabAnotador');
+                const tabEvolucion = document.getElementById('tabEvolucion');
+                const vistaPartido = document.getElementById('vistaPartido');
+                const vistaIndividuales = document.getElementById('vistaIndividuales');
+                const vistaAnotador = document.getElementById('vistaAnotador');
+                const vistaEvolucion = document.getElementById('vistaEvolucion');
 
-            function cambiarPestana(activa) {
-                vistaPartido.classList.add('hidden');
-                vistaIndividuales.classList.add('hidden');
-                vistaAnotador.classList.add('hidden');
-                vistaEvolucion.classList.add('hidden');
-                if (activa === 'partido') vistaPartido.classList.remove('hidden');
-                if (activa === 'individuales') vistaIndividuales.classList.remove('hidden');
-                if (activa === 'anotador') vistaAnotador.classList.remove('hidden');
-                if (activa === 'evolucion') vistaEvolucion.classList.remove('hidden');
+                function cambiarPestana(activa) {
+                    vistaPartido.classList.add('hidden');
+                    vistaIndividuales.classList.add('hidden');
+                    vistaAnotador.classList.add('hidden');
+                    vistaEvolucion.classList.add('hidden');
+                    if (activa === 'partido') vistaPartido.classList.remove('hidden');
+                    if (activa === 'individuales') vistaIndividuales.classList.remove('hidden');
+                    if (activa === 'anotador') vistaAnotador.classList.remove('hidden');
+                    if (activa === 'evolucion') vistaEvolucion.classList.remove('hidden');
 
-                const tabs = [
-                    { btn: tabPartido, name: 'partido' },
-                    { btn: tabIndividuales, name: 'individuales' },
-                    { btn: tabAnotador, name: 'anotador' },
-                    { btn: tabEvolucion, name: 'evolucion' }
-                ];
-                tabs.forEach(tab => {
-                    if (tab.btn) {
-                        tab.btn.className = 'tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all ' + 
-                            (activa === tab.name ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300');
-                    }
-                });
-            }
+                    const tabs = [
+                        { btn: tabPartido, name: 'partido' },
+                        { btn: tabIndividuales, name: 'individuales' },
+                        { btn: tabAnotador, name: 'anotador' },
+                        { btn: tabEvolucion, name: 'evolucion' }
+                    ];
+                    tabs.forEach(tab => {
+                        if (tab.btn) {
+                            tab.btn.className = 'tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all ' + 
+                                (activa === tab.name ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300');
+                        }
+                    });
+                }
+                
+                if (tabPartido) tabPartido.addEventListener('click', () => cambiarPestana('partido'));
+                if (tabIndividuales) tabIndividuales.addEventListener('click', () => cambiarPestana('individuales'));
+                if (tabAnotador) tabAnotador.addEventListener('click', () => cambiarPestana('anotador'));
+                if (tabEvolucion) tabEvolucion.addEventListener('click', () => cambiarPestana('evolucion'));
+            });
             
-            if (tabPartido) tabPartido.addEventListener('click', () => cambiarPestana('partido'));
-            if (tabIndividuales) tabIndividuales.addEventListener('click', () => cambiarPestana('individuales'));
-            if (tabAnotador) tabAnotador.addEventListener('click', () => cambiarPestana('anotador'));
-            if (tabEvolucion) tabEvolucion.addEventListener('click', () => cambiarPestana('evolucion'));
-        });
-        
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/dashboard/js/sw.js').catch(err => console.log('❌ Error registrando SW:', err));
-    </script>
-</body>
-</html>
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('/dashboard/js/sw.js').catch(err => console.log('❌ Error registrando SW:', err));
+        </script>
+    </body>
+    </html>

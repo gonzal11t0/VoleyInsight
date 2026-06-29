@@ -96,6 +96,17 @@ export class VolleyballDashboard {
                 this.actualizarVistaIndividuales();
                 return;
             }
+            if (Object.keys(this.jugadoresLocal).length === 0) {
+                const nombresLocal = localStorage.getItem(`jugadores_${this.matchId}_local`);
+                if (nombresLocal) {
+                    this.jugadoresLocal = JSON.parse(nombresLocal);
+                }
+                const nombresVisitante = localStorage.getItem(`jugadores_${this.matchId}_visitante`);
+                if (nombresVisitante) {
+                    this.jugadoresVisitante = JSON.parse(nombresVisitante);
+                }
+                this.actualizarVistaIndividuales();
+            }
         } catch (e) {
             console.log('Error cargando puntos manuales:', e);
         }
@@ -978,26 +989,55 @@ export class VolleyballDashboard {
                 this.cargarTimeouts();
                 const court = findCourt(fullData);
                 if (court) {
+                    // ============================================================
+                    // ✅ CARGAR NOMBRES REALES DESDE LA API
+                    // ============================================================
+                    
+                    // LOCAL - Posiciones en cancha
                     if (court.home?.positions) {
                         for (const [pos, info] of Object.entries(court.home.positions)) {
-                            if (info.number) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                            if (info.number && info.lastName) {
+                                this.jugadoresLocal[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            } else if (info.number) {
+                                this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                            }
                         }
                     }
+                    // LOCAL - Suplentes
                     if (court.home?.bench) {
                         for (const info of court.home.bench) {
-                            if (info.number && !this.jugadoresLocal[info.number]) this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                            if (info.number && info.lastName && !this.jugadoresLocal[info.number]) {
+                                this.jugadoresLocal[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            } else if (info.number && !this.jugadoresLocal[info.number]) {
+                                this.jugadoresLocal[info.number] = `Jugador ${info.number}`;
+                            }
                         }
                     }
+                    
+                    // VISITANTE - Posiciones en cancha
                     if (court.away?.positions) {
                         for (const [pos, info] of Object.entries(court.away.positions)) {
-                            if (info.number) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                            if (info.number && info.lastName) {
+                                this.jugadoresVisitante[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            } else if (info.number) {
+                                this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                            }
                         }
                     }
+                    // VISITANTE - Suplentes
                     if (court.away?.bench) {
                         for (const info of court.away.bench) {
-                            if (info.number && !this.jugadoresVisitante[info.number]) this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                            if (info.number && info.lastName && !this.jugadoresVisitante[info.number]) {
+                                this.jugadoresVisitante[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                            } else if (info.number && !this.jugadoresVisitante[info.number]) {
+                                this.jugadoresVisitante[info.number] = `Jugador ${info.number}`;
+                            }
                         }
                     }
+                    
+                    // ============================================================
+                    // ✅ GUARDAR EN LOCALSTORAGE PARA COMPARTIR CON EL ANOTADOR
+                    // ============================================================
                     localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
                     localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
                     this.actualizarVistaIndividuales();
@@ -1014,7 +1054,6 @@ export class VolleyballDashboard {
             this.mostrarSkeleton(false);
         }
     }
-
     setupTabs() {
         const tp = document.getElementById('tabPartido'),
             ti = document.getElementById('tabIndividuales');

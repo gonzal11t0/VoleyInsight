@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Anotador - Suplentes más chicos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0a0c15; font-family: system-ui, sans-serif; padding: 16px; max-width: 500px; margin: 0 auto; }
+        .btn-accion {
+            transition: all 0.15s ease;
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 6px 4px;
+            color: white;
+            border: none;
+            width: 100%;
+        }
+        .btn-accion:active { transform: scale(0.95); }
+        .btn-accion .icono { font-size: 20px; }
+        .btn-accion .label { font-size: 10px; margin-top: 2px; opacity: 0.8; }
+        .btn-punto-ganado { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-neutro { background: linear-gradient(135deg, #d97706, #b45309); }
+        .btn-punto-perdido { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        .btn-equipo-local { background: #1e3a5f; }
+        .btn-equipo-visitante { background: #5f1e3a; }
+        .btn-seleccionado { outline: 2px solid white; outline-offset: 2px; transform: scale(0.98); }
+        .jugador-btn, .suplente-btn {
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .jugador-btn:active, .suplente-btn:active { transform: scale(0.95); }
+        .separador {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0 6px 0;
+        }
+        .separador-linea {
+            flex: 1;
+            height: 1px;
+            background: #2a2f42;
+        }
+        .separador-texto {
+            font-size: 9px;
+            color: #6b7280;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        /* ✅ SUPLENTES MÁS CHICOS */
+        .suplente-btn {
+            font-size: 11px !important;
+            padding: 4px 2px !important;
+            min-height: 42px !important;
+            border-radius: 8px !important;
+        }
+        .suplente-btn .nombre {
+            font-size: 7px !important;
+        }
+
+        @media (max-width: 480px) {
+            .btn-accion { min-height: 48px; }
+            .btn-accion .icono { font-size: 18px; }
+            .btn-accion .label { font-size: 9px; }
+            .suplente-btn { min-height: 36px !important; font-size: 10px !important; }
+            .suplente-btn .nombre { font-size: 6px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================================ -->
+    <!-- HEADER -->
+    <!-- ============================================================ -->
+    <div class="bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-2xl p-4 mb-4 border border-white/10 text-center">
+        <div class="flex justify-between items-center">
+            <div class="flex-1">
+                <div class="text-xs text-blue-400 font-bold">LOCAL</div>
+                <div class="text-4xl font-bold text-white" id="localScore">0</div>
+            </div>
+            <div class="text-2xl text-gray-500 font-bold">VS</div>
+            <div class="flex-1">
+                <div class="text-xs text-red-400 font-bold">VISITANTE</div>
+                <div class="text-4xl font-bold text-white" id="visitanteScore">0</div>
+            </div>
+        </div>
+        <div class="flex justify-center gap-6 mt-2 text-xs text-gray-400">
+            <span>📊 SET <span id="setActual">1</span></span>
+            <span>🎯 Punto <span id="puntoActual">0</span></span>
+        </div>
+        <div class="mt-2 text-xs text-gray-500">
+            <span id="equipoSeleccionado">🔵 LOCAL seleccionado</span>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SELECCIÓN DE EQUIPO -->
+    <!-- ============================================================ -->
+    <div class="grid grid-cols-2 gap-3 mb-4">
+        <button id="btnLocal" class="btn-equipo-local py-3 rounded-xl font-bold text-white transition-all text-sm">🔵 LOCAL</button>
+        <button id="btnVisitante" class="btn-equipo-visitante py-3 rounded-xl font-bold text-white transition-all text-sm">🔴 VISITANTE</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SELECCIÓN DE JUGADOR (CON SUPLENTES MÁS CHICOS) -->
+    <!-- ============================================================ -->
+    <div class="bg-gray-800/70 rounded-2xl p-3 mb-4 border border-white/5">
+        <div class="text-xs text-gray-400 mb-2 text-center">👤 SELECCIONÁ UN JUGADOR</div>
+
+        <!-- TITULARES (tamaño normal) -->
+        <div id="canchaGrid" class="grid grid-cols-3 gap-2">
+            <!-- JS genera los titulares -->
+        </div>
+
+        <!-- SUPLENTES (más chicos) -->
+        <div id="suplentesContainer" class="mt-3">
+            <!-- JS genera los suplentes -->
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ACCIONES (igual) -->
+    <!-- ============================================================ -->
+    <div class="bg-gray-800/50 rounded-2xl p-3 mb-4 border border-white/5">
+        <div class="text-xs text-gray-400 text-center mb-2">🏆 PUNTO GANADO</div>
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <button class="btn-accion btn-punto-ganado" data-accion="ATAQUE">
+                <span class="icono">🎯</span><span class="label">ATAQUE</span>
+            </button>
+            <button class="btn-accion btn-punto-ganado" data-accion="BLOQUEO">
+                <span class="icono">🧱</span><span class="label">BLOQUEO</span>
+            </button>
+            <button class="btn-accion btn-punto-ganado" data-accion="ACE">
+                <span class="icono">🏐</span><span class="label">ACE</span>
+            </button>
+        </div>
+        <div class="text-xs text-gray-400 text-center mb-2">📊 FUNDAMENTOS (NO suman punto)</div>
+        <div class="grid grid-cols-2 gap-2 mb-3">
+            <button class="btn-accion btn-neutro" data-accion="RECEPCION_POSITIVA">
+                <span class="icono">📥✅</span><span class="label">REC+</span>
+            </button>
+            <button class="btn-accion btn-neutro" data-accion="RECEPCION_NEGATIVA">
+                <span class="icono">📥❌</span><span class="label">REC-</span>
+            </button>
+            <button class="btn-accion btn-neutro" data-accion="DEFENSA_POSITIVA">
+                <span class="icono">🛡️✅</span><span class="label">DEF+</span>
+            </button>
+            <button class="btn-accion btn-neutro" data-accion="DEFENSA_NEGATIVA">
+                <span class="icono">🛡️❌</span><span class="label">DEF-</span>
+            </button>
+        </div>
+        <div class="text-xs text-gray-400 text-center mb-2">❌ PUNTO PERDIDO</div>
+        <div class="grid grid-cols-1">
+            <button class="btn-accion btn-punto-perdido" data-accion="ERROR">
+                <span class="icono">❌</span><span class="label">ERROR</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CONFIRMAR / DESHACER -->
+    <!-- ============================================================ -->
+    <div class="grid grid-cols-2 gap-3">
+        <button id="confirmarBtn" class="py-4 rounded-xl font-bold bg-green-600 text-white text-lg transition-all active:scale-95">✅ CONFIRMAR</button>
+        <button id="deshacerBtn" class="py-4 rounded-xl font-bold bg-red-600 text-white text-lg transition-all active:scale-95">↩️ DESHACER</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- FEEDBACK -->
+    <!-- ============================================================ -->
+    <div id="feedback" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold hidden z-50 bg-green-500 text-black"></div>
+
+    <!-- ============================================================ -->
+    <!-- SCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        // ============================================================
+        // ESTADO
+        // ============================================================
+        const estado = {
+            local: {
+                score: 0,
+                titulares: [1, 2, 3, 4, 5, 6],
+                suplentes: [7, 8, 9, 10, 11, 12]
+            },
+            visitante: {
+                score: 0,
+                titulares: [13, 14, 15, 16, 17, 18],
+                suplentes: [19, 20, 21, 22, 23, 24]
+            },
+            equipo: "LOCAL",
+            accion: null,
+            jugador: null,
+            set: 1,
+            punto: 0
+        };
+
+        const nombres = {
+            1: 'Lafourcade M.', 2: 'Cardoso J.', 3: 'Cabona A.',
+            4: 'Altube M.', 5: 'Servidio V.', 6: 'De Carlos M.',
+            7: 'Frascarelli M.', 8: 'Jazma S.', 9: 'Lopez M.',
+            10: 'Perez L.', 11: 'Garcia R.', 12: 'Fernandez A.',
+            13: 'Oviedo B.', 14: 'Benitez M.', 15: 'Basso J.',
+            16: 'Marchetti N.', 17: 'Violante D.', 18: 'Ocampo J.',
+            19: 'Benitez L.', 20: 'Lugo V.', 21: 'Acosta M.',
+            22: 'Roldan J.', 23: 'Gomez B.', 24: 'Ailen Z.'
+        };
+
+        // ============================================================
+        // RENDERIZAR JUGADORES
+        // ============================================================
+        function renderizarJugadores() {
+            const equipo = estado.equipo === 'LOCAL' ? estado.local : estado.visitante;
+
+            // TITULARES (tamaño normal)
+            const container = document.getElementById('canchaGrid');
+            container.innerHTML = equipo.titulares.map(n => `
+                <button class="jugador-btn bg-gray-700 hover:bg-gray-600 py-3 rounded-xl font-bold text-sm text-white transition-all" data-jugador="${n}">
+                    <span class="text-base">${n}</span>
+                    <br>
+                    <span class="text-[9px] text-gray-300">${nombres[n] || ''}</span>
+                </button>
+            `).join('');
+
+            // SUPLENTES (MÁS CHICOS)
+            const suplentesContainer = document.getElementById('suplentesContainer');
+            if (equipo.suplentes && equipo.suplentes.length > 0) {
+                suplentesContainer.innerHTML = `
+                    <div class="separador">
+                        <span class="separador-linea"></span>
+                        <span class="separador-texto">🪑 SUPLENTES</span>
+                        <span class="separador-linea"></span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        ${equipo.suplentes.map(n => `
+                            <button class="suplente-btn bg-gray-700/60 hover:bg-gray-600 py-2 rounded-lg font-bold text-white transition-all" data-jugador="${n}">
+                                <span class="text-base">${n}</span>
+                                <br>
+                                <span class="nombre text-[8px] text-gray-300">${nombres[n] || ''}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                suplentesContainer.innerHTML = '';
+            }
+
+            // EVENTOS
+            document.querySelectorAll('.jugador-btn, .suplente-btn').forEach(b => {
+                b.onclick = () => {
+                    document.querySelectorAll('.jugador-btn, .suplente-btn').forEach(x => x.classList.remove('btn-seleccionado'));
+                    b.classList.add('btn-seleccionado');
+                    estado.jugador = parseInt(b.dataset.jugador);
+                    mostrarFeedback(`👤 Jugador ${estado.jugador} seleccionado`, 'info');
+                };
+            });
+        }
+
+        // ============================================================
+        // ACTUALIZAR MARCADOR
+        // ============================================================
+        function actualizarMarcador() {
+            document.getElementById('localScore').textContent = estado.local.score;
+            document.getElementById('visitanteScore').textContent = estado.visitante.score;
+            document.getElementById('puntoActual').textContent = estado.punto;
+        }
+
+        // ============================================================
+        // FEEDBACK
+        // ============================================================
+        function mostrarFeedback(msg, tipo = 'success') {
+            const fb = document.getElementById('feedback');
+            fb.textContent = msg;
+            fb.classList.remove('hidden');
+            fb.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold z-50 ' +
+                (tipo === 'success' ? 'bg-green-500 text-black' :
+                 tipo === 'error' ? 'bg-red-500 text-white' :
+                 'bg-blue-500 text-white');
+            clearTimeout(fb._timeout);
+            fb._timeout = setTimeout(() => fb.classList.add('hidden'), 1500);
+        }
+
+        // ============================================================
+        // SELECCIÓN DE EQUIPO
+        // ============================================================
+        document.getElementById('btnLocal').onclick = () => {
+            estado.equipo = 'LOCAL';
+            document.querySelectorAll('#btnLocal, #btnVisitante').forEach(b => b.classList.remove('btn-seleccionado'));
+            document.getElementById('btnLocal').classList.add('btn-seleccionado');
+            document.getElementById('equipoSeleccionado').textContent = '🔵 LOCAL seleccionado';
+            renderizarJugadores();
+            mostrarFeedback('🔵 LOCAL seleccionado', 'info');
+        };
+
+        document.getElementById('btnVisitante').onclick = () => {
+            estado.equipo = 'VISITANTE';
+            document.querySelectorAll('#btnLocal, #btnVisitante').forEach(b => b.classList.remove('btn-seleccionado'));
+            document.getElementById('btnVisitante').classList.add('btn-seleccionado');
+            document.getElementById('equipoSeleccionado').textContent = '🔴 VISITANTE seleccionado';
+            renderizarJugadores();
+            mostrarFeedback('🔴 VISITANTE seleccionado', 'info');
+        };
+
+        // ============================================================
+        // ACCIONES
+        // ============================================================
+        document.querySelectorAll('.btn-accion').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('btn-seleccionado'));
+                btn.classList.add('btn-seleccionado');
+                estado.accion = btn.dataset.accion;
+                const labels = {
+                    'ATAQUE': '🎯 ATAQUE',
+                    'BLOQUEO': '🧱 BLOQUEO',
+                    'ACE': '🏐 ACE',
+                    'RECEPCION_POSITIVA': '📥 REC+',
+                    'RECEPCION_NEGATIVA': '📥 REC-',
+                    'DEFENSA_POSITIVA': '🛡️ DEF+',
+                    'DEFENSA_NEGATIVA': '🛡️ DEF-',
+                    'ERROR': '❌ ERROR'
+                };
+                mostrarFeedback(`⚡ ${labels[estado.accion] || estado.accion} seleccionado`, 'info');
+            };
+        });
+
+        // ============================================================
+        // CONFIRMAR
+        // ============================================================
+        document.getElementById('confirmarBtn').onclick = () => {
+            if (!estado.accion) {
+                mostrarFeedback('❌ Seleccioná una ACCIÓN', 'error');
+                return;
+            }
+            if (!estado.jugador) {
+                mostrarFeedback('❌ Seleccioná un JUGADOR', 'error');
+                return;
+            }
+
+            const accionesPunto = ['ATAQUE', 'BLOQUEO', 'ACE', 'ERROR'];
+            const esPunto = accionesPunto.includes(estado.accion);
+
+            let equipoAnota = null;
+            if (estado.accion === 'ERROR') {
+                equipoAnota = estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
+            } else if (esPunto) {
+                equipoAnota = estado.equipo;
+            }
+
+            if (equipoAnota === 'LOCAL') {
+                estado.local.score++;
+                mostrarFeedback(`✅ Punto de LOCAL - J${estado.jugador}`, 'success');
+            } else if (equipoAnota === 'VISITANTE') {
+                estado.visitante.score++;
+                mostrarFeedback(`✅ Punto de VISITANTE - J${estado.jugador}`, 'success');
+            } else {
+                const fundamentos = {
+                    'RECEPCION_POSITIVA': '📥 REC+',
+                    'RECEPCION_NEGATIVA': '📥 REC-',
+                    'DEFENSA_POSITIVA': '🛡️ DEF+',
+                    'DEFENSA_NEGATIVA': '🛡️ DEF-'
+                };
+                mostrarFeedback(`📊 ${fundamentos[estado.accion] || estado.accion} registrada`, 'info');
+            }
+
+            estado.punto++;
+            actualizarMarcador();
+
+            estado.accion = null;
+            estado.jugador = null;
+            document.querySelectorAll('.btn-accion, .jugador-btn, .suplente-btn').forEach(b => b.classList.remove('btn-seleccionado'));
+        };
+
+        // ============================================================
+        // DESHACER
+        // ============================================================
+        document.getElementById('deshacerBtn').onclick = () => {
+            if (estado.punto === 0) {
+                mostrarFeedback('⚠️ No hay puntos para deshacer', 'error');
+                return;
+            }
+            if (estado.local.score > 0) {
+                estado.local.score--;
+            } else if (estado.visitante.score > 0) {
+                estado.visitante.score--;
+            }
+            estado.punto--;
+            actualizarMarcador();
+            mostrarFeedback('↩️ Última acción deshecha', 'info');
+        };
+
+        // ============================================================
+        // INICIALIZAR
+        // ============================================================
+        document.getElementById('btnLocal').classList.add('btn-seleccionado');
+        renderizarJugadores();
+        actualizarMarcador();
+        document.getElementById('equipoSeleccionado').textContent = '🔵 LOCAL seleccionado';
+
+        // ============================================================
+        // ATAJOS DE TECLADO
+        // ============================================================
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            const mapa = {
+                '1': 'ATAQUE', '2': 'BLOQUEO', '3': 'ACE',
+                '4': 'RECEPCION_POSITIVA', '5': 'RECEPCION_NEGATIVA',
+                '6': 'DEFENSA_POSITIVA', '7': 'DEFENSA_NEGATIVA',
+                '8': 'ERROR'
+            };
+            if (key in mapa) {
+                e.preventDefault();
+                const btn = document.querySelector(`.btn-accion[data-accion="${mapa[key]}"]`);
+                if (btn) btn.click();
+            }
+            if (key === 'enter') {
+                e.preventDefault();
+                document.getElementById('confirmarBtn').click();
+            }
+            if (key === 'z') {
+                e.preventDefault();
+                document.getElementById('deshacerBtn').click();
+            }
+        });
+
+        console.log('🎮 ATAJOS:');
+        console.log('  1=ATAQUE  2=BLOQUEO  3=ACE');
+        console.log('  4=REC+  5=REC-');
+        console.log('  6=DEF+  7=DEF-');
+        console.log('  8=ERROR');
+        console.log('  ENTER=Confirmar  Z=Deshacer');
+    </script>
+</body>
+</html>

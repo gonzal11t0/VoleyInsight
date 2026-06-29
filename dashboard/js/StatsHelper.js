@@ -17,7 +17,14 @@ export function calcularStatsPorJugador(datos, equipo) {
                 asistencias: 0,
                 acesServicio: 0,
                 totalSaques: 0,
-                puntosPorErrorRival: 0
+                puntosPorErrorRival: 0,
+                // 🆕 Nuevas estadísticas
+                recepcionesPositivas: 0,
+                recepcionesNegativas: 0,
+                defensasPositivas: 0,
+                defensasNegativas: 0,
+                totalRecepciones: 0,
+                totalDefensas: 0
             };
         }
         
@@ -40,13 +47,31 @@ export function calcularStatsPorJugador(datos, equipo) {
                 s.puntos++;
                 break;
             case 'ERROR':
+                // ✅ ERROR: es un error de ataque (o genérico), NO es error de servicio
                 s.erroresAtaque++;
-                s.erroresServicio++;
-                s.totalSaques++;
+                // ❌ ELIMINADO: s.erroresServicio++;
+                // ❌ ELIMINADO: s.totalSaques++;
                 break;
             case 'ERROR_RIVAL':
                 s.puntosPorErrorRival++;
                 s.puntos++;
+                break;
+            // 🆕 Nuevas acciones
+            case 'RECEPCION_POSITIVA':
+                s.recepcionesPositivas++;
+                s.totalRecepciones++;
+                break;
+            case 'RECEPCION_NEGATIVA':
+                s.recepcionesNegativas++;
+                s.totalRecepciones++;
+                break;
+            case 'DEFENSA_POSITIVA':
+                s.defensasPositivas++;
+                s.totalDefensas++;
+                break;
+            case 'DEFENSA_NEGATIVA':
+                s.defensasNegativas++;
+                s.totalDefensas++;
                 break;
         }
         
@@ -55,7 +80,10 @@ export function calcularStatsPorJugador(datos, equipo) {
                 stats[punto.asistencia] = { 
                     puntos: 0, ataques: 0, ataquesConvertidos: 0, bloqueos: 0, 
                     aces: 0, erroresAtaque: 0, erroresServicio: 0, asistencias: 0, 
-                    acesServicio: 0, totalSaques: 0, puntosPorErrorRival: 0
+                    acesServicio: 0, totalSaques: 0, puntosPorErrorRival: 0,
+                    recepcionesPositivas: 0, recepcionesNegativas: 0,
+                    defensasPositivas: 0, defensasNegativas: 0,
+                    totalRecepciones: 0, totalDefensas: 0
                 };
             }
             stats[punto.asistencia].asistencias++;
@@ -69,11 +97,14 @@ export function calcularStatsPorJugador(datos, equipo) {
         s.eficienciaAtaque = s.ataques > 0 ? ((s.ataquesConvertidos / s.ataques) * 100).toFixed(1) : '0';
         s.eficienciaServicio = s.totalSaques > 0 ? ((s.acesServicio - s.erroresServicio) / s.totalSaques * 100).toFixed(1) : '0';
         s.puntos = (s.ataquesConvertidos || 0) + (s.bloqueos || 0) + (s.aces || 0) + (s.puntosPorErrorRival || 0);
+        
+        // 🆕 Eficiencias de recepción y defensa
+        s.eficienciaRecepcion = s.totalRecepciones > 0 ? ((s.recepcionesPositivas / s.totalRecepciones) * 100).toFixed(1) : '0';
+        s.eficienciaDefensa = s.totalDefensas > 0 ? ((s.defensasPositivas / s.totalDefensas) * 100).toFixed(1) : '0';
     }
     
     return stats;
 }
-
 export function actualizarTablaConStats(tid, stats, jugadoresLocal, jugadoresVisitante, equipo) {
     const tb = document.getElementById(tid);
     if (!tb) return;
@@ -86,7 +117,7 @@ export function actualizarTablaConStats(tid, stats, jugadoresLocal, jugadoresVis
             const st = stats[n];
             if (st) {
                 const c = f.querySelectorAll('td');
-                if (c.length >= 12) {
+                if (c.length >= 14) {
                     const ataquesTotales = st.ataques || 0;
                     const ataquesConv = st.ataquesConvertidos || 0;
                     const ataquesTexto = ataquesTotales > 0 ? `${ataquesConv}/${ataquesTotales}` : '0/0';
@@ -101,16 +132,24 @@ export function actualizarTablaConStats(tid, stats, jugadoresLocal, jugadoresVis
                     const eficienciaAtaque = ataquesTotales > 0 ? ((ataquesConv / ataquesTotales) * 100).toFixed(1) : '0';
                     c[7].textContent = `${eficienciaAtaque}%`;
                     
-                    c[8].textContent = st.acesServicio || 0;
-                    c[9].textContent = st.erroresServicio || 0;
+                    // 🆕 RECEPCIÓN
+                    c[8].textContent = `${st.recepcionesPositivas || 0}/${st.totalRecepciones || 0}`;
+                    const efRec = st.totalRecepciones > 0 ? ((st.recepcionesPositivas / st.totalRecepciones) * 100).toFixed(1) : '0';
+                    c[9].textContent = `${efRec}%`;
+                    
+                    // 🆕 DEFENSA
+                    c[10].textContent = `${st.defensasPositivas || 0}/${st.totalDefensas || 0}`;
+                    const efDef = st.totalDefensas > 0 ? ((st.defensasPositivas / st.totalDefensas) * 100).toFixed(1) : '0';
+                    c[11].textContent = `${efDef}%`;
+                    
+                    // SERVICIO (se corren)
+                    c[12].textContent = st.acesServicio || 0;
+                    c[13].textContent = st.erroresServicio || 0;
                     
                     const totalSaques = st.totalSaques || 0;
                     const eficienciaServicio = totalSaques > 0 ? (((st.acesServicio || 0) - (st.erroresServicio || 0)) / totalSaques * 100).toFixed(1) : '0';
-                    c[10].textContent = `${eficienciaServicio}%`;
-                    c[11].textContent = totalSaques;
-                    
-                    const ef = parseFloat(eficienciaServicio);
-                    c[10].className = `text-center font-semibold ${ef > 10 ? 'text-green-400' : ef < 0 ? 'text-red-400' : 'text-yellow-400'}`;
+                    c[14].textContent = `${eficienciaServicio}%`;
+                    c[15].textContent = totalSaques;
                 }
             }
         }
@@ -127,19 +166,29 @@ export function renderizarSoloNombres(tid, jugadoresLocal, jugadoresVisitante, e
         .sort((a, b) => a.num - b.num);
     
     if (!ordenados.length) { 
-        tb.innerHTML = '<tr><td colspan="12" class="text-center py-4 text-gray-500">Esperando datos de jugadores...</td></tr>'; 
+        tb.innerHTML = '<tr><td colspan="16" class="text-center py-4 text-gray-500">Esperando datos de jugadores...</td></tr>'; 
         return; 
     }
     
     tb.innerHTML = ordenados.map(j => `<tr class="border-b border-gray-700/50">
         <td class="py-2 font-medium text-xs">${j.nombre} <span class="text-gray-500 numero-jugador">(${j.num})</span></td>
-        <td class="text-center">0</td><td class="text-center">0/0</td><td class="text-center">0</td>
-        <td class="text-center">0</td><td class="text-center">0</td><td class="text-center">0</td>
-        <td class="text-center">0%</td><td class="text-center">0</td><td class="text-center">0</td>
-        <td class="text-center">0%</td><td class="text-center">0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0/0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0%</td>
+        <td class="text-center">0/0</td>
+        <td class="text-center">0%</td>
+        <td class="text-center">0/0</td>
+        <td class="text-center">0%</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0</td>
+        <td class="text-center">0%</td>
+        <td class="text-center">0</td>
     </tr>`).join('');
-}
-
+}   
 export function renderizarTop5ConNombres(sl, sv, jugadoresLocal, jugadoresVisitante) {
     const nl = jugadoresLocal, nv = jugadoresVisitante;
     const todos = [];
