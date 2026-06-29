@@ -1180,7 +1180,7 @@ export class VolleyballDashboard {
         bc.classList.remove('hidden');
     }
 
-    setupEventListeners() {
+        setupEventListeners() {
         document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
         document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
         document.getElementById('soundToggleBtn')?.addEventListener('click', () => {
@@ -1189,34 +1189,14 @@ export class VolleyballDashboard {
             if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
         });
 
-        const menuBtn = document.getElementById('menuHamburguesaBtn');
-        const menuDesplegable = document.getElementById('menuDesplegable');
-        if (menuBtn && menuDesplegable) {
-            const newMenuBtn = menuBtn.cloneNode(true);
-            menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
-            newMenuBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (menuDesplegable.classList.contains('hidden')) {
-                    menuDesplegable.classList.remove('hidden');
-                    menuDesplegable.style.display = 'flex';
-                } else {
-                    menuDesplegable.classList.add('hidden');
-                    menuDesplegable.style.display = 'none';
-                }
-            });
-            document.addEventListener('click', (e) => {
-                if (!newMenuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
-                    menuDesplegable.classList.add('hidden');
-                    menuDesplegable.style.display = 'none';
-                }
-            });
-        }
-
+        // ============================================================
+        // BOTONES DEL MENÚ MÓVIL (SOLO EVENTOS, SIN CLONAR)
+        // ============================================================
         const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
         if (saveHTMLBtnMobile) {
             saveHTMLBtnMobile.addEventListener('click', () => {
                 this.saveAsHTML();
+                const menuDesplegable = document.getElementById('menuDesplegable');
                 if (menuDesplegable) {
                     menuDesplegable.classList.add('hidden');
                     menuDesplegable.style.display = 'none';
@@ -1266,7 +1246,57 @@ export class VolleyballDashboard {
             });
         }
     }
+    // ============================================================
+    // REASIGNAR EVENTOS DEL MENÚ MÓVIL
+    // ============================================================
+    reasignarEventosMenuMovil() {
+        console.log('🔄 Reasignando eventos del menú móvil...');
+        
+        const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
+        if (saveHTMLBtnMobile) {
+            // Remover eventos anteriores (si los hay) y agregar nuevo
+            const newBtn = saveHTMLBtnMobile.cloneNode(true);
+            saveHTMLBtnMobile.parentNode.replaceChild(newBtn, saveHTMLBtnMobile);
+            newBtn.addEventListener('click', () => {
+                this.saveAsHTML();
+                const menuDesplegable = document.getElementById('menuDesplegable');
+                if (menuDesplegable) {
+                    menuDesplegable.classList.add('hidden');
+                    menuDesplegable.style.display = 'none';
+                }
+            });
+            console.log('✅ Evento Guardar reasignado');
+        }
 
+        const soundToggleBtnMobile = document.getElementById('soundToggleBtnMobile');
+        if (soundToggleBtnMobile) {
+            const newBtn = soundToggleBtnMobile.cloneNode(true);
+            soundToggleBtnMobile.parentNode.replaceChild(newBtn, soundToggleBtnMobile);
+            newBtn.addEventListener('click', () => {
+                const enabled = this.soundManager.toggle();
+                newBtn.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+                if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
+                const btnDesktop = document.getElementById('soundToggleBtn');
+                if (btnDesktop) btnDesktop.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
+            });
+            console.log('✅ Evento Sonidos reasignado');
+        }
+
+        const refreshSelectorMobile = document.getElementById('refreshIntervalSelectorMobile');
+        if (refreshSelectorMobile) {
+            const newSelector = refreshSelectorMobile.cloneNode(true);
+            refreshSelectorMobile.parentNode.replaceChild(newSelector, refreshSelectorMobile);
+            newSelector.addEventListener('change', (e) => {
+                const ms = parseInt(e.target.value);
+                const selectorDesktop = document.getElementById('refreshIntervalSelector');
+                if (selectorDesktop) selectorDesktop.value = ms;
+                if (this.refreshInterval) clearInterval(this.refreshInterval);
+                this.refreshInterval = setInterval(() => this.loadData(), ms);
+                this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms / 1000} segundos`);
+            });
+            console.log('✅ Selector de refresco reasignado');
+        }
+    }
     actualizarHoraUltimoPunto() {
         const c = document.getElementById('lastPointTime');
         if (!c) return;
