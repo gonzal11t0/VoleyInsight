@@ -143,8 +143,8 @@ export class ReporteGenerator {
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Rompes ${homeTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Rompes ${awayTeam}</div></div>
+            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Quiebres ${homeTeam}</div></div>
+            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Quiebres ${awayTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(5)</div><div class="stat-value">${homeEfficiency}%</div><div class="stat-label">Eficiencia ${homeTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(6)</div><div class="stat-value">${awayEfficiency}%</div><div class="stat-label">Eficiencia ${awayTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(7)</div><div class="stat-value">${homeClutchPct}%</div><div class="stat-label">Bajo presión</div></div>
@@ -196,7 +196,7 @@ export class ReporteGenerator {
                 <div class="clutch-fill" style="width:${100-homeClutchPct}%;background:linear-gradient(90deg,#f43f5e,#e11d48);padding:12px 16px;text-align:center;color:white;font-weight:700;">${awayTeam} ${100-homeClutchPct}%</div>
             </div>
         </div>
-        <div class="section"><div class="section-title">🔍 Puntos de Quiebre</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron rompes</div>'}</div></div>
+        <div class="section"><div class="section-title">🔍 Puntos de Quiebre</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron quiebres</div>'}</div></div>
         <div class="section"><div class="section-title">📖 Qué significan estos números</div><div>${interpretationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">🎯 Qué cambiar para el próximo partido</div><div>${recommendationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
@@ -218,13 +218,13 @@ export class ReporteGenerator {
         <th>REC%</th>
         <th>🛡️ DEF</th>
         <th>DEF%</th>
-        <th>🎯 ACES</th>
+<th>🏐 SAQUE</th>
         <th>❌ ERR SERV</th>
         <th>📊 EFI SERV%</th>
         <th>🏐 TOT SERV</th>
     </tr>
 </thead>
-                    <tbody>${tablaLocal || '<tr><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
+                    <tbody>${tablaLocal || '<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
         </div>
@@ -246,34 +246,109 @@ export class ReporteGenerator {
         <th>REC%</th>
         <th>🛡️ DEF</th>
         <th>DEF%</th>
-        <th>🎯 ACES</th>
+<th>🏐 SAQUE</th>
         <th>❌ ERR SERV</th>
         <th>📊 EFI SERV%</th>
         <th>🏐 TOT SERV</th>
     </tr>
 </thead>
-                    <tbody>${tablaVisitante || '<tr><td colspan="12" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
+                    <tbody>${tablaVisitante || '<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
         </div>
-        <div class="glosario">
-            <div class="glosario-title">📖 GLOSARIO DE MÉTRICAS</div>
-            <div class="glosario-item"><div class="glosario-numero">(1)</div><div class="glosario-desc"><strong>🏆 RACHA MÁXIMA</strong><br>Puntos consecutivos del mismo equipo sin que el rival anote.<br>📊 >5 puntos = dominación momentánea | >8 = aplastante</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(2)</div><div class="glosario-desc"><strong>⚡ ROMPES (BREAKS)</strong><br>Puntos anotados sin estar sacando.<br>💪 Más rompes = mejor recepción y contraataque eficiente</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(3)</div><div class="glosario-desc"><strong>📊 EFICIENCIA GENERAL</strong><br>(Puntos propios / Puntos totales del partido) × 100.<br>📈 >55% = dominio absoluto | 45-55% = parejo | <45% = debilidad</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(4)</div><div class="glosario-desc"><strong>🎭 CLUTCH (Bajo presión)</strong><br>% de puntos en momentos críticos (set point o diferencia ≤2).<br>🏆 >60% = fortaleza mental</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(5)</div><div class="glosario-desc"><strong>🎯 EFICIENCIA DE SERVICIO</strong><br>(Aces - Errores de servicio) / Total de saques × 100.<br>🏐 >10% = excelente | 0% a 10% = regular | <0% = necesita mejorar</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(6)</div><div class="glosario-desc"><strong>📈 FASES DEL SET</strong><br>Early (puntos 1-10), Mid (puntos 11-20), Late (puntos 21+).<br>Analiza el rendimiento por momento del set.</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(7)</div><div class="glosario-desc"><strong>⚡ ÍNDICE DE MOMENTUM</strong><br>Diferencia de puntos en los últimos 5 puntos del partido.<br>Positivo = LOCAL domina | Negativo = VISITANTE domina</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(8)</div><div class="glosario-desc"><strong>🔍 PUNTOS DE QUIEBRE</strong><br>Puntos donde el equipo que recibe le rompe el saque al que saca.<br>Indicador clave de eficiencia en recepción y contraataque.</div></div>
-            <div class="glosario-item"><div class="glosario-numero">(9)</div><div class="glosario-desc"><strong>⏱️ TIMELINE</strong><br>Últimos 10 puntos del partido con dominancia por equipo.<br>Muestra quién viene dominando el cierre del partido.</div></div>
+                <div class="glosario">
+            <div class="glosario-title">📖 ¿QUÉ SIGNIFICAN ESTOS NÚMEROS?</div>
+            
+            <!-- 1. RACHA MÁXIMA -->
+            <div class="glosario-item">
+                <div class="glosario-numero">🔥</div>
+                <div class="glosario-desc">
+                    <strong>RACHA MÁXIMA</strong><br>
+                    Puntos seguidos que hizo un equipo sin que el rival anote.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> Si es >5, el equipo dominó momentos del partido.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Trabajar la consistencia y evitar errores no forzados.</span>
+                </div>
+            </div>
+            
+            <!-- 2. QUIEBRES -->
+            <div class="glosario-item">
+                <div class="glosario-numero">⚡</div>
+                <div class="glosario-desc">
+                    <strong>QUIEBRES (BREAKS)</strong><br>
+                    Puntos que ganaste cuando el rival estaba sacando.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> Si es >8, tu recepción y contraataque funcionan bien.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar la recepción de saque y la definición en contraataque.</span>
+                </div>
+            </div>
+            
+            <!-- 3. EFICIENCIA GENERAL -->
+            <div class="glosario-item">
+                <div class="glosario-numero">📊</div>
+                <div class="glosario-desc">
+                    <strong>EFICIENCIA GENERAL</strong><br>
+                    Porcentaje de puntos que ganaste del total jugados.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >55% = dominaste | 45-55% = partido parejo | &lt;45% = te superaron.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es baja?</strong> Reducir errores no forzados y mejorar la efectividad en ataque.</span>
+                </div>
+            </div>
+            
+            <!-- 4. CLUTCH (BAJO PRESIÓN) -->
+            <div class="glosario-item">
+                <div class="glosario-numero">🎭</div>
+                <div class="glosario-desc">
+                    <strong>RENDIMIENTO BAJO PRESIÓN (CLUTCH)</strong><br>
+                    Porcentaje de puntos ganados en momentos clave (set point o diferencia ≤2).<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >60% = fortaleza mental | &lt;40% = se achica bajo presión.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Entrenar definición de sets con marcador 20-20, 23-23, set point en contra.</span>
+                </div>
+            </div>
+            
+            <!-- 5. EFICIENCIA DE SERVICIO -->
+            <div class="glosario-item">
+                <div class="glosario-numero">🏐</div>
+                <div class="glosario-desc">
+                    <strong>EFICIENCIA DE SERVICIO</strong><br>
+                    (Aces - Errores de saque) / Total de saques × 100.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >10% = excelente | 0% a 10% = regular | &lt;0% = muchos errores.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es negativa?</strong> Priorizar efectividad sobre potencia. Sacar más seguro y bien colocado.</span>
+                </div>
+            </div>
+            
+            <!-- 6. SIDEOUT% -->
+            <div class="glosario-item">
+                <div class="glosario-numero">🔄</div>
+                <div class="glosario-desc">
+                    <strong>SIDEOUT%</strong><br>
+                    Puntos que convertís cuando tenés el saque.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >60% = excelente | 45-60% = normal | &lt;45% = problema.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar la definición en ataque y reducir errores cuando se tiene el saque.</span>
+                </div>
+            </div>
+            
+            <!-- 7. BREAKPOINT% -->
+            <div class="glosario-item">
+                <div class="glosario-numero">⚡</div>
+                <div class="glosario-desc">
+                    <strong>BREAKPOINT%</strong><br>
+                    Puntos que convertís cuando el rival tiene el saque.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >40% = excelente | 25-40% = normal | &lt;25% = problema.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Reforzar la recepción de saque y la transición ofensiva.</span>
+                </div>
+            </div>
+            
+            <!-- 8. FASES DEL SET -->
+            <div class="glosario-item">
+                <div class="glosario-numero">📈</div>
+                <div class="glosario-desc">
+                    <strong>FASES DEL SET</strong><br>
+                    Rendimiento en diferentes momentos del set.<br>
+                    <span style="color: #3b82f6;">🔵 <strong>Early</strong> (puntos 1-10): Arranque del set</span><br>
+                    <span style="color: #8b5cf6;">🟣 <strong>Mid</strong> (puntos 11-20): Desarrollo del set</span><br>
+                    <span style="color: #ef4444;">🔴 <strong>Late</strong> (puntos 21+): Cierre del set</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer?</strong> Si una fase es baja, trabajar específicamente esa parte del juego.</span>
+                </div>
+            </div>
         </div>
-        <div class="footer">
-            <p>📊 Reporte generado automáticamente por <strong>VoleyInsight</strong> - Sistema de análisis profesional de voleibol</p>
-            <p style="margin-top:8px;">${fechaHora}</p>
-            <p style="margin-top:12px;font-size:11px;color:#4b5563;">💾 Este reporte se guarda en tu dispositivo. Para verlo sin internet, guardalo con Ctrl+S (Windows) o Cmd+S (Mac)</p>
-        </div>
-    </div>
     <script>
         const eficienciaData = ${JSON.stringify(eficienciaPorSet)};
         console.log('📊 Reporte - eficienciaData:', eficienciaData);

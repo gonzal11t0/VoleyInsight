@@ -634,7 +634,7 @@ export class VolleyballDashboard {
         }
     }
 
-    startAutoRefresh() { setInterval(() => { this.loadData(); }, 5000); }
+    startAutoRefresh() { setInterval(() => { this.loadData(); }, 10000); }
     setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
 
     startConnectionMonitor() {
@@ -829,9 +829,20 @@ export class VolleyballDashboard {
             startInterval(ms);
             this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms / 1000} segundos`);
         };
-        startInterval(5000);
+        startInterval(10000);
     }
 
+       obtenerEquipoAnalisis() {
+        // Si ATTITUDE está jugando, analizar ATTITUDE
+        if (this.homeTeamName === 'ATTITUDE') {
+            return { nombre: this.homeTeamName, equipo: 'HOME', esAttitude: true };
+        }
+        if (this.awayTeamName === 'ATTITUDE') {
+            return { nombre: this.awayTeamName, equipo: 'AWAY', esAttitude: true };
+        }
+        // Si no, analizar al equipo LOCAL
+        return { nombre: this.homeTeamName, equipo: 'HOME', esAttitude: false };
+    }
     actualizarSets() {
         const container = document.getElementById('setsList');
         if (!container) return;
@@ -1328,7 +1339,7 @@ export class VolleyballDashboard {
         if (!c) return;
         const bg = localStorage.getItem(`breaks_${this.matchId}`);
         let breaks = bg ? JSON.parse(bg) : [];
-        if (!breaks.length) { c.innerHTML = '<div class="text-center text-gray-400 py-4">No se detectaron rompes</div>'; return; }
+        if (!breaks.length) { c.innerHTML = '<div class="text-center text-gray-400 py-4">No se detectaron quiebres</div>'; return; }
         c.innerHTML = breaks.slice(-12).reverse().map(b =>
             `<div class="flex justify-between items-center p-2 rounded-lg ${b.equipo === 'LOCAL' ? 'bg-primary/10' : 'bg-rose-500/10'} mb-1">
                 <span class="text-xs font-bold text-primary">${b.tipo?.toUpperCase() || 'BREAK'}</span>
@@ -1338,25 +1349,42 @@ export class VolleyballDashboard {
         ).join('');
     }
 
-    updateInsightsList(homeEfficiency, homeBreaks) {
+        updateInsightsList(homeEfficiency, homeBreaks) {
         const c = document.getElementById('insightsList');
         if (!c) return;
+        
+        // Obtener el equipo a analizar
+        const equipoAnalisis = this.obtenerEquipoAnalisis();
+        const nombreEquipo = equipoAnalisis.nombre;
+        const esAttitude = equipoAnalisis.esAttitude;
+        const eficiencia = equipoAnalisis.equipo === 'HOME' ? homeEfficiency : this.awayEfficiency;
+        const breaks = equipoAnalisis.equipo === 'HOME' ? homeBreaks : this.awayBreaks;
+        
         const i = [];
-        if (homeEfficiency > 60) i.push(`🏆 DOMINIO TOTAL: ${this.homeTeamName} ganó ${homeEfficiency}% de los puntos.`);
-        else if (homeEfficiency > 55) i.push(`✅ CONTROL: ${this.homeTeamName} ganó ${homeEfficiency}% de los puntos.`);
-        else if (homeEfficiency > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${this.homeTeamName} ganó ${homeEfficiency}% vs rival.`);
-        else if (homeEfficiency < 45 && homeEfficiency > 0) i.push(`⚠️ SUPERADO: ${this.homeTeamName} solo ganó ${homeEfficiency}% de los puntos.`);
-        if (homeBreaks > 12) i.push(`⚡ EFECTIVO EN ROMPES: ${homeBreaks} veces quebró el saque rival.`);
-        else if (homeBreaks < 6 && homeBreaks > 0) i.push(`🔻 POCOS ROMPES: Solo ${homeBreaks} veces quebró el saque. Mejorar recepción.`);
+        if (eficiencia > 60) i.push(`🏆 DOMINIO TOTAL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
+        else if (eficiencia > 55) i.push(`✅ CONTROL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
+        else if (eficiencia > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${nombreEquipo} ganó ${eficiencia}% vs rival.`);
+        else if (eficiencia < 45 && eficiencia > 0) i.push(`⚠️ SUPERADO: ${nombreEquipo} solo ganó ${eficiencia}% de los puntos.`);
+        
+        if (breaks > 12) i.push(`⚡ EFECTIVO EN QUIEBRES: ${breaks} veces quebró el saque rival.`);
+        else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS QUIEBRES: Solo ${breaks} veces quebró el saque. Mejorar recepción.`);
+        
+        // Sideout y Breakpoint
         const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
         const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
-        if (sideout > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideout}%) cuando tiene el saque.`);
-        else if (sideout < 45 && sideout > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideout}%). Problemas con saque propio.`);
-        if (breakpoint > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpoint}%). Buena recepción y contraataque.`);
-        else if (breakpoint < 25 && breakpoint > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpoint}%). Dificultad para romper saque rival.`);
+        const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
+        const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
+        
+        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%) cuando tiene el saque.`);
+        else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Problemas con saque propio.`);
+        
+        if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). Buena recepción y contraataque.`);
+        else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Dificultad para romper saque rival.`);
+        
         const clutch = parseFloat(document.getElementById('clutchHome')?.textContent) || 0;
         if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${clutch}% bajo presión.`);
         else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: Solo ${clutch}% en momentos críticos.`);
+        
         if (i.length === 0) i.push('📊 Esperando más datos para generar insights...');
         c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
     }
@@ -1401,7 +1429,7 @@ export class VolleyballDashboard {
         } else if (brA > brH + 4) {
             interpretaciones.push({ titulo: '⚠️ PROBLEMAS EN RECEPCIÓN DE SAQUE', descripcion: `${this.awayTeamName} rompió el saque ${brA} veces. ${this.homeTeamName} solo lo logró ${brH}.`, accion: 'Trabajar: recepción de saque, sistema de cobertura, saque más agresivo para evitar que el rival construya.' });
         } else if (brH + brA > 15) {
-            interpretaciones.push({ titulo: '⚡ PARTIDO DE MUCHOS ROMPES', descripcion: `Hubo ${brH + brA} rompes en total. El saque no fue determinante, dominó el que mejor recibió.`, accion: 'El equipo que mejor pase y contraataque tiene ventaja. Fortalecer esas habilidades.' });
+            interpretaciones.push({ titulo: '⚡ PARTIDO DE MUCHOS SAQUES', descripcion: `Hubo ${brH + brA} rompes en total. El saque no fue determinante, dominó el que mejor recibió.`, accion: 'El equipo que mejor pase y contraataque tiene ventaja. Fortalecer esas habilidades.' });
         }
         if (clutch > 65) {
             interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });

@@ -73,6 +73,13 @@ export function calcularStatsPorJugador(datos, equipo) {
                 s.defensasNegativas++;
                 s.totalDefensas++;
                 break;
+            case 'ERROR':
+                s.erroresAtaque++;
+                break;
+            case 'ERROR_SAQUE':
+                s.erroresServicio++;
+                s.totalSaques++;
+                break;
         }
         
         if (punto.asistencia) {
@@ -222,7 +229,7 @@ export function renderizarTop5ConNombres(sl, sv, jugadoresLocal, jugadoresVisita
         <div class="flex gap-4">
             <span class="text-primary font-bold">${j.puntos} pts</span>
             <span class="text-gray-400 text-sm">Efi: ${j.eficiencia}%</span>
-            ${j.acesServicio > 0 ? `<span class="text-blue-400 text-sm">🎯 ${j.acesServicio} aces</span>` : ''}
+            ${j.acesServicio > 0 ? `<span class="text-blue-400 text-sm">🎯 ${j.acesServicio} SAQUE</span>` : ''}
         </div>
     </div>`).join('');
 }

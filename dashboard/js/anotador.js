@@ -488,9 +488,9 @@ renderConfig() {
         return true;
     }
 
-    determinarEquipoQueAnota() {
-        // ERROR: punto para el otro equipo
-        if (this.estado.accion === 'ERROR') {
+        determinarEquipoQueAnota() {
+        // ERROR y ERROR_SAQUE: punto para el otro equipo
+        if (this.estado.accion === 'ERROR' || this.estado.accion === 'ERROR_SAQUE') {
             return this.estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
         }
         // Las acciones de fundamentos NO suman punto
@@ -621,14 +621,15 @@ renderConfig() {
             else if (key === 'w') { e.preventDefault(); document.getElementById('btnVisitante')?.click(); }
             
             // ✅ Acciones del nuevo anotador (usando las clases .btn-accion)
-            else if (key === '1') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ATAQUE"]')?.click(); }
+           else if (key === '1') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ATAQUE"]')?.click(); }
             else if (key === '2') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="BLOQUEO"]')?.click(); }
             else if (key === '3') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ACE"]')?.click(); }
-            else if (key === '4') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="RECEPCION_POSITIVA"]')?.click(); }
-            else if (key === '5') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="RECEPCION_NEGATIVA"]')?.click(); }
-            else if (key === '6') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="DEFENSA_POSITIVA"]')?.click(); }
-            else if (key === '7') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="DEFENSA_NEGATIVA"]')?.click(); }
-            else if (key === '8') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ERROR"]')?.click(); }
+            else if (key === '4') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ERROR_SAQUE"]')?.click(); }
+            else if (key === '5') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="RECEPCION_POSITIVA"]')?.click(); }
+            else if (key === '6') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="RECEPCION_NEGATIVA"]')?.click(); }
+            else if (key === '7') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="DEFENSA_POSITIVA"]')?.click(); }
+            else if (key === '8') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="DEFENSA_NEGATIVA"]')?.click(); }
+            else if (key === '9') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ERROR"]')?.click(); }
             
             // ✅ Otras funciones
             else if (key === 'b') { e.preventDefault(); this.guardarBreak(); }
