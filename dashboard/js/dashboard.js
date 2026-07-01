@@ -35,6 +35,8 @@ export class VolleyballDashboard {
         this.reglamento = null;
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
         this.offlineMode = false;
+        this.chartRotaciones = null;
+        this.setupEventListeners();
 
         this.mostrarSkeleton(true);
         setTimeout(() => this.mostrarSkeleton(false), 5000);
@@ -955,7 +957,7 @@ export class VolleyballDashboard {
         return false;
     }
 
-    async loadData() {
+       async loadData() {
         const offlineManager = new OfflineManager();
         if (this.offlineMode) {
             const cachedData = await offlineManager.getMatchData(this.matchId);
@@ -1051,6 +1053,35 @@ export class VolleyballDashboard {
                     // ============================================================
                     localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
                     localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
+                    
+                    // ============================================================
+                    // ✅ NUEVO: GUARDAR ROTACIONES DESDE LA FORMACIÓN INICIAL
+                    // ============================================================
+                    this.rotacionesJugadores = {};
+                    
+                    // LOCAL
+                    if (court.home?.positions) {
+                        for (const [pos, info] of Object.entries(court.home.positions)) {
+                            if (info.number) {
+                                // Guardar: número de jugador → posición (que es la rotación)
+                                this.rotacionesJugadores[info.number] = parseInt(pos);
+                            }
+                        }
+                    }
+                    
+                    // VISITANTE (si querés tener rotaciones del visitante también)
+                    if (court.away?.positions) {
+                        for (const [pos, info] of Object.entries(court.away.positions)) {
+                            if (info.number) {
+                                // Usamos un prefijo para distinguir local de visitante
+                                this.rotacionesJugadores[`away_${info.number}`] = parseInt(pos);
+                            }
+                        }
+                    }
+                    
+                    // Guardar en localStorage para usar después
+                    localStorage.setItem(`rotaciones_${this.matchId}`, JSON.stringify(this.rotacionesJugadores));
+                    
                     this.actualizarVistaIndividuales();
                 }
             }
@@ -1065,6 +1096,8 @@ export class VolleyballDashboard {
             this.mostrarSkeleton(false);
         }
     }
+
+
     setupTabs() {
         const tp = document.getElementById('tabPartido'),
             ti = document.getElementById('tabIndividuales');
@@ -1388,7 +1421,332 @@ export class VolleyballDashboard {
         if (i.length === 0) i.push('📊 Esperando más datos para generar insights...');
         c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
     }
+    // ============================================================
+    // CALCULAR ESTADÍSTICAS POR ROTACIÓN
+    // ============================================================
+        calcularRotaciones() {
+        if (!this.puntosJugadores || this.puntosJugadores.length === 0) {
+            return null;
+        }
 
+        // Cargar rotaciones desde localStorage (guardadas en loadData)
+        const rotacionesGuardadas = localStorage.getItem(`rotaciones_${this.matchId}`);
+        let rotacionesJugadores = rotacionesGuardadas ? JSON.parse(rotacionesGuardadas) : {};
+
+        // Inicializar rotaciones del 1 al 6
+        const rotaciones = {};
+        for (let i = 1; i <= 6; i++) {
+            rotaciones[i] = {
+                puntosAFavor: 0,
+                puntosEnContra: 0,
+                ataques: 0,
+                ataquesConvertidos: 0,
+                bloqueos: 0,
+                errores: 0,
+                totalPuntos: 0
+            };
+        }
+
+        // Procesar cada punto
+        for (const punto of this.puntosJugadores) {
+            const jugador = punto.jugador;
+            
+            // ✅ NUEVO: Usar la rotación real desde la API
+            let rotacion = rotacionesJugadores[jugador];
+            
+            // Si no está en la lista (fallback), usar el cálculo por defecto
+            if (!rotacion) {
+                rotacion = ((jugador - 1) % 6) + 1;
+            }
+            
+            if (!rotaciones[rotacion]) continue;
+            
+            const r = rotaciones[rotacion];
+            
+            if (punto.equipoAnota === 'LOCAL') {
+                r.puntosAFavor++;
+                r.totalPuntos++;
+            } else if (punto.equipoAnota === 'VISITANTE') {
+                r.puntosEnContra++;
+                r.totalPuntos++;
+            }
+            
+            // Estadísticas por acción
+            switch(punto.accion) {
+                case 'ATAQUE':
+                    r.ataques++;
+                    r.ataquesConvertidos++;
+                    break;
+                case 'BLOQUEO':
+                    r.bloqueos++;
+                    break;
+                case 'ERROR':
+                    r.errores++;
+                    break;
+            }
+        }
+
+        // Calcular eficiencia por rotación
+        for (const i in rotaciones) {
+            const r = rotaciones[i];
+            const total = r.puntosAFavor + r.puntosEnContra;
+            r.eficiencia = total > 0 ? ((r.puntosAFavor / total) * 100).toFixed(1) : 0;
+            r.diferencia = r.puntosAFavor - r.puntosEnContra;
+        }
+
+        return rotaciones;
+    }
+        // ============================================================
+    // GENERAR HTML DE ROTACIONES PARA EL INFORME
+    // ============================================================
+    generarRotacionesHTML() {
+        const datos = this.calcularRotaciones();
+        if (!datos) {
+            return '<div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div>';
+        }
+
+        let html = `
+            <div class="section">
+                <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
+                <p class="text-gray-400 text-sm mb-4">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;min-width:600px;">
+                        <thead>
+                            <tr>
+                                <th>Rotación</th>
+                                <th>Puntos a favor</th>
+                                <th>Puntos en contra</th>
+                                <th>Diferencia</th>
+                                <th>Eficiencia</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+        let rotacionesFuertes = [];
+        let rotacionesDebiles = [];
+
+        for (let i = 1; i <= 6; i++) {
+            const r = datos[i];
+            if (!r || r.totalPuntos === 0) {
+                html += `<tr>
+                    <td style="padding:8px;text-align:center;">Rotación ${i}</td>
+                    <td colspan="5" style="text-align:center;color:#6b7280;">Sin datos</td>
+                </tr>`;
+                continue;
+            }
+
+            const eficiencia = parseFloat(r.eficiencia);
+            let estado = '⚖️ NEUTRA';
+            let estadoColor = '#f59e0b';
+            
+            if (eficiencia > 60) {
+                estado = '✅ FUERTE';
+                estadoColor = '#10b981';
+                rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
+            } else if (eficiencia < 40) {
+                estado = '❌ DÉBIL';
+                estadoColor = '#ef4444';
+                rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
+            }
+            
+            const diferencia = r.diferencia || 0;
+            const diferenciaColor = diferencia > 0 ? '#10b981' : (diferencia < 0 ? '#ef4444' : '#6b7280');
+            const diferenciaSigno = diferencia > 0 ? '+' : '';
+
+            html += `<tr style="border-bottom:1px solid #374151;">
+                <td style="padding:8px;font-weight:bold;">🔄 Rotación ${i}</td>
+                <td style="text-align:center;color:#3b82f6;font-weight:bold;">${r.puntosAFavor}</td>
+                <td style="text-align:center;color:#ef4444;font-weight:bold;">${r.puntosEnContra}</td>
+                <td style="text-align:center;color:${diferenciaColor};font-weight:bold;">${diferenciaSigno}${diferencia}</td>
+                <td style="text-align:center;font-weight:bold;color:${estadoColor};">${eficiencia}%</td>
+                <td style="text-align:center;color:${estadoColor};font-weight:bold;">${estado}</td>
+            </tr>`;
+        }
+
+        html += `</tbody></table></div>`;
+
+        // Insights
+        html += `<div style="margin-top:20px;">`;
+        if (rotacionesFuertes.length > 0) {
+            html += `<div style="background:rgba(16,185,129,0.1);border-left:4px solid #10b981;padding:12px;border-radius:4px;margin-bottom:10px;">
+                <span style="font-weight:bold;color:#10b981;">✅ FORTALEZAS:</span>
+                <span style="color:#e5e7eb;">${rotacionesFuertes.join(', ')}</span>
+                <div style="color:#9ca3af;font-size:12px;margin-top:4px;">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
+            </div>`;
+        }
+        if (rotacionesDebiles.length > 0) {
+            html += `<div style="background:rgba(239,68,68,0.1);border-left:4px solid #ef4444;padding:12px;border-radius:4px;">
+                <span style="font-weight:bold;color:#ef4444;">❌ DEBILIDADES:</span>
+                <span style="color:#e5e7eb;">${rotacionesDebiles.join(', ')}</span>
+                <div style="color:#9ca3af;font-size:12px;margin-top:4px;">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
+            </div>`;
+        }
+        html += `</div></div>`;
+
+        return html;
+    }
+        // ============================================================
+    // MOSTRAR ROTACIONES
+    // ============================================================
+    mostrarRotaciones() {
+        const tabla = document.getElementById('tablaRotaciones');
+        const chartCanvas = document.getElementById('rotacionesChart');
+        const insights = document.getElementById('rotacionesInsights');
+        
+        if (!tabla) return;
+
+        const datos = this.calcularRotaciones();
+        if (!datos) {
+            tabla.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">No hay suficientes datos para calcular rotaciones</td></tr>';
+            return;
+        }
+
+        // Generar tabla
+        let html = '';
+        let rotacionesFuertes = [];
+        let rotacionesDebiles = [];
+        
+        for (let i = 1; i <= 6; i++) {
+            const r = datos[i];
+            if (!r || r.totalPuntos === 0) {
+                html += `<tr class="border-b border-gray-700/50">
+                    <td class="py-2 font-medium">Rotación ${i}</td>
+                    <td class="text-center text-gray-500" colspan="5">Sin datos</td>
+                </tr>`;
+                continue;
+            }
+            
+            const eficiencia = parseFloat(r.eficiencia);
+            let estado = '⚖️ NEUTRA';
+            let estadoColor = 'text-yellow-400';
+            
+            if (eficiencia > 60) {
+                estado = '✅ FUERTE';
+                estadoColor = 'text-green-400';
+                rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
+            } else if (eficiencia < 40) {
+                estado = '❌ DÉBIL';
+                estadoColor = 'text-red-400';
+                rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
+            }
+            
+            const barColor = eficiencia > 60 ? 'bg-green-500' : (eficiencia > 40 ? 'bg-yellow-500' : 'bg-red-500');
+            
+            html += `<tr class="border-b border-gray-700/50">
+                <td class="py-2 font-medium">🔄 Rotación ${i}</td>
+                <td class="text-center font-bold text-green-400">${r.puntosAFavor}</td>
+                <td class="text-center font-bold text-red-400">${r.puntosEnContra}</td>
+                <td class="text-center font-bold ${r.diferencia > 0 ? 'text-green-400' : r.diferencia < 0 ? 'text-red-400' : 'text-gray-400'}">${r.diferencia > 0 ? '+' : ''}${r.diferencia}</td>
+                <td class="text-center">
+                    <div class="flex items-center gap-2">
+                        <div class="w-full bg-gray-700 rounded-full h-2 max-w-[100px]">
+                            <div class="${barColor} h-2 rounded-full" style="width: ${eficiencia}%"></div>
+                        </div>
+                        <span class="font-bold ${estadoColor}">${eficiencia}%</span>
+                    </div>
+                </td>
+                <td class="text-center ${estadoColor} font-bold">${estado}</td>
+            </tr>`;
+        }
+        
+        tabla.innerHTML = html;
+
+        // Generar insights
+        let insightsHtml = '';
+        if (rotacionesFuertes.length > 0) {
+            insightsHtml += `<div class="bg-green-900/20 border-l-4 border-green-500 p-3 rounded">
+                <span class="font-bold text-green-400">✅ FORTALEZAS:</span>
+                <span class="text-gray-300">${rotacionesFuertes.join(', ')}</span>
+                <div class="text-xs text-gray-400 mt-1">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
+            </div>`;
+        }
+        
+        if (rotacionesDebiles.length > 0) {
+            insightsHtml += `<div class="bg-red-900/20 border-l-4 border-red-500 p-3 rounded mt-2">
+                <span class="font-bold text-red-400">❌ DEBILIDADES:</span>
+                <span class="text-gray-300">${rotacionesDebiles.join(', ')}</span>
+                <div class="text-xs text-gray-400 mt-1">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
+            </div>`;
+        }
+        
+        if (!insightsHtml) {
+            insightsHtml = `<div class="text-gray-400 text-sm">No hay suficientes datos para generar insights de rotaciones.</div>`;
+        }
+        
+        insights.innerHTML = insightsHtml;
+
+        // Generar gráfico
+        if (chartCanvas) {
+            if (this.chartRotaciones) {
+                this.chartRotaciones.destroy();
+            }
+            
+            const labels = [];
+            const data = [];
+            const colors = [];
+            
+            for (let i = 1; i <= 6; i++) {
+                const r = datos[i];
+                if (r && r.totalPuntos > 0) {
+                    labels.push(`Rot ${i}`);
+                    data.push(parseFloat(r.eficiencia));
+                    const ef = parseFloat(r.eficiencia);
+                    if (ef > 60) colors.push('#10b981');
+                    else if (ef > 40) colors.push('#f59e0b');
+                    else colors.push('#ef4444');
+                } else {
+                    labels.push(`Rot ${i}`);
+                    data.push(0);
+                    colors.push('#4b5563');
+                }
+            }
+            
+            this.chartRotaciones = new Chart(chartCanvas, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Eficiencia %',
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.raw + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                color: '#9ca3af',
+                                callback: function(value) { return value + '%'; },
+                                font: { size: 10 }
+                            },
+                            grid: { color: '#1f2937' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#1f2937' }
+                        }
+                    }
+                }
+            });
+        }
+    }
     updateInterpretations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
         const c = document.getElementById('metricInterpretations');
         if (!c) return;
@@ -2240,7 +2598,8 @@ export class VolleyballDashboard {
                 eficienciaPorSet: eficienciaPorSet,
                 puntosPorSet: puntosPorSet,
                 localPorSet: localPorSet,
-                visitantePorSet: visitantePorSet
+                visitantePorSet: visitantePorSet,
+                rotacionesHtml: this.generarRotacionesHTML()
             };
             const reportHtml = ReporteGenerator.generarHTML(datosReporte);
             const blob = new Blob([reportHtml], { type: 'text/html' });

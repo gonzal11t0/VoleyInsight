@@ -11,7 +11,9 @@ export class ReporteGenerator {
             tablaLocal, tablaVisitante,
             eficienciaPorSet = [],
             localPorSet = {},
-            visitantePorSet = {}
+            visitantePorSet = {},
+            rotacionesHtml = ''
+
         } = d;
 
         return `<!DOCTYPE html>
@@ -204,26 +206,26 @@ export class ReporteGenerator {
             <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
-                   <thead>
-    <tr>
-        <th>Jugador</th>
-        <th>PTS</th>
-        <th>ATA</th>
-        <th>BLO</th>
-        <th>ACE</th>
-        <th>ERR</th>
-        <th>ASIS</th>
-        <th>EFI%</th>
-        <th>📥 REC</th>
-        <th>REC%</th>
-        <th>🛡️ DEF</th>
-        <th>DEF%</th>
-<th>🏐 SAQUE</th>
-        <th>❌ ERR SERV</th>
-        <th>📊 EFI SERV%</th>
-        <th>🏐 TOT SERV</th>
-    </tr>
-</thead>
+                    <thead>
+                        <tr>
+                            <th>Jugador</th>
+                            <th>PTS</th>
+                            <th>ATA</th>
+                            <th>BLO</th>
+                            <th>ACE</th>
+                            <th>ERR</th>
+                            <th>ASIS</th>
+                            <th>EFI%</th>
+                            <th>📥 REC</th>
+                            <th>REC%</th>
+                            <th>🛡️ DEF</th>
+                            <th>DEF%</th>
+                            <th>🏐 SAQUE</th>
+                            <th>❌ ERR SERV</th>
+                            <th>📊 EFI SERV%</th>
+                            <th>🏐 TOT SERV</th>
+                        </tr>
+                    </thead>
                     <tbody>${tablaLocal || '<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
@@ -233,30 +235,39 @@ export class ReporteGenerator {
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
-    <tr>
-        <th>Jugador</th>
-        <th>PTS</th>
-        <th>ATA</th>
-        <th>BLO</th>
-        <th>ACE</th>
-        <th>ERR</th>
-        <th>ASIS</th>
-        <th>EFI%</th>
-        <th>📥 REC</th>
-        <th>REC%</th>
-        <th>🛡️ DEF</th>
-        <th>DEF%</th>
-<th>🏐 SAQUE</th>
-        <th>❌ ERR SERV</th>
-        <th>📊 EFI SERV%</th>
-        <th>🏐 TOT SERV</th>
-    </tr>
-</thead>
+                        <tr>
+                            <th>Jugador</th>
+                            <th>PTS</th>
+                            <th>ATA</th>
+                            <th>BLO</th>
+                            <th>ACE</th>
+                            <th>ERR</th>
+                            <th>ASIS</th>
+                            <th>EFI%</th>
+                            <th>📥 REC</th>
+                            <th>REC%</th>
+                            <th>🛡️ DEF</th>
+                            <th>DEF%</th>
+                            <th>🏐 SAQUE</th>
+                            <th>❌ ERR SERV</th>
+                            <th>📊 EFI SERV%</th>
+                            <th>🏐 TOT SERV</th>
+                        </tr>
+                    </thead>
                     <tbody>${tablaVisitante || '<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos</td></tr>'}</tbody>
                 </table>
             </div>
         </div>
-                <div class="glosario">
+
+        <!-- ============================================================ -->
+        <!-- 🆕 ROTACIONES - SECCIÓN INDEPENDIENTE -->
+        <!-- ============================================================ -->
+        ${rotacionesHtml || '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>'}
+
+        <!-- ============================================================ -->
+        <!-- GLOSARIO -->
+        <!-- ============================================================ -->
+        <div class="glosario">
             <div class="glosario-title">📖 ¿QUÉ SIGNIFICAN ESTOS NÚMEROS?</div>
             
             <!-- 1. RACHA MÁXIMA -->
@@ -349,6 +360,7 @@ export class ReporteGenerator {
                 </div>
             </div>
         </div>
+    </div>
     <script>
         const eficienciaData = ${JSON.stringify(eficienciaPorSet)};
         console.log('📊 Reporte - eficienciaData:', eficienciaData);
