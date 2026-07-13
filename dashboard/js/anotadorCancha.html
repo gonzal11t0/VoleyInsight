@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prueba Rotación</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #0a0c15; color: white; }
+        .cancha { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #E7CC8D; padding: 20px; border-radius: 12px; max-width: 500px; margin: 0 auto; }
+        .equipo { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; text-align: center; }
+        .jugador { display: inline-block; background: #D5BA76; border-radius: 50%; padding: 10px 15px; margin: 4px; font-weight: bold; }
+        .local .jugador { background: #93C5FD; border: 2px solid #3B82F6; }
+        .visitante .jugador { background: #FCA5A5; border: 2px solid #EF4444; }
+        .info { text-align: center; margin-bottom: 20px; font-size: 18px; }
+        .botones { text-align: center; margin-top: 20px; }
+        button { padding: 10px 20px; margin: 5px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-local { background: #3B82F6; color: white; }
+        .btn-visitante { background: #EF4444; color: white; }
+        .btn-confirmar { background: #10B981; color: white; padding: 12px 30px; }
+    </style>
+</head>
+<body>
+
+    <div class="info">
+        <span id="rotDisplay">🔄 LOCAL: 1 | VISITANTE: 1</span>
+        <br>
+        <span id="marcador">0 - 0</span>
+        <br>
+        <span id="servingDisplay">🏐 SACA LOCAL</span>
+    </div>
+
+    <div class="cancha" id="cancha">
+        <div class="equipo local" id="equipoLocal">
+            <h3>LOCAL</h3>
+            <div id="jugadoresLocal"></div>
+        </div>
+        <div class="equipo visitante" id="equipoVisitante">
+            <h3>VISITANTE</h3>
+            <div id="jugadoresVisitante"></div>
+        </div>
+    </div>
+
+    <div class="botones">
+        <button class="btn-local" id="btnLocal">🔵 LOCAL</button>
+        <button class="btn-visitante" id="btnVisitante">🔴 VISITANTE</button>
+        <br><br>
+        <button class="btn-confirmar" id="confirmarBtn">✅ CONFIRMAR PUNTO</button>
+        <br>
+        <button id="resetBtn">🔄 Resetear</button>
+    </div>
+
+    <script>
+        // ============================================================
+        // ESTADO
+        // ============================================================
+        const estado = {
+            local: { score: 0 },
+            visitante: { score: 0 },
+            equipo: 'LOCAL',
+            set: 1,
+            punto: 0,
+            rotacionLocal: 1,
+            rotacionVisitante: 1,
+            equipoQueSacaba: 'LOCAL',
+        };
+
+        // ============================================================
+        // JUGADORES (6 por equipo)
+        // ============================================================
+        const jugadores = {
+            local: [
+                { numero: 10, nombre: 'Lazarte' },
+                { numero: 3, nombre: 'Rios' },
+                { numero: 11, nombre: 'Montez' },
+                { numero: 21, nombre: 'Benitez' },
+                { numero: 2, nombre: 'Pucheta' },
+                { numero: 18, nombre: 'Lezcano' }
+            ],
+            visitante: [
+                { numero: 1, nombre: 'Suarez' },
+                { numero: 7, nombre: 'Goggi' },
+                { numero: 9, nombre: 'Pagano' },
+                { numero: 13, nombre: 'Maier' },
+                { numero: 16, nombre: 'Stark' },
+                { numero: 23, nombre: 'Calvano' }
+            ]
+        };
+
+        // ============================================================
+        // FUNCIONES
+        // ============================================================
+
+        function obtenerJugadoresRotados(equipo) {
+            const lista = jugadores[equipo];
+            if (lista.length === 0) return lista;
+            
+            const rotacion = equipo === 'local' ? estado.rotacionLocal : estado.rotacionVisitante;
+            const offset = (rotacion - 1) % lista.length;
+            const rotados = [];
+            for (let i = 0; i < lista.length; i++) {
+                const idx = (i + offset) % lista.length;
+                rotados.push(lista[idx]);
+            }
+            return rotados;
+        }
+
+        function renderizarCancha() {
+            const containerLocal = document.getElementById('jugadoresLocal');
+            const containerVisitante = document.getElementById('jugadoresVisitante');
+
+            const jugadoresLocalRotados = obtenerJugadoresRotados('local');
+            const jugadoresVisitanteRotados = obtenerJugadoresRotados('visitante');
+
+            // LOCAL
+            containerLocal.innerHTML = '';
+            jugadoresLocalRotados.forEach(j => {
+                const div = document.createElement('span');
+                div.className = 'jugador';
+                div.textContent = `${j.numero}`;
+                div.title = j.nombre;
+                containerLocal.appendChild(div);
+            });
+
+            // VISITANTE
+            containerVisitante.innerHTML = '';
+            jugadoresVisitanteRotados.forEach(j => {
+                const div = document.createElement('span');
+                div.className = 'jugador';
+                div.textContent = `${j.numero}`;
+                div.title = j.nombre;
+                containerVisitante.appendChild(div);
+            });
+
+            // Actualizar display de rotación
+            document.getElementById('rotDisplay').textContent = 
+                `🔄 LOCAL: ${estado.rotacionLocal} | VISITANTE: ${estado.rotacionVisitante}`;
+            
+            document.getElementById('marcador').textContent = 
+                `${estado.local.score} - ${estado.visitante.score}`;
+            
+            const servingText = estado.equipoQueSacaba === 'LOCAL' ? 'LOCAL' : 'VISITANTE';
+            document.getElementById('servingDisplay').textContent = `🏐 SACA ${servingText}`;
+        }
+
+        // ============================================================
+        // CONFIRMAR PUNTO (simulado)
+        // ============================================================
+        document.getElementById('confirmarBtn').onclick = () => {
+            // Determinar quién anota (alterna para probar)
+            // En la versión real, esto vendría de la acción seleccionada
+            const equipoAnota = estado.equipo;
+
+            // Sumar punto
+            if (equipoAnota === 'LOCAL') {
+                estado.local.score++;
+            } else {
+                estado.visitante.score++;
+            }
+
+            // ✅ Actualizar rotación SOLO del equipo que anotó (recuperó el saque)
+            if (equipoAnota !== estado.equipoQueSacaba) {
+                if (equipoAnota === 'LOCAL') {
+                    estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
+                    console.log(`🔄 LOCAL rota a ${estado.rotacionLocal}`);
+                } else {
+                    estado.rotacionVisitante = (estado.rotacionVisitante % 6) + 1;
+                    console.log(`🔄 VISITANTE rota a ${estado.rotacionVisitante}`);
+                }
+                estado.equipoQueSacaba = equipoAnota;
+            }
+
+            estado.punto++;
+            renderizarCancha();
+
+            console.log('📊 Estado:', {
+                rotacionLocal: estado.rotacionLocal,
+                rotacionVisitante: estado.rotacionVisitante,
+                equipoQueSacaba: estado.equipoQueSacaba,
+                marcador: `${estado.local.score}-${estado.visitante.score}`
+            });
+        };
+
+        // ============================================================
+        // SELECCIONAR EQUIPO
+        // ============================================================
+        document.getElementById('btnLocal').onclick = () => {
+            estado.equipo = 'LOCAL';
+            document.getElementById('btnLocal').style.outline = '2px solid white';
+            document.getElementById('btnVisitante').style.outline = 'none';
+            console.log('🔵 LOCAL seleccionado');
+        };
+
+        document.getElementById('btnVisitante').onclick = () => {
+            estado.equipo = 'VISITANTE';
+            document.getElementById('btnVisitante').style.outline = '2px solid white';
+            document.getElementById('btnLocal').style.outline = 'none';
+            console.log('🔴 VISITANTE seleccionado');
+        };
+
+        // ============================================================
+        // RESET
+        // ============================================================
+        document.getElementById('resetBtn').onclick = () => {
+            estado.local.score = 0;
+            estado.visitante.score = 0;
+            estado.punto = 0;
+            estado.rotacionLocal = 1;
+            estado.rotacionVisitante = 1;
+            estado.equipoQueSacaba = 'LOCAL';
+            renderizarCancha();
+            console.log('🔄 Reset');
+        };
+
+        // ============================================================
+        // INICIAR
+        // ============================================================
+        // Seleccionar LOCAL por defecto
+        document.getElementById('btnLocal').style.outline = '2px solid white';
+        renderizarCancha();
+        console.log('🏐 Prueba de rotación iniciada');
+        console.log('🎮 1. Seleccioná LOCAL o VISITANTE');
+        console.log('   2. Apretá CONFIRMAR PUNTO para simular un punto');
+        console.log('   3. Observá cómo cambian las rotaciones en el display');
+        console.log('   📌 Solo el equipo que anota debería rotar');
+    </script>
+</body>
+</html>

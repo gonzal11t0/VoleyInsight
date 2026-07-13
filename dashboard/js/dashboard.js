@@ -36,7 +36,10 @@ export class VolleyballDashboard {
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
         this.offlineMode = false;
         this.chartRotaciones = null;
+        window.dashboard = this;
+
         this.setupEventListeners();
+        this.setupModalEvents();
 
         this.mostrarSkeleton(true);
         setTimeout(() => this.mostrarSkeleton(false), 5000);
@@ -77,15 +80,65 @@ export class VolleyballDashboard {
         }, 25000);
     }
 
-    async obtenerUrlApi() {
-    // Usar la misma URL que el dashboard (Cloudflare o localhost)
-    const url = window.location.origin;
-    console.log('📡 API URL (misma que dashboard):', url);
-    return url;
-}
+
+    destruirGrafico(canvasId, chartKey) {
+        if (this.charts[chartKey]) {
+            this.charts[chartKey].destroy();
+            this.charts[chartKey] = null;
+        }
+        const canvas = document.getElementById(canvasId);
+        if (canvas) {
+            const parent = canvas.parentNode;
+            if (parent) {
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = canvasId;
+                newCanvas.className = canvas.className;
+                parent.replaceChild(newCanvas, canvas);
+            }
+        }
+    }
 
     // ============================================================
-    // NUEVO: Cargar puntos manuales desde el servidor
+    // EVENTOS DEL MODAL DE ROTACIÓN
+    // ============================================================
+    setupModalEvents() {
+        const modal = document.getElementById('modalRotacion');
+        const cerrarBtn = document.getElementById('modalRotacionCerrar');
+        
+        this.cerrarModalRotacion = () => {
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        };
+        
+        if (cerrarBtn) {
+            cerrarBtn.addEventListener('click', this.cerrarModalRotacion);
+        }
+        
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    this.cerrarModalRotacion();
+                }
+            });
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                this.cerrarModalRotacion();
+            }
+        });
+    }
+
+    async obtenerUrlApi() {
+        const url = window.location.origin;
+        return url;
+    }
+
+    // ============================================================
+    // CARGAR PUNTOS MANUALES DESDE EL SERVIDOR
     // ============================================================
 
     async cargarPuntosJugadores() {
@@ -117,7 +170,7 @@ export class VolleyballDashboard {
     }
 
     // ============================================================
-    // NUEVO: Recargar puntos manuales (usado por WebSocket)
+    // RECARGAR PUNTOS MANUALES (usado por WebSocket)
     // ============================================================
 
     async recargarPuntosManuales() {
@@ -135,19 +188,17 @@ export class VolleyballDashboard {
     }
 
     // ============================================================
-    // MODIFICADO: startAutoRefreshPuntos - ya no usa localStorage
+    // startAutoRefreshPuntos - ya no usa localStorage
     // ============================================================
 
     startAutoRefreshPuntos() {
-        // Ya no es necesario, los puntos se actualizan via WebSocket
-        // pero lo dejamos como respaldo cada 10 segundos
         setInterval(() => {
             this.recargarPuntosManuales();
         }, 10000);
     }
 
     // ============================================================
-    // MODIFICADO: connectWebSocket - agregar listener para punto_manual
+    // connectWebSocket - agregar listener para punto_manual
     // ============================================================
 
     async connectWebSocket() {
@@ -169,7 +220,6 @@ export class VolleyballDashboard {
                     }, 2000);
                 });
 
-                // NUEVO: Escuchar puntos manuales de otros dispositivos
                 this.socket.on('punto_manual', (punto) => {
                     console.log('📝 Punto manual recibido:', punto);
                     this.recargarPuntosManuales();
@@ -193,7 +243,7 @@ export class VolleyballDashboard {
     }
 
     // ============================================================
-    // EL RESTO DEL CÓDIGO ES IGUAL (no se modifica)
+    // LIMPIAR DOM
     // ============================================================
 
     limpiarDOMCompletamente() {
@@ -656,7 +706,6 @@ export class VolleyballDashboard {
             const response = await fetch('/data/reglamento.json');
             if (response.ok) {
                 this.reglamento = await response.json();
-                console.log('✅ Reglamento cargado');
                 return true;
             }
         } catch (e) { console.error('Error cargando reglamento:', e); }
@@ -834,17 +883,16 @@ export class VolleyballDashboard {
         startInterval(10000);
     }
 
-       obtenerEquipoAnalisis() {
-        // Si ATTITUDE está jugando, analizar ATTITUDE
+    obtenerEquipoAnalisis() {
         if (this.homeTeamName === 'ATTITUDE') {
             return { nombre: this.homeTeamName, equipo: 'HOME', esAttitude: true };
         }
         if (this.awayTeamName === 'ATTITUDE') {
             return { nombre: this.awayTeamName, equipo: 'AWAY', esAttitude: true };
         }
-        // Si no, analizar al equipo LOCAL
         return { nombre: this.homeTeamName, equipo: 'HOME', esAttitude: false };
     }
+
     actualizarSets() {
         const container = document.getElementById('setsList');
         if (!container) return;
@@ -957,7 +1005,7 @@ export class VolleyballDashboard {
         return false;
     }
 
-       async loadData() {
+    async loadData() {
         const offlineManager = new OfflineManager();
         if (this.offlineMode) {
             const cachedData = await offlineManager.getMatchData(this.matchId);
@@ -1002,11 +1050,6 @@ export class VolleyballDashboard {
                 this.cargarTimeouts();
                 const court = findCourt(fullData);
                 if (court) {
-                    // ============================================================
-                    // ✅ CARGAR NOMBRES REALES DESDE LA API
-                    // ============================================================
-                    
-                    // LOCAL - Posiciones en cancha
                     if (court.home?.positions) {
                         for (const [pos, info] of Object.entries(court.home.positions)) {
                             if (info.number && info.lastName) {
@@ -1016,7 +1059,6 @@ export class VolleyballDashboard {
                             }
                         }
                     }
-                    // LOCAL - Suplentes
                     if (court.home?.bench) {
                         for (const info of court.home.bench) {
                             if (info.number && info.lastName && !this.jugadoresLocal[info.number]) {
@@ -1026,8 +1068,6 @@ export class VolleyballDashboard {
                             }
                         }
                     }
-                    
-                    // VISITANTE - Posiciones en cancha
                     if (court.away?.positions) {
                         for (const [pos, info] of Object.entries(court.away.positions)) {
                             if (info.number && info.lastName) {
@@ -1037,7 +1077,6 @@ export class VolleyballDashboard {
                             }
                         }
                     }
-                    // VISITANTE - Suplentes
                     if (court.away?.bench) {
                         for (const info of court.away.bench) {
                             if (info.number && info.lastName && !this.jugadoresVisitante[info.number]) {
@@ -1047,41 +1086,24 @@ export class VolleyballDashboard {
                             }
                         }
                     }
-                    
-                    // ============================================================
-                    // ✅ GUARDAR EN LOCALSTORAGE PARA COMPARTIR CON EL ANOTADOR
-                    // ============================================================
                     localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
                     localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
-                    
-                    // ============================================================
-                    // ✅ NUEVO: GUARDAR ROTACIONES DESDE LA FORMACIÓN INICIAL
-                    // ============================================================
                     this.rotacionesJugadores = {};
-                    
-                    // LOCAL
                     if (court.home?.positions) {
                         for (const [pos, info] of Object.entries(court.home.positions)) {
                             if (info.number) {
-                                // Guardar: número de jugador → posición (que es la rotación)
                                 this.rotacionesJugadores[info.number] = parseInt(pos);
                             }
                         }
                     }
-                    
-                    // VISITANTE (si querés tener rotaciones del visitante también)
                     if (court.away?.positions) {
                         for (const [pos, info] of Object.entries(court.away.positions)) {
                             if (info.number) {
-                                // Usamos un prefijo para distinguir local de visitante
                                 this.rotacionesJugadores[`away_${info.number}`] = parseInt(pos);
                             }
                         }
                     }
-                    
-                    // Guardar en localStorage para usar después
                     localStorage.setItem(`rotaciones_${this.matchId}`, JSON.stringify(this.rotacionesJugadores));
-                    
                     this.actualizarVistaIndividuales();
                 }
             }
@@ -1096,7 +1118,6 @@ export class VolleyballDashboard {
             this.mostrarSkeleton(false);
         }
     }
-
 
     setupTabs() {
         const tp = document.getElementById('tabPartido'),
@@ -1224,7 +1245,7 @@ export class VolleyballDashboard {
         bc.classList.remove('hidden');
     }
 
-        setupEventListeners() {
+    setupEventListeners() {
         document.getElementById('saveHTMLBtn')?.addEventListener('click', () => this.saveAsHTML());
         document.getElementById('refreshBtn')?.addEventListener('click', () => this.loadData());
         document.getElementById('soundToggleBtn')?.addEventListener('click', () => {
@@ -1233,9 +1254,6 @@ export class VolleyballDashboard {
             if (enabled && this.soundManager.audioContext) this.soundManager.audioContext.resume();
         });
 
-        // ============================================================
-        // BOTONES DEL MENÚ MÓVIL (SOLO EVENTOS, SIN CLONAR)
-        // ============================================================
         const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
         if (saveHTMLBtnMobile) {
             saveHTMLBtnMobile.addEventListener('click', () => {
@@ -1290,15 +1308,12 @@ export class VolleyballDashboard {
             });
         }
     }
-    // ============================================================
-    // REASIGNAR EVENTOS DEL MENÚ MÓVIL
-    // ============================================================
+
     reasignarEventosMenuMovil() {
         console.log('🔄 Reasignando eventos del menú móvil...');
         
         const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
         if (saveHTMLBtnMobile) {
-            // Remover eventos anteriores (si los hay) y agregar nuevo
             const newBtn = saveHTMLBtnMobile.cloneNode(true);
             saveHTMLBtnMobile.parentNode.replaceChild(newBtn, saveHTMLBtnMobile);
             newBtn.addEventListener('click', () => {
@@ -1341,6 +1356,7 @@ export class VolleyballDashboard {
             console.log('✅ Selector de refresco reasignado');
         }
     }
+
     actualizarHoraUltimoPunto() {
         const c = document.getElementById('lastPointTime');
         if (!c) return;
@@ -1382,87 +1398,56 @@ export class VolleyballDashboard {
         ).join('');
     }
 
-        updateInsightsList(homeEfficiency, homeBreaks) {
+    updateInsightsList(homeEfficiency, homeBreaks) {
         const c = document.getElementById('insightsList');
         if (!c) return;
-        
-        // Obtener el equipo a analizar
         const equipoAnalisis = this.obtenerEquipoAnalisis();
         const nombreEquipo = equipoAnalisis.nombre;
-        const esAttitude = equipoAnalisis.esAttitude;
         const eficiencia = equipoAnalisis.equipo === 'HOME' ? homeEfficiency : this.awayEfficiency;
         const breaks = equipoAnalisis.equipo === 'HOME' ? homeBreaks : this.awayBreaks;
-        
         const i = [];
         if (eficiencia > 60) i.push(`🏆 DOMINIO TOTAL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
         else if (eficiencia > 55) i.push(`✅ CONTROL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
         else if (eficiencia > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${nombreEquipo} ganó ${eficiencia}% vs rival.`);
         else if (eficiencia < 45 && eficiencia > 0) i.push(`⚠️ SUPERADO: ${nombreEquipo} solo ganó ${eficiencia}% de los puntos.`);
-        
         if (breaks > 12) i.push(`⚡ EFECTIVO EN QUIEBRES: ${breaks} veces quebró el saque rival.`);
         else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS QUIEBRES: Solo ${breaks} veces quebró el saque. Mejorar recepción.`);
-        
-        // Sideout y Breakpoint
         const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
         const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
         const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
         const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
-        
         if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%) cuando tiene el saque.`);
         else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Problemas con saque propio.`);
-        
         if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). Buena recepción y contraataque.`);
         else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Dificultad para romper saque rival.`);
-        
         const clutch = parseFloat(document.getElementById('clutchHome')?.textContent) || 0;
         if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${clutch}% bajo presión.`);
         else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: Solo ${clutch}% en momentos críticos.`);
-        
         if (i.length === 0) i.push('📊 Esperando más datos para generar insights...');
         c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
     }
-    // ============================================================
-    // CALCULAR ESTADÍSTICAS POR ROTACIÓN
-    // ============================================================
-        calcularRotaciones() {
+
+    calcularRotaciones() {
         if (!this.puntosJugadores || this.puntosJugadores.length === 0) {
             return null;
         }
-
-        // Cargar rotaciones desde localStorage (guardadas en loadData)
-        const rotacionesGuardadas = localStorage.getItem(`rotaciones_${this.matchId}`);
-        let rotacionesJugadores = rotacionesGuardadas ? JSON.parse(rotacionesGuardadas) : {};
-
-        // Inicializar rotaciones del 1 al 6
         const rotaciones = {};
         for (let i = 1; i <= 6; i++) {
-            rotaciones[i] = {
-                puntosAFavor: 0,
-                puntosEnContra: 0,
-                ataques: 0,
-                ataquesConvertidos: 0,
-                bloqueos: 0,
-                errores: 0,
-                totalPuntos: 0
-            };
+            rotaciones[i] = { puntosAFavor: 0, puntosEnContra: 0, totalPuntos: 0 };
         }
-
-        // Procesar cada punto
         for (const punto of this.puntosJugadores) {
-            const jugador = punto.jugador;
-            
-            // ✅ NUEVO: Usar la rotación real desde la API
-            let rotacion = rotacionesJugadores[jugador];
-            
-            // Si no está en la lista (fallback), usar el cálculo por defecto
+            let rotacion = null;
+            if (punto.equipo === 'LOCAL' && punto.rotacionLocal) {
+                rotacion = punto.rotacionLocal;
+            } else if (punto.equipo === 'VISITANTE' && punto.rotacionVisitante) {
+                rotacion = punto.rotacionVisitante;
+            }
             if (!rotacion) {
+                const jugador = punto.jugador;
                 rotacion = ((jugador - 1) % 6) + 1;
             }
-            
             if (!rotaciones[rotacion]) continue;
-            
             const r = rotaciones[rotacion];
-            
             if (punto.equipoAnota === 'LOCAL') {
                 r.puntosAFavor++;
                 r.totalPuntos++;
@@ -1470,157 +1455,209 @@ export class VolleyballDashboard {
                 r.puntosEnContra++;
                 r.totalPuntos++;
             }
-            
-            // Estadísticas por acción
-            switch(punto.accion) {
-                case 'ATAQUE':
-                    r.ataques++;
-                    r.ataquesConvertidos++;
-                    break;
-                case 'BLOQUEO':
-                    r.bloqueos++;
-                    break;
-                case 'ERROR':
-                    r.errores++;
-                    break;
-            }
         }
-
-        // Calcular eficiencia por rotación
         for (const i in rotaciones) {
             const r = rotaciones[i];
             const total = r.puntosAFavor + r.puntosEnContra;
             r.eficiencia = total > 0 ? ((r.puntosAFavor / total) * 100).toFixed(1) : 0;
             r.diferencia = r.puntosAFavor - r.puntosEnContra;
         }
-
         return rotaciones;
     }
-        // ============================================================
-    // GENERAR HTML DE ROTACIONES PARA EL INFORME
+
     // ============================================================
-    generarRotacionesHTML() {
-        const datos = this.calcularRotaciones();
-        if (!datos) {
-            return '<div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div>';
-        }
-
-        let html = `
-            <div class="section">
-                <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
-                <p class="text-gray-400 text-sm mb-4">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
-                <div style="overflow-x:auto;">
-                    <table style="width:100%;border-collapse:collapse;min-width:600px;">
-                        <thead>
-                            <tr>
-                                <th>Rotación</th>
-                                <th>Puntos a favor</th>
-                                <th>Puntos en contra</th>
-                                <th>Diferencia</th>
-                                <th>Eficiencia</th>
-                                <th>Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-        let rotacionesFuertes = [];
-        let rotacionesDebiles = [];
-
-        for (let i = 1; i <= 6; i++) {
-            const r = datos[i];
-            if (!r || r.totalPuntos === 0) {
-                html += `<tr>
-                    <td style="padding:8px;text-align:center;">Rotación ${i}</td>
-                    <td colspan="5" style="text-align:center;color:#6b7280;">Sin datos</td>
-                </tr>`;
-                continue;
-            }
-
-            const eficiencia = parseFloat(r.eficiencia);
-            let estado = '⚖️ NEUTRA';
-            let estadoColor = '#f59e0b';
-            
-            if (eficiencia > 60) {
-                estado = '✅ FUERTE';
-                estadoColor = '#10b981';
-                rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
-            } else if (eficiencia < 40) {
-                estado = '❌ DÉBIL';
-                estadoColor = '#ef4444';
-                rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
-            }
-            
-            const diferencia = r.diferencia || 0;
-            const diferenciaColor = diferencia > 0 ? '#10b981' : (diferencia < 0 ? '#ef4444' : '#6b7280');
-            const diferenciaSigno = diferencia > 0 ? '+' : '';
-
-            html += `<tr style="border-bottom:1px solid #374151;">
-                <td style="padding:8px;font-weight:bold;">🔄 Rotación ${i}</td>
-                <td style="text-align:center;color:#3b82f6;font-weight:bold;">${r.puntosAFavor}</td>
-                <td style="text-align:center;color:#ef4444;font-weight:bold;">${r.puntosEnContra}</td>
-                <td style="text-align:center;color:${diferenciaColor};font-weight:bold;">${diferenciaSigno}${diferencia}</td>
-                <td style="text-align:center;font-weight:bold;color:${estadoColor};">${eficiencia}%</td>
-                <td style="text-align:center;color:${estadoColor};font-weight:bold;">${estado}</td>
-            </tr>`;
-        }
-
-        html += `</tbody></table></div>`;
-
-        // Insights
-        html += `<div style="margin-top:20px;">`;
-        if (rotacionesFuertes.length > 0) {
-            html += `<div style="background:rgba(16,185,129,0.1);border-left:4px solid #10b981;padding:12px;border-radius:4px;margin-bottom:10px;">
-                <span style="font-weight:bold;color:#10b981;">✅ FORTALEZAS:</span>
-                <span style="color:#e5e7eb;">${rotacionesFuertes.join(', ')}</span>
-                <div style="color:#9ca3af;font-size:12px;margin-top:4px;">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
-            </div>`;
-        }
-        if (rotacionesDebiles.length > 0) {
-            html += `<div style="background:rgba(239,68,68,0.1);border-left:4px solid #ef4444;padding:12px;border-radius:4px;">
-                <span style="font-weight:bold;color:#ef4444;">❌ DEBILIDADES:</span>
-                <span style="color:#e5e7eb;">${rotacionesDebiles.join(', ')}</span>
-                <div style="color:#9ca3af;font-size:12px;margin-top:4px;">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
-            </div>`;
-        }
-        html += `</div></div>`;
-
-        return html;
+// GENERAR ROTACIONES HTML PARA EL REPORTE (CON FORMACIÓN)
+// ============================================================
+// ============================================================
+// GENERAR ROTACIONES HTML PARA EL REPORTE (CON FORMACIÓN)
+// ============================================================
+generarRotacionesHTML() {
+    const datos = this.calcularRotaciones();
+    if (!datos) {
+        return '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>';
     }
-        // ============================================================
-    // MOSTRAR ROTACIONES
-    // ============================================================
+
+    // Función para obtener los jugadores en una rotación específica
+    const obtenerJugadoresEnRotacion = (equipo, rotacionNum) => {
+        const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
+        
+        // Si no hay jugadores reales, usar predefinidos
+        if (Object.keys(jugadoresMap).length === 0) {
+            const predefinidos = equipo === 'LOCAL' 
+                ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
+                : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
+            const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
+                numero: parseInt(num),
+                nombre: nombre,
+                nombreCorto: nombre?.split(' ')[0] || `J${num}`
+            }));
+            const offset = (rotacionNum - 1) % lista.length;
+            const rotados = [];
+            for (let i = 0; i < lista.length; i++) {
+                rotados.push(lista[(i + offset) % lista.length]);
+            }
+            return rotados.slice(0, 6);
+        }
+        
+        // Usar jugadores reales
+        const jugadoresLista = Object.entries(jugadoresMap)
+            .filter(([num]) => !isNaN(parseInt(num)))
+            .map(([num, nombre]) => ({
+                numero: parseInt(num),
+                nombre: nombre,
+                nombreCorto: nombre?.split(' ')[0] || `J${num}`
+            }));
+        jugadoresLista.sort((a, b) => a.numero - b.numero);
+        const offset = (rotacionNum - 1) % jugadoresLista.length;
+        const rotados = [];
+        for (let i = 0; i < jugadoresLista.length; i++) {
+            rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
+        }
+        return rotados.slice(0, 6);
+    };
+
+    let html = `
+        <div class="section">
+            <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
+            <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+            
+            <div style="overflow-x:auto; margin-bottom: 20px;">
+                <table style="width:100%;border-collapse:collapse;min-width:900px;background:#1a1f2e;border-radius:12px;overflow:hidden;">
+                    <thead>
+                        <tr style="background:#0f1119;border-bottom:2px solid #2d3748;">
+                            <th style="text-align:left; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Rotación</th>
+                            <th style="text-align:center; padding:12px 10px; color:#93c5fd; font-weight:600; font-size:11px; text-transform:uppercase;">Formación LOCAL</th>
+                            <th style="text-align:center; padding:12px 10px; color:#fca5a5; font-weight:600; font-size:11px; text-transform:uppercase;">Formación VISITANTE</th>
+                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts F</th>
+                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts C</th>
+                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Eficiencia</th>
+                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+    for (let i = 1; i <= 6; i++) {
+        const r = datos[i];
+        const tieneDatos = r && r.totalPuntos > 0;
+        
+        // ✅ SOLO calcular formación si HAY datos en esa rotación
+        let localNombres = 'Sin datos';
+        let visitanteNombres = 'Sin datos';
+        
+        if (tieneDatos) {
+            const jugadoresLocal = obtenerJugadoresEnRotacion('LOCAL', i);
+            const jugadoresVisitante = obtenerJugadoresEnRotacion('VISITANTE', i);
+            
+            localNombres = jugadoresLocal.map(j => 
+                `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
+            ).join(' • ');
+            
+            visitanteNombres = jugadoresVisitante.map(j => 
+                `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
+            ).join(' • ');
+        }
+
+        if (!tieneDatos) {
+            html += `<tr style="border-bottom:1px solid #2d3748;">
+                <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
+                <td colspan="6" style="text-align:center; color:#6b7280; padding:12px 10px; font-style:italic;">⚠️ Sin datos - Esta rotación no se jugó</td>
+            </tr>`;
+            continue;
+        }
+
+        const eficiencia = parseFloat(r.eficiencia);
+        let estado = '⚖️ NEUTRA';
+        let estadoColor = '#f59e0b';
+        
+        if (eficiencia > 60) {
+            estado = '✅ FUERTE';
+            estadoColor = '#10b981';
+        } else if (eficiencia < 40) {
+            estado = '❌ DÉBIL';
+            estadoColor = '#ef4444';
+        }
+        
+        const diferencia = r.diferencia || 0;
+        const diferenciaColor = diferencia > 0 ? '#10b981' : (diferencia < 0 ? '#ef4444' : '#6b7280');
+
+        html += `<tr style="border-bottom:1px solid #2d3748;">
+            <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
+            <td style="text-align:center; color:#93c5fd; font-size:11px; padding:12px 10px; background:rgba(59,130,246,0.05); border-radius:4px;">
+                ${localNombres}
+            </td>
+            <td style="text-align:center; color:#fca5a5; font-size:11px; padding:12px 10px; background:rgba(239,68,68,0.05); border-radius:4px;">
+                ${visitanteNombres}
+            </td>
+            <td style="text-align:center; color:#3b82f6; font-weight:bold; padding:12px 10px;">${r.puntosAFavor}</td>
+            <td style="text-align:center; color:#ef4444; font-weight:bold; padding:12px 10px;">${r.puntosEnContra}</td>
+            <td style="text-align:center; font-weight:bold; color:${estadoColor}; padding:12px 10px;">${eficiencia}%</td>
+            <td style="text-align:center; color:${estadoColor}; font-weight:bold; padding:12px 10px;">${estado}</td>
+        </tr>`;
+    }
+
+    html += `</tbody></table></div>`;
+
+    // Insights (solo con rotaciones que tienen datos)
+    let rotacionesFuertes = [];
+    let rotacionesDebiles = [];
+    for (let i = 1; i <= 6; i++) {
+        const r = datos[i];
+        if (!r || r.totalPuntos === 0) continue;
+        const eficiencia = parseFloat(r.eficiencia);
+        if (eficiencia > 60) rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
+        else if (eficiencia < 40) rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
+    }
+
+    html += `<div style="margin-top:20px;">`;
+    if (rotacionesFuertes.length > 0) {
+        html += `<div style="background:rgba(16,185,129,0.1); border-left:4px solid #10b981; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
+            <span style="font-weight:bold; color:#10b981;">✅ FORTALEZAS:</span>
+            <span style="color:#e5e7eb;">${rotacionesFuertes.join(', ')}</span>
+            <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
+        </div>`;
+    }
+    if (rotacionesDebiles.length > 0) {
+        html += `<div style="background:rgba(239,68,68,0.1); border-left:4px solid #ef4444; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
+            <span style="font-weight:bold; color:#ef4444;">❌ DEBILIDADES:</span>
+            <span style="color:#e5e7eb;">${rotacionesDebiles.join(', ')}</span>
+            <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
+        </div>`;
+    }
+    if (rotacionesFuertes.length === 0 && rotacionesDebiles.length === 0) {
+        html += `<div style="text-align:center; color:#6b7280; padding:10px;">No hay suficientes datos para generar insights de rotaciones.</div>`;
+    }
+    html += `</div></div>`;
+
+    return html;
+}
+
     mostrarRotaciones() {
         const tabla = document.getElementById('tablaRotaciones');
         const chartCanvas = document.getElementById('rotacionesChart');
         const insights = document.getElementById('rotacionesInsights');
-        
         if (!tabla) return;
-
         const datos = this.calcularRotaciones();
         if (!datos) {
             tabla.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">No hay suficientes datos para calcular rotaciones</td></tr>';
             return;
         }
-
-        // Generar tabla
         let html = '';
         let rotacionesFuertes = [];
         let rotacionesDebiles = [];
-        
         for (let i = 1; i <= 6; i++) {
             const r = datos[i];
             if (!r || r.totalPuntos === 0) {
                 html += `<tr class="border-b border-gray-700/50">
-                    <td class="py-2 font-medium">Rotación ${i}</td>
+                    <td class="py-2 font-medium">
+                        <button onclick="window.dashboard.mostrarDetalleRotacion(${i})" class="text-primary hover:text-secondary transition-all text-left flex items-center gap-2">🏐 Rotación ${i}</button>
+                    </td>
                     <td class="text-center text-gray-500" colspan="5">Sin datos</td>
                 </tr>`;
                 continue;
             }
-            
             const eficiencia = parseFloat(r.eficiencia);
             let estado = '⚖️ NEUTRA';
             let estadoColor = 'text-yellow-400';
-            
             if (eficiencia > 60) {
                 estado = '✅ FUERTE';
                 estadoColor = 'text-green-400';
@@ -1630,11 +1667,11 @@ export class VolleyballDashboard {
                 estadoColor = 'text-red-400';
                 rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
             }
-            
             const barColor = eficiencia > 60 ? 'bg-green-500' : (eficiencia > 40 ? 'bg-yellow-500' : 'bg-red-500');
-            
             html += `<tr class="border-b border-gray-700/50">
-                <td class="py-2 font-medium">🔄 Rotación ${i}</td>
+                <td class="py-2 font-medium">
+                    <button onclick="window.dashboard.mostrarDetalleRotacion(${i})" class="text-primary hover:text-secondary transition-all text-left flex items-center gap-2">🏐 Rotación ${i}</button>
+                </td>
                 <td class="text-center font-bold text-green-400">${r.puntosAFavor}</td>
                 <td class="text-center font-bold text-red-400">${r.puntosEnContra}</td>
                 <td class="text-center font-bold ${r.diferencia > 0 ? 'text-green-400' : r.diferencia < 0 ? 'text-red-400' : 'text-gray-400'}">${r.diferencia > 0 ? '+' : ''}${r.diferencia}</td>
@@ -1649,10 +1686,7 @@ export class VolleyballDashboard {
                 <td class="text-center ${estadoColor} font-bold">${estado}</td>
             </tr>`;
         }
-        
         tabla.innerHTML = html;
-
-        // Generar insights
         let insightsHtml = '';
         if (rotacionesFuertes.length > 0) {
             insightsHtml += `<div class="bg-green-900/20 border-l-4 border-green-500 p-3 rounded">
@@ -1661,7 +1695,6 @@ export class VolleyballDashboard {
                 <div class="text-xs text-gray-400 mt-1">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
             </div>`;
         }
-        
         if (rotacionesDebiles.length > 0) {
             insightsHtml += `<div class="bg-red-900/20 border-l-4 border-red-500 p-3 rounded mt-2">
                 <span class="font-bold text-red-400">❌ DEBILIDADES:</span>
@@ -1669,23 +1702,17 @@ export class VolleyballDashboard {
                 <div class="text-xs text-gray-400 mt-1">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
             </div>`;
         }
-        
         if (!insightsHtml) {
             insightsHtml = `<div class="text-gray-400 text-sm">No hay suficientes datos para generar insights de rotaciones.</div>`;
         }
-        
         insights.innerHTML = insightsHtml;
-
-        // Generar gráfico
         if (chartCanvas) {
             if (this.chartRotaciones) {
                 this.chartRotaciones.destroy();
             }
-            
             const labels = [];
             const data = [];
             const colors = [];
-            
             for (let i = 1; i <= 6; i++) {
                 const r = datos[i];
                 if (r && r.totalPuntos > 0) {
@@ -1701,7 +1728,6 @@ export class VolleyballDashboard {
                     colors.push('#4b5563');
                 }
             }
-            
             this.chartRotaciones = new Chart(chartCanvas, {
                 type: 'bar',
                 data: {
@@ -1747,6 +1773,243 @@ export class VolleyballDashboard {
             });
         }
     }
+
+    // ============================================================
+    // MOSTRAR MODAL DE ROTACIÓN
+    // ============================================================
+    mostrarDetalleRotacion(rotacionNum) {
+        const jugadoresLocal = this.obtenerJugadoresEnRotacion('LOCAL', rotacionNum);
+        const jugadoresVisitante = this.obtenerJugadoresEnRotacion('VISITANTE', rotacionNum);
+        const stats = this.obtenerStatsRotacion(rotacionNum);
+        const modal = document.getElementById('modalRotacion');
+        const titulo = document.getElementById('modalRotacionTitulo');
+        const contenido = document.getElementById('modalRotacionContenido');
+        if (!modal || !titulo || !contenido) return;
+        titulo.textContent = `🔄 Rotación ${rotacionNum} - ${this.homeTeamName} vs ${this.awayTeamName}`;
+        const renderizarEquipo = (jugadores, equipoNombre, colorClass) => {
+            if (!jugadores || jugadores.length === 0) {
+                return `<div class="text-center text-gray-500 text-sm py-4">Sin datos de jugadores para ${equipoNombre}</div>`;
+            }
+            const delanteros = jugadores.slice(0, 3);
+            const zagueros = jugadores.slice(3, 6);
+            return `
+                <div class="bg-dark/30 rounded-xl p-3 border ${colorClass === 'blue' ? 'border-blue-500/20' : 'border-red-500/20'}">
+                    <h4 class="${colorClass === 'blue' ? 'text-blue-400' : 'text-red-400'} font-bold text-sm mb-2 text-center">
+                        ${colorClass === 'blue' ? '🔵' : '🔴'} ${equipoNombre}
+                    </h4>
+                    <div class="text-center text-[8px] text-gray-500 uppercase tracking-wider mb-1">┈┈┈┈┈ RED ┈┈┈┈┈</div>
+                    <div class="grid grid-cols-3 gap-2 mb-2">
+                        ${delanteros.map(j => `
+                            <div class="${colorClass === 'blue' ? 'bg-blue-900/30 border-blue-500/40' : 'bg-red-900/30 border-red-500/40'} rounded-lg p-2 border text-center">
+                                <div class="text-xl font-bold text-white">${j.numero}</div>
+                                <div class="text-[10px] text-gray-300 truncate">${j.nombreCorto || j.nombre || 'Jugador'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        ${zagueros.map(j => `
+                            <div class="${colorClass === 'blue' ? 'bg-blue-900/30 border-blue-500/40' : 'bg-red-900/30 border-red-500/40'} rounded-lg p-2 border text-center">
+                                <div class="text-xl font-bold text-white">${j.numero}</div>
+                                <div class="text-[10px] text-gray-300 truncate">${j.nombreCorto || j.nombre || 'Jugador'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="text-center text-[8px] text-gray-500 mt-2">⬆ Delanteros · ⬇ Zagueros</div>
+                </div>
+            `;
+        };
+        contenido.innerHTML = `
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>${renderizarEquipo(jugadoresLocal, this.homeTeamName, 'blue')}</div>
+                    <div>${renderizarEquipo(jugadoresVisitante, this.awayTeamName, 'red')}</div>
+                </div>
+                ${stats ? `
+                    <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-4 border border-primary/20">
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div><div class="text-2xl font-bold text-green-400">${stats.puntosAFavor || 0}</div><div class="text-xs text-gray-400">🏐 Puntos a favor</div></div>
+                            <div><div class="text-2xl font-bold text-red-400">${stats.puntosEnContra || 0}</div><div class="text-xs text-gray-400">⚡ Puntos en contra</div></div>
+                            <div><div class="text-2xl font-bold ${stats.eficiencia > 60 ? 'text-green-400' : stats.eficiencia > 40 ? 'text-yellow-400' : 'text-red-400'}">${stats.eficiencia || 0}%</div><div class="text-xs text-gray-400">📊 Eficiencia</div></div>
+                        </div>
+                        <div class="text-center text-sm font-bold mt-2 ${stats.eficiencia > 60 ? 'text-green-400' : stats.eficiencia > 40 ? 'text-yellow-400' : 'text-red-400'}">${stats.estado || '⚖️ NEUTRA'}</div>
+                    </div>
+                ` : `
+                    <div class="text-center text-gray-500 text-sm py-6 bg-dark/30 rounded-xl">📊 No hay suficientes datos para esta rotación</div>
+                `}
+                <div class="text-center text-[10px] text-gray-500 border-t border-gray-700/50 pt-3">💡 Los números son los dorsales de los jugadores en esa rotación</div>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // ============================================================
+    // OBTENER JUGADORES EN UNA ROTACIÓN
+    // ============================================================
+    obtenerJugadoresEnRotacion(equipo, rotacionNum) {
+        const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
+        if (Object.keys(jugadoresMap).length === 0) {
+            const predefinidos = equipo === 'LOCAL' 
+                ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
+                : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
+            const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
+                numero: parseInt(num),
+                nombre: nombre,
+                nombreCorto: nombre?.split(' ')[0] || `J${num}`
+            }));
+            const offset = (rotacionNum - 1) % lista.length;
+            const rotados = [];
+            for (let i = 0; i < lista.length; i++) {
+                rotados.push(lista[(i + offset) % lista.length]);
+            }
+            return rotados;
+        }
+        const jugadoresLista = Object.entries(jugadoresMap)
+            .filter(([num]) => !isNaN(parseInt(num)))
+            .map(([num, nombre]) => ({
+                numero: parseInt(num),
+                nombre: nombre,
+                nombreCorto: nombre?.split(' ')[0] || `J${num}`
+            }));
+        jugadoresLista.sort((a, b) => a.numero - b.numero);
+        const offset = (rotacionNum - 1) % jugadoresLista.length;
+        const rotados = [];
+        for (let i = 0; i < jugadoresLista.length; i++) {
+            rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
+        }
+        return rotados.slice(0, 6);
+    }
+
+    // ============================================================
+    // OBTENER ESTADÍSTICAS DE UNA ROTACIÓN
+    // ============================================================
+    obtenerStatsRotacion(rotacionNum) {
+        if (!this.puntosJugadores || this.puntosJugadores.length === 0) return null;
+        const puntosRotacion = this.puntosJugadores.filter(p => 
+            p.rotacionLocal === rotacionNum || p.rotacionVisitante === rotacionNum
+        );
+        if (puntosRotacion.length === 0) return null;
+        const puntosAFavor = puntosRotacion.filter(p => p.equipoAnota === 'LOCAL' || p.equipoAnota === 'VISITANTE').length;
+        const puntosEnContra = puntosRotacion.length - puntosAFavor;
+        const total = puntosAFavor + puntosEnContra;
+        const eficiencia = total > 0 ? ((puntosAFavor / total) * 100).toFixed(1) : 0;
+        let estado = '⚖️ NEUTRA';
+        if (eficiencia > 60) estado = '✅ FUERTE';
+        else if (eficiencia < 40) estado = '❌ DÉBIL';
+        return { puntosAFavor, puntosEnContra, eficiencia: parseFloat(eficiencia), estado };
+    }
+
+    // ============================================================
+    // updateCharts USANDO destruirGrafico
+    // ============================================================
+    updateCharts() {
+        if (!this.data) return;
+        
+        this.destruirGrafico('scoreEvolutionChart', 'score');
+        const sc = document.getElementById('scoreEvolutionChart');
+        if (sc) {
+            this.charts.score = new Chart(sc, {
+                type: 'line',
+                data: {
+                    labels: this.data.map((_, i) => i + 1),
+                    datasets: [
+                        { label: this.homeTeamName, data: this.data.map(s => s.homeScore), borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', borderWidth: 2, fill: true, pointRadius: 1 },
+                        { label: this.awayTeamName, data: this.data.map(s => s.awayScore), borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.1)', borderWidth: 2, fill: true, pointRadius: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
+                }
+            });
+        }
+        
+        this.destruirGrafico('runsHeatmap', 'runs');
+        const rc = document.getElementById('runsHeatmap');
+        if (rc) {
+            this.charts.runs = new Chart(rc, {
+                type: 'line',
+                data: {
+                    labels: this.data.map((_, i) => i + 1),
+                    datasets: [
+                        { label: 'Racha LOCAL', data: this.data.map(s => s.homeRun), borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.2)', borderWidth: 2, fill: true, pointRadius: 0 },
+                        { label: 'Racha VISITANTE', data: this.data.map(s => s.awayRun), borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.2)', borderWidth: 2, fill: true, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
+                }
+            });
+        }
+        
+        this.destruirGrafico('phaseEfficiencyChart', 'phase');
+        const pc = document.getElementById('phaseEfficiencyChart');
+        if (pc) {
+            const ph = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
+            this.data.forEach(s => {
+                if (s.scorer && ph[s.phase]) {
+                    ph[s.phase][s.scorer === 'HOME' ? 'home' : 'away']++;
+                    ph[s.phase].total++;
+                }
+            });
+            const he = [
+                ph.EARLY.total ? ((ph.EARLY.home / ph.EARLY.total) * 100).toFixed(1) : 0,
+                ph.MID.total ? ((ph.MID.home / ph.MID.total) * 100).toFixed(1) : 0,
+                ph.LATE.total ? ((ph.LATE.home / ph.LATE.total) * 100).toFixed(1) : 0
+            ];
+            const ae = [
+                ph.EARLY.total ? ((ph.EARLY.away / ph.EARLY.total) * 100).toFixed(1) : 0,
+                ph.MID.total ? ((ph.MID.away / ph.MID.total) * 100).toFixed(1) : 0,
+                ph.LATE.total ? ((ph.LATE.away / ph.LATE.total) * 100).toFixed(1) : 0
+            ];
+            this.charts.phase = new Chart(pc, {
+                type: 'bar',
+                data: {
+                    labels: ['Early (1-10)', 'Mid (11-20)', 'Late (21+)'],
+                    datasets: [
+                        { label: this.homeTeamName, data: he, backgroundColor: '#667eea', borderRadius: 4 },
+                        { label: this.awayTeamName, data: ae, backgroundColor: '#f43f5e', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, max: 100 },
+                        x: { ticks: { color: '#9ca3af' } }
+                    }
+                }
+            });
+        }
+        
+        this.destruirGrafico('momentumChart', 'momentum');
+        const mc = document.getElementById('momentumChart');
+        if (mc && this.data.length > 10) {
+            const mom = [];
+            for (let i = 9; i < this.data.length; i++) {
+                const w = this.data.slice(i - 9, i + 1);
+                mom.push(w.filter(w => w.scorer === 'HOME').length - w.filter(w => w.scorer === 'AWAY').length);
+            }
+            this.charts.momentum = new Chart(mc, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({ length: mom.length }, (_, i) => i + 10),
+                    datasets: [{ label: 'Momentum', data: mom, backgroundColor: mom.map(m => m >= 0 ? '#667eea' : '#f43f5e') }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
+                }
+            });
+        }
+    }
+
     updateInterpretations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
         const c = document.getElementById('metricInterpretations');
         if (!c) return;
@@ -2072,109 +2335,6 @@ export class VolleyballDashboard {
         }
     }
 
-    updateCharts() {
-        if (!this.data) return;
-        const sc = document.getElementById('scoreEvolutionChart');
-        if (sc) {
-            if (this.charts.score) this.charts.score.destroy();
-            this.charts.score = new Chart(sc, {
-                type: 'line',
-                data: {
-                    labels: this.data.map((_, i) => i + 1),
-                    datasets: [
-                        { label: this.homeTeamName, data: this.data.map(s => s.homeScore), borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', borderWidth: 2, fill: true, pointRadius: 1 },
-                        { label: this.awayTeamName, data: this.data.map(s => s.awayScore), borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.1)', borderWidth: 2, fill: true, pointRadius: 1 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
-                }
-            });
-        }
-        const rc = document.getElementById('runsHeatmap');
-        if (rc) {
-            if (this.charts.runs) this.charts.runs.destroy();
-            this.charts.runs = new Chart(rc, {
-                type: 'line',
-                data: {
-                    labels: this.data.map((_, i) => i + 1),
-                    datasets: [
-                        { label: 'Racha LOCAL', data: this.data.map(s => s.homeRun), borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.2)', borderWidth: 2, fill: true, pointRadius: 0 },
-                        { label: 'Racha VISITANTE', data: this.data.map(s => s.awayRun), borderColor: '#f43f5e', backgroundColor: 'rgba(244,63,94,0.2)', borderWidth: 2, fill: true, pointRadius: 0 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
-                }
-            });
-        }
-        const pc = document.getElementById('phaseEfficiencyChart');
-        if (pc) {
-            if (this.charts.phase) this.charts.phase.destroy();
-            const ph = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
-            this.data.forEach(s => {
-                if (s.scorer && ph[s.phase]) {
-                    ph[s.phase][s.scorer === 'HOME' ? 'home' : 'away']++;
-                    ph[s.phase].total++;
-                }
-            });
-            const he = [
-                ph.EARLY.total ? ((ph.EARLY.home / ph.EARLY.total) * 100).toFixed(1) : 0,
-                ph.MID.total ? ((ph.MID.home / ph.MID.total) * 100).toFixed(1) : 0,
-                ph.LATE.total ? ((ph.LATE.home / ph.LATE.total) * 100).toFixed(1) : 0
-            ];
-            const ae = [
-                ph.EARLY.total ? ((ph.EARLY.away / ph.EARLY.total) * 100).toFixed(1) : 0,
-                ph.MID.total ? ((ph.MID.away / ph.MID.total) * 100).toFixed(1) : 0,
-                ph.LATE.total ? ((ph.LATE.away / ph.LATE.total) * 100).toFixed(1) : 0
-            ];
-            this.charts.phase = new Chart(pc, {
-                type: 'bar',
-                data: {
-                    labels: ['Early (1-10)', 'Mid (11-20)', 'Late (21+)'],
-                    datasets: [
-                        { label: this.homeTeamName, data: he, backgroundColor: '#667eea', borderRadius: 4 },
-                        { label: this.awayTeamName, data: ae, backgroundColor: '#f43f5e', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: {
-                        y: { ticks: { color: '#9ca3af', callback: v => v + '%' }, max: 100 },
-                        x: { ticks: { color: '#9ca3af' } }
-                    }
-                }
-            });
-        }
-        const mc = document.getElementById('momentumChart');
-        if (mc && this.data.length > 10) {
-            if (this.charts.momentum) this.charts.momentum.destroy();
-            const mom = [];
-            for (let i = 9; i < this.data.length; i++) {
-                const w = this.data.slice(i - 9, i + 1);
-                mom.push(w.filter(w => w.scorer === 'HOME').length - w.filter(w => w.scorer === 'AWAY').length);
-            }
-            this.charts.momentum = new Chart(mc, {
-                type: 'bar',
-                data: {
-                    labels: Array.from({ length: mom.length }, (_, i) => i + 10),
-                    datasets: [{ label: 'Momentum', data: mom, backgroundColor: mom.map(m => m >= 0 ? '#667eea' : '#f43f5e') }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: { y: { ticks: { color: '#9ca3af' } }, x: { ticks: { color: '#9ca3af' } } }
-                }
-            });
-        }
-    }
-
     async saveAsHTML() {
         try {
             this.mostrarFeedbackPartido('📸 Generando reporte con gráficos...');
@@ -2379,88 +2539,81 @@ export class VolleyballDashboard {
                 };
                 statsLocalCalculadas = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
                 statsVisitanteCalculadas = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
-               const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
-    if (!stats || Object.keys(stats).length === 0) {
-        return `<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
-    }
-    let html = '';
-    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
-    for (const [numJugador, s] of ordenados) {
-        const num = parseInt(numJugador);
-        if (isNaN(num)) continue;
-        let nombre = jugadoresMap[num];
-        if (!nombre) {
-            nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
-        }
-        const puntos = s.puntos || 0;
-        const ataquesTotales = s.ataques || 0;
-        const ataquesConvertidos = s.ataquesConvertidos || 0;
-        const bloqueos = s.bloqueos || 0;
-        const aces = s.aces || 0;
-        const erroresAtaque = s.erroresAtaque || 0;
-        const asistencias = s.asistencias || 0;
-        const acesServicio = s.acesServicio || 0;
-        const erroresServicio = s.erroresServicio || 0;
-        const totalSaques = s.totalSaques || 0;
-        
-        // 🆕 Nuevas métricas
-        const recepcionesPositivas = s.recepcionesPositivas || 0;
-        const recepcionesNegativas = s.recepcionesNegativas || 0;
-        const totalRecepciones = s.totalRecepciones || 0;
-        const defensasPositivas = s.defensasPositivas || 0;
-        const defensasNegativas = s.defensasNegativas || 0;
-        const totalDefensas = s.totalDefensas || 0;
-        
-        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
-        let eficienciaAtaque = '0';
-        if (ataquesTotales > 0) {
-            eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
-        }
-        let eficienciaServicio = '0';
-        if (totalSaques > 0) {
-            eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
-        }
-        
-        // 🆕 Eficiencias de recepción y defensa
-        let eficienciaRecepcion = '0';
-        if (totalRecepciones > 0) {
-            eficienciaRecepcion = ((recepcionesPositivas / totalRecepciones) * 100).toFixed(1);
-        }
-        let eficienciaDefensa = '0';
-        if (totalDefensas > 0) {
-            eficienciaDefensa = ((defensasPositivas / totalDefensas) * 100).toFixed(1);
-        }
-        
-        const efAtaqueNum = parseFloat(eficienciaAtaque);
-        const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
-        const efServNum = parseFloat(eficienciaServicio);
-        const efServColor = efServNum > 10 ? '#10b981' : (efServNum < 0 ? '#ef4444' : '#f59e0b');
-        const efRecNum = parseFloat(eficienciaRecepcion);
-        const efRecColor = efRecNum > 60 ? '#10b981' : (efRecNum > 40 ? '#f59e0b' : '#ef4444');
-        const efDefNum = parseFloat(eficienciaDefensa);
-        const efDefColor = efDefNum > 60 ? '#10b981' : (efDefNum > 40 ? '#f59e0b' : '#ef4444');
-        
-        html += `<tr style="border-bottom:1px solid #374151;">
-            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
-            <td style="text-align:center;font-weight:bold;color:#667eea;">${puntos}</td>
-            <td style="text-align:center;">${ataquesTexto}</td>
-            <td style="text-align:center;">${bloqueos}</td>
-            <td style="text-align:center;">${aces}</td>
-            <td style="text-align:center;color:#ef4444;">${erroresAtaque}</td>
-            <td style="text-align:center;">${asistencias}</td>
-            <td style="text-align:center;font-weight:bold;color:${efAtaqueColor};">${eficienciaAtaque}%</td>
-            <td style="text-align:center;color:#3b82f6;">${recepcionesPositivas}/${totalRecepciones}</td>
-            <td style="text-align:center;font-weight:bold;color:${efRecColor};">${eficienciaRecepcion}%</td>
-            <td style="text-align:center;color:#8b5cf6;">${defensasPositivas}/${totalDefensas}</td>
-            <td style="text-align:center;font-weight:bold;color:${efDefColor};">${eficienciaDefensa}%</td>
-            <td style="text-align:center;color:#3b82f6;">${acesServicio}</td>
-            <td style="text-align:center;color:#ef4444;">${erroresServicio}</td>
-            <td style="text-align:center;font-weight:bold;color:${efServColor};">${eficienciaServicio}%</td>
-            <td style="text-align:center;font-weight:bold;">${totalSaques}</td>
-        </tr>`;
-    }
-    return html;
-};
+                const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
+                    if (!stats || Object.keys(stats).length === 0) {
+                        return `<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
+                    }
+                    let html = '';
+                    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
+                    for (const [numJugador, s] of ordenados) {
+                        const num = parseInt(numJugador);
+                        if (isNaN(num)) continue;
+                        let nombre = jugadoresMap[num];
+                        if (!nombre) {
+                            nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
+                        }
+                        const puntos = s.puntos || 0;
+                        const ataquesTotales = s.ataques || 0;
+                        const ataquesConvertidos = s.ataquesConvertidos || 0;
+                        const bloqueos = s.bloqueos || 0;
+                        const aces = s.aces || 0;
+                        const erroresAtaque = s.erroresAtaque || 0;
+                        const asistencias = s.asistencias || 0;
+                        const acesServicio = s.acesServicio || 0;
+                        const erroresServicio = s.erroresServicio || 0;
+                        const totalSaques = s.totalSaques || 0;
+                        const recepcionesPositivas = s.recepcionesPositivas || 0;
+                        const recepcionesNegativas = s.recepcionesNegativas || 0;
+                        const totalRecepciones = s.totalRecepciones || 0;
+                        const defensasPositivas = s.defensasPositivas || 0;
+                        const defensasNegativas = s.defensasNegativas || 0;
+                        const totalDefensas = s.totalDefensas || 0;
+                        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
+                        let eficienciaAtaque = '0';
+                        if (ataquesTotales > 0) {
+                            eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
+                        }
+                        let eficienciaServicio = '0';
+                        if (totalSaques > 0) {
+                            eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
+                        }
+                        let eficienciaRecepcion = '0';
+                        if (totalRecepciones > 0) {
+                            eficienciaRecepcion = ((recepcionesPositivas / totalRecepciones) * 100).toFixed(1);
+                        }
+                        let eficienciaDefensa = '0';
+                        if (totalDefensas > 0) {
+                            eficienciaDefensa = ((defensasPositivas / totalDefensas) * 100).toFixed(1);
+                        }
+                        const efAtaqueNum = parseFloat(eficienciaAtaque);
+                        const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
+                        const efServNum = parseFloat(eficienciaServicio);
+                        const efServColor = efServNum > 10 ? '#10b981' : (efServNum < 0 ? '#ef4444' : '#f59e0b');
+                        const efRecNum = parseFloat(eficienciaRecepcion);
+                        const efRecColor = efRecNum > 60 ? '#10b981' : (efRecNum > 40 ? '#f59e0b' : '#ef4444');
+                        const efDefNum = parseFloat(eficienciaDefensa);
+                        const efDefColor = efDefNum > 60 ? '#10b981' : (efDefNum > 40 ? '#f59e0b' : '#ef4444');
+                        html += `<tr style="border-bottom:1px solid #374151;">
+                            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
+                            <td style="text-align:center;font-weight:bold;color:#667eea;">${puntos}</td>
+                            <td style="text-align:center;">${ataquesTexto}</td>
+                            <td style="text-align:center;">${bloqueos}</td>
+                            <td style="text-align:center;">${aces}</td>
+                            <td style="text-align:center;color:#ef4444;">${erroresAtaque}</td>
+                            <td style="text-align:center;">${asistencias}</td>
+                            <td style="text-align:center;font-weight:bold;color:${efAtaqueColor};">${eficienciaAtaque}%</td>
+                            <td style="text-align:center;color:#3b82f6;">${recepcionesPositivas}/${totalRecepciones}</td>
+                            <td style="text-align:center;font-weight:bold;color:${efRecColor};">${eficienciaRecepcion}%</td>
+                            <td style="text-align:center;color:#8b5cf6;">${defensasPositivas}/${totalDefensas}</td>
+                            <td style="text-align:center;font-weight:bold;color:${efDefColor};">${eficienciaDefensa}%</td>
+                            <td style="text-align:center;color:#3b82f6;">${acesServicio}</td>
+                            <td style="text-align:center;color:#ef4444;">${erroresServicio}</td>
+                            <td style="text-align:center;font-weight:bold;color:${efServColor};">${eficienciaServicio}%</td>
+                            <td style="text-align:center;font-weight:bold;">${totalSaques}</td>
+                        </tr>`;
+                    }
+                    return html;
+                };
                 tablaLocal = generarTablaHTML(statsLocalCalculadas, this.jugadoresLocal, homeTeam, false);
                 tablaVisitante = generarTablaHTML(statsVisitanteCalculadas, this.jugadoresVisitante, awayTeam, true);
             } else {

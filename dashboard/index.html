@@ -1,60 +1,60 @@
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-        <title>VoleyInsight | Dashboard Profesional</title>
-        
-        <meta name="description" content="VoleyInsight - Dashboard profesional de análisis de voleibol en tiempo real. Estadísticas, reportes y seguimiento de partidos.">
-        <meta name="keywords" content="voleibol, análisis deportivo, estadísticas voley, dashboard voley, scouting voley, FMV">
-        <meta name="author" content="VoleyInsight">
-        <meta name="robots" content="index, follow">
-        <meta name="language" content="Spanish">
-        <meta name="revisit-after" content="7 days">
-        
-        <meta property="og:title" content="VoleyInsight | Dashboard Profesional de Voleibol">
-        <meta property="og:description" content="Sistema de análisis de partidos de voleibol en tiempo real. Estadísticas, reportes y seguimiento profesional.">
-        <meta property="og:type" content="website">
-        <meta property="og:image" content="https://voleyinsight.com/og-image.jpg">
-        <meta property="og:url" content="https://voleyinsight.com/dashboard/index.html">
-        <meta property="og:site_name" content="VoleyInsight - Análisis Profesional de Voleibol">
-        <meta property="og:locale" content="es_AR">
-        
-        <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="VoleyInsight - Dashboard de Voleibol">
-        <meta name="twitter:description" content="Análisis profesional de voleibol en tiempo real.">
-        
-        <meta name="geo.region" content="AR">
-        <meta name="geo.country" content="Argentina">
-        
-        <meta name="theme-color" content="#0a0c15">
-        <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        
-        <link rel="icon" type="image/x-icon" href="/dashboard/logo.png">
-        <link rel="shortcut icon" href="/dashboard/logo.png">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>VoleyInsight | Dashboard Profesional</title>
+    
+    <meta name="description" content="VoleyInsight - Dashboard profesional de análisis de voleibol en tiempo real. Estadísticas, reportes y seguimiento de partidos.">
+    <meta name="keywords" content="voleibol, análisis deportivo, estadísticas voley, dashboard voley, scouting voley, FMV">
+    <meta name="author" content="VoleyInsight">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Spanish">
+    <meta name="revisit-after" content="7 days">
+    
+    <meta property="og:title" content="VoleyInsight | Dashboard Profesional de Voleibol">
+    <meta property="og:description" content="Sistema de análisis de partidos de voleibol en tiempo real. Estadísticas, reportes y seguimiento profesional.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://voleyinsight.com/og-image.jpg">
+    <meta property="og:url" content="https://voleyinsight.com/dashboard/index.html">
+    <meta property="og:site_name" content="VoleyInsight - Análisis Profesional de Voleibol">
+    <meta property="og:locale" content="es_AR">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VoleyInsight - Dashboard de Voleibol">
+    <meta name="twitter:description" content="Análisis profesional de voleibol en tiempo real.">
+    
+    <meta name="geo.region" content="AR">
+    <meta name="geo.country" content="Argentina">
+    
+    <meta name="theme-color" content="#0a0c15">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <link rel="icon" type="image/x-icon" href="/dashboard/logo.png">
+    <link rel="shortcut icon" href="/dashboard/logo.png">
 
-        
-        <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <link rel="stylesheet" href="/dashboard/css/styles.css">
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/dashboard/css/styles.css">
 
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            primary: '#667eea',
-                            secondary: '#764ba2',
-                            dark: '#0a0c15',
-                            card: '#1a1f2e'
-                        }
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#667eea',
+                        secondary: '#764ba2',
+                        dark: '#0a0c15',
+                        card: '#1a1f2e'
                     }
                 }
             }
-        </script>
-     <style>
+        }
+    </script>
+    <style>
         .accion-rapida-btn { transition: all 0.2s ease; min-height: 70px; }
         .accion-rapida-btn.seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; transform: scale(0.98); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
         .accion-rapida-btn:active { transform: scale(0.95); }
@@ -76,9 +76,6 @@
         .seleccionado { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; }
         .tab-btn { transition: all 0.2s ease; }
 
-        /* ============================================================
-           ESTILOS DEL NUEVO ANOTADOR (SOLO DENTRO DEL ANOTADOR)
-           ============================================================ */
         #vistaAnotador .btn-accion {
             transition: all 0.15s ease;
             min-height: 56px;
@@ -108,7 +105,6 @@
             transform: scale(0.98);
         }
 
-        /* SUPLENTES MÁS CHICOS - SOLO EN EL ANOTADOR */
         #vistaAnotador .suplente-btn {
             font-size: 11px !important;
             padding: 4px 2px !important;
@@ -144,680 +140,1766 @@
             letter-spacing: 1px;
             white-space: nowrap;
         }
-    </style>
 
-    </head>
-    <body class="bg-dark text-white">
-        <div id="skeletonLoader" class="max-w-[1400px] mx-auto p-3 md:p-6">
-            <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
-                <div class="skeleton skeleton-title mx-auto mb-4" style="width: 200px;"></div>
-                <div class="flex justify-center gap-8">
-                    <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
-                    <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
-                    <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
+        .header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1119 100%);
+            border-radius: 16px;
+            padding: 14px 16px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f43f5e);
+            border-radius: 16px 16px 0 0;
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+        .marcador {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+        }
+        .marcador .equipo {
+            font-size: 11px;
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        .marcador .local { color: #93c5fd; }
+        .marcador .visitante { color: #fca5a5; }
+        .marcador .score {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            background: rgba(255,255,255,0.03);
+            padding: 0 4px;
+            border-radius: 8px;
+        }
+        .marcador .vs {
+            color: #6b7280;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .info-partido {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 9px;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .info-partido span {
+            background: rgba(255,255,255,0.03);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .cancha-wrapper {
+            background: #1a1f2e;
+            border-radius: 16px;
+            padding: 12px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+            margin: 0 auto;
+        }
+        .cancha {
+            background: #E7CC8D;
+            border-radius: 8px;
+            padding: 12px 8px;
+            position: relative;
+            aspect-ratio: 2 / 1.4;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border: 2px solid white;
+            max-width: 100%;
+        }
+        .cancha::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: white;
+            transform: translateX(-50%);
+        }
+        .cancha .ataque-izq {
+            position: absolute;
+            left: 33%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: white;
+            transform: translateX(-50%);
+        }
+        .cancha .ataque-der {
+            position: absolute;
+            right: 33%;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: white;
+            transform: translateX(50%);
+        }
+
+        .jugadores {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            padding: 4px;
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+        .jugadores .columna {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        /* ============================================================
+           JUGADORES - TAMAÑO Y COLORES CORRECTOS
+           ============================================================ */
+        .jugador {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin: 0 auto;
+            user-select: none;
+            border: 2px solid #9ca3af;
+        }
+        .jugador .numero {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a2e;
+            line-height: 1;
+        }
+        .jugador .nombre-corto {
+            font-size: 8px;
+            opacity: 0.7;
+            line-height: 1;
+            margin-top: 2px;
+            color: #1a1a2e;
+        }
+
+        /* LOCAL - azul */
+        .jugador.local {
+            background: #93C5FD;
+            border-color: #3B82F6;
+        }
+        .jugador.local.seleccionado {
+            border: 3px solid #1D4ED8;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.4);
+            transform: scale(1.10);
+        }
+
+        /* VISITANTE - rojo */
+        .jugador.visitante {
+            background: #FCA5A5;
+            border-color: #EF4444;
+        }
+        .jugador.visitante.seleccionado {
+            border: 3px solid #B91C1C;
+            box-shadow: 0 0 0 4px rgba(239,68,68,0.4);
+            transform: scale(1.10);
+        }
+
+        .jugador:active { transform: scale(0.92); }
+
+        .pelota {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #1a1a2e;
+            z-index: 3;
+        }
+        .pelota::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 8px;
+            height: 8px;
+            border: 2px solid #1a1a2e;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .pelota::before {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            width: 2px;
+            height: 10px;
+            background: #1a1a2e;
+            transform: translateX(-50%);
+        }
+
+        .serving-badge {
+            position: absolute;
+            top: 4px;
+            right: 8px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 7px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 4;
+            letter-spacing: 0.3px;
+            backdrop-filter: blur(4px);
+        }
+
+        .acciones {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+        .btn-accion {
+            padding: 10px 4px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            background: #2d3748;
+            min-height: 52px;
+        }
+        .btn-accion:active { transform: scale(0.95); }
+        .btn-accion .icono { font-size: 16px; }
+        .btn-ataque { background: linear-gradient(135deg, #059669, #047857); }
+        .btn-bloqueo { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        .btn-saque { background: linear-gradient(135deg, #d97706, #b45309); }
+        .btn-error { background: linear-gradient(135deg, #dc2626, #991b1b); }
+        .btn-rec-positiva { background: linear-gradient(135deg, #10b981, #059669); }
+        .btn-rec-negativa { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-def-positiva { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+        .btn-def-negativa { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .btn-accion.seleccionado {
+            outline: 2px solid white;
+            outline-offset: 2px;
+            transform: scale(0.96);
+            box-shadow: 0 0 20px rgba(255,255,255,0.15);
+        }
+
+        .controles {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            width: 100%;
+        }
+        .btn-control {
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 0.3px;
+        }
+        .btn-control:active { transform: scale(0.95); }
+        .btn-confirmar { background: linear-gradient(135deg, #059669, #047857); color: white; }
+        .btn-deshacer { background: linear-gradient(135deg, #dc2626, #991b1b); color: white; }
+
+        .btn-extra {
+            border: none;
+            border-radius: 12px;
+            padding: 10px;
+            font-weight: 700;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            color: white;
+            letter-spacing: 0.3px;
+        }
+        .btn-extra:active { transform: scale(0.95); }
+        .btn-break { background: linear-gradient(135deg, #7c3aed, #6d28d9); }
+        .btn-timeout { background: linear-gradient(135deg, #d97706, #b45309); }
+
+        .puntos-api {
+            width: 100%;
+            background: #1a1f2e;
+            border-radius: 12px;
+            padding: 8px 10px;
+            max-height: 80px;
+            overflow-y: auto;
+            font-size: 9px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: none;
+        }
+        .puntos-api .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #e5e7eb;
+        }
+        .puntos-api .item:last-child { border-bottom: none; }
+
+        .feedback {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1f2e;
+            color: white;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            border: 1px solid rgba(102,126,234,0.3);
+            backdrop-filter: blur(8px);
+        }
+        .feedback.visible { opacity: 1; }
+
+        @media (max-width: 480px) {
+            .jugador { width: 40px; height: 40px; }
+            .jugador .numero { font-size: 13px; }
+            .jugador .nombre-corto { font-size: 7px; }
+            .jugadores .columna { gap: 6px; }
+            .cancha { padding: 8px 4px; }
+            .btn-accion { font-size: 8px; padding: 6px 2px; min-height: 44px; }
+            .btn-accion .icono { font-size: 13px; }
+            .marcador .score { font-size: 20px; }
+            .controles { grid-template-columns: 1fr 1fr; }
+            .controles .btn-confirmar { grid-column: span 2; }
+            .header h1 { font-size: 14px; }
+            .cancha-wrapper { padding: 8px; }
+            .info-partido { font-size: 7px; gap: 6px; }
+            .serving-badge { font-size: 6px; padding: 2px 6px; }
+        }
+
+        @media (min-width: 768px) {
+            .jugador { width: 56px; height: 56px; }
+            .jugador .numero { font-size: 18px; }
+            .jugador .nombre-corto { font-size: 9px; }
+        }
+    </style>
+</head>
+<body class="bg-dark text-white">
+    <!-- SKELETON LOADER -->
+    <div id="skeletonLoader" class="max-w-[1400px] mx-auto p-3 md:p-6">
+        <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
+            <div class="skeleton skeleton-title mx-auto mb-4" style="width: 200px;"></div>
+            <div class="flex justify-center gap-8">
+                <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
+                <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+                <div class="skeleton" style="width: 100px; height: 80px; border-radius: 16px;"></div>
+            </div>
+            <div class="skeleton skeleton-badge mx-auto mt-4"></div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+            <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div class="skeleton-card lg:col-span-2"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart"></div></div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO REAL -->
+    <div id="realContent" class="max-w-[1400px] mx-auto p-3 md:p-6" style="display: none;">
+        <!-- HEADER PRINCIPAL -->
+        <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
+            <div class="text-center md:text-left">
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                    <img src="/dashboard/logo.png" alt="VoleyInsight" class="h-8 md:h-10 w-auto">
+                    <div>
+                        <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VoleyInsight</h1>
+                        <p class="text-xs text-gray-400 hidden md:block">Análisis Técnico Profesional</p>
+                    </div>
+                </div>              
+            </div>
+            <div class="flex justify-center items-center gap-3 md:gap-8 mt-3 md:mt-4">
+                <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="homeTeamName">LOCAL</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="homeScore">0</div></div>
+                <div class="text-base md:text-xl text-gray-500 font-bold">VS</div>
+                <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="awayTeamName">VISITANTE</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="awayScore">0</div></div>
+            </div>
+            <div class="flex justify-center mt-2"><div id="servingBadge" class="hidden"></div></div>
+            <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
+        </div>
+
+        <!-- PESTAÑAS -->
+        <div class="flex flex-col gap-3 mb-4 md:mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="grid grid-cols-3 gap-2 md:flex md:gap-4 w-full md:w-auto">
+                    <button id="tabPartido" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-primary text-white text-[10px] md:text-sm">📊 PARTIDO</button>
+                    <button id="tabIndividuales" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">👕 INDIVIDUALES</button>
+                    <button id="tabRotaciones" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🔄 ROTACIONES</button>
+                    <button id="tabEvolucion" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">📈 EVOLUCIÓN</button>
+                    <button id="tabAnotador" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🏐 ANOTADOR</button>
                 </div>
-                <div class="skeleton skeleton-badge mx-auto mt-4"></div>
+                <div class="hidden md:flex gap-1 items-center">
+                    <button id="saveHTMLBtn" class="bg-primary hover:bg-secondary text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">💾 Guardar</button>
+                    <button id="soundToggleBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">🔊 Sonidos</button>
+                    <select id="refreshIntervalSelector" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1.5 rounded-lg text-xs transition-all">
+                        <option value="5000">⏱️ 5s</option>
+                        <option value="10000" selected>⏱️ 10s</option>
+                        <option value="15000">⏱️ 15s</option>
+                    </select>
+                </div>
+                <button id="menuHamburguesaBtn" class="md:hidden bg-gray-700 p-2 rounded-lg transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </button>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
-                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-                <div class="skeleton skeleton-grid-item"></div><div class="skeleton skeleton-grid-item"></div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
-                <div class="skeleton-card"><div class="skeleton skeleton-title" style="width: 80%;"></div><div class="grid grid-cols-3 gap-4"><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div><div class="skeleton" style="height: 60px; border-radius: 12px;"></div></div></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="skeleton-card lg:col-span-2"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart"></div></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
-                <div class="skeleton-card"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-chart" style="height: 200px;"></div></div>
+            <div id="menuDesplegable" class="hidden md:hidden bg-card rounded-xl p-3 border border-white/10 flex flex-col gap-2">
+                <button id="saveHTMLBtnMobile" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">💾 Guardar</button>
+                <button id="soundToggleBtnMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-all w-full">🔊 Sonidos</button>
+                <div class="flex gap-2">
+                    <select id="refreshIntervalSelectorMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-sm flex-1">
+                        <option value="5000">⏱️ 5 seg</option>
+                        <option value="10000" selected>⏱️ 10 seg</option>
+                        <option value="15000">⏱️ 15 seg</option>
+                    </select>
+                </div>
             </div>
         </div>
 
-        <div id="realContent" class="max-w-[1400px] mx-auto p-3 md:p-6" style="display: none;">
-            <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
-                <div class="text-center md:text-left">
-                    <div class="flex items-center justify-center md:justify-start gap-2">
-                        <img src="/dashboard/logo.png" alt="VoleyInsight" class="h-8 md:h-10 w-auto">
-                        <div>
-                            <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VoleyInsight</h1>
-                            <p class="text-xs text-gray-400 hidden md:block">Análisis Técnico Profesional</p>
-                        </div>
-                    </div>              
-                </div>
-                <div class="flex justify-center items-center gap-3 md:gap-8 mt-3 md:mt-4">
-                    <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="homeTeamName">LOCAL</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="homeScore">0</div></div>
-                    <div class="text-base md:text-xl text-gray-500 font-bold">VS</div>
-                    <div class="text-center"><div class="text-sm md:text-xl font-bold text-white" id="awayTeamName">VISITANTE</div><div class="text-3xl md:text-5xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent" id="awayScore">0</div></div>
-                </div>
-                <div class="flex justify-center mt-2"><div id="servingBadge" class="hidden"></div></div>
-                <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
+        <!-- ============================================================ -->
+        <!-- VISTA PARTIDO -->
+        <!-- ============================================================ -->
+        <div id="vistaPartido">
+            <!-- Stats grid -->
+            <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Quiebre LOCAL</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Quiebre VISITA</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📊</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyHome">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia LOCAL</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📈</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyAway">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia VISITA</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎭</div><div class="text-xl md:text-2xl font-bold text-primary" id="clutchHome">0%</div><div class="text-xs text-gray-400 uppercase">Bajo presión</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⏱️</div><div class="text-xl md:text-2xl font-bold text-primary" id="totalPoints">0</div><div class="text-xs text-gray-400 uppercase">Puntos Totales</div></div>
             </div>
 
-                        <div class="flex flex-col gap-3 mb-4 md:mb-6">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <!-- Pestañas en GRID para celular, flex para escritorio -->
-                    <div class="grid grid-cols-3 gap-2 md:flex md:gap-4 w-full md:w-auto">
-    <button id="tabPartido" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-primary text-white text-[10px] md:text-sm">📊 PARTIDO</button>
-    <button id="tabIndividuales" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">👕 INDIVIDUALES</button>
-    <button id="tabRotaciones" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🔄 ROTACIONES</button>
-    <button id="tabEvolucion" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">📈 EVOLUCIÓN</button>
-    <button id="tabAnotador" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🏐 ANOTADOR</button>
-</div>
-                    <div class="hidden md:flex gap-1 items-center">
-                        <button id="saveHTMLBtn" class="bg-primary hover:bg-secondary text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">💾 Guardar</button>
-                        <button id="soundToggleBtn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm transition-all">🔊 Sonidos</button>
-                        <select id="refreshIntervalSelector" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-1.5 rounded-lg text-xs transition-all">
-                            <option value="5000">⏱️ 5s</option>
-                            <option value="10000" selected>⏱️ 10s</option>
-                            <option value="15000">⏱️ 15s</option>
-                        </select>
+            <!-- Servicio -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-blue-400">🏐 SERVICIO - LOCAL</h3>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesHome">0</div><div class="text-xs text-gray-400">SAQUE</div></div>
+                        <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsHome">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
+                        <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyHome">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
                     </div>
-                    <button id="menuHamburguesaBtn" class="md:hidden bg-gray-700 p-2 rounded-lg transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-red-400">🏐 SERVICIO - VISITANTE</h3>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesAway">0</div><div class="text-xs text-gray-400">SAQUE</div></div>
+                        <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsAway">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
+                        <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyAway">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 lg:col-span-2 chart-container">
+                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📈 Evolución del Marcador</h3><p class="text-xs text-gray-400">Progresión de puntos durante el partido</p></div>
+                    <canvas id="scoreEvolutionChart" class="max-h-[200px] md:max-h-[300px] w-full"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">⚡ Índice de Momentum</h3><p class="text-xs text-gray-400">Dominancia en los últimos 5 puntos</p></div>
+                    <canvas id="momentumChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🔥 Mapa de Rachas</h3><p class="text-xs text-gray-400">Intensidad de las rachas por equipo</p></div>
+                    <canvas id="runsHeatmap" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
+                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🎯 Eficiencia por Fase</h3><p class="text-xs text-gray-400">Rendimiento en Early, Mid y Late Game</p></div>
+                    <canvas id="phaseEfficiencyChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📊 Dominancia por Set</h3><p class="text-xs text-gray-400">Control del partido set por set</p></div>
+                    <div id="setDominance" class="space-y-2 md:space-y-3"><div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div></div>
+                </div>
+            </div>
+
+            <!-- Clutch y Quiebres -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
+                    <div class="bg-dark rounded-full h-6 md:h-8 flex overflow-hidden mb-2">
+                        <div id="clutchBarHome" class="bg-gradient-to-r from-primary to-secondary h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
+                        <div id="clutchBarAway" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400 mb-3 md:mb-4"><span>LOCAL</span><span>VISITANTE</span></div>
+                    <div id="clutchInsight" class="bg-primary/10 border-l-4 border-primary p-2 md:p-3 rounded text-xs md:text-sm text-gray-300">Cargando análisis...</div>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Puntos de Quiebre</h3>
+                    <div id="breakPointsList" class="max-h-[200px] overflow-y-auto space-y-2"><div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div></div>
+                </div>
+            </div>
+
+            <!-- Insights -->
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">💡 Insights Automáticos</h2>
+                <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3"></div>
+            </div>
+
+            <!-- Interpretaciones y Recomendaciones -->
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-4 md:mb-6">
+                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">📖 QUÉ SIGNIFICAN ESTOS NÚMEROS</h3>
+                <div id="metricInterpretations" class="space-y-1 md:space-y-2 text-sm"></div>
+            </div>
+
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">🎯 QUÉ CAMBIAR PARA EL PRÓXIMO PARTIDO</h3>
+                <div id="actionableRecommendations" class="space-y-1 md:space-y-2 text-sm"></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
+                <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">⏱️ Timeline de Eventos Críticos</h2>
+                <div id="timeline" class="max-h-[300px] overflow-y-auto space-y-2"></div>
+            </div>
+
+            <!-- Sideout y Breakpoint -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-blue-400">📊 SIDEOUT%</h3>
+                    <div class="text-center mb-2">
+                        <span class="text-blue-400 font-bold" id="sideoutLocalLabel">0%</span>
+                        <span class="text-gray-500 mx-2">-</span>
+                        <span class="text-red-400 font-bold" id="sideoutVisitanteLabel">0%</span>
+                    </div>
+                    <div class="bg-dark rounded-full h-4 overflow-hidden">
+                        <div id="sideoutBarLocal" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 text-center mt-2">💡 Eficiencia cuando se tiene el saque</div>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-purple-400">⚡ BREAKPOINT%</h3>
+                    <div class="text-center mb-2">
+                        <span class="text-blue-400 font-bold" id="breakpointLocalLabel">0%</span>
+                        <span class="text-gray-500 mx-2">-</span>
+                        <span class="text-red-400 font-bold" id="breakpointVisitanteLabel">0%</span>
+                    </div>
+                    <div class="bg-dark rounded-full h-4 overflow-hidden">
+                        <div id="breakpointBarLocal" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
+                    </div>
+                    <div class="text-xs text-gray-500 text-center mt-2">💡 Capacidad de romper el saque rival</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VISTA ROTACIONES -->
+        <!-- ============================================================ -->
+        <div id="vistaRotaciones" class="hidden space-y-4 md:space-y-6">
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
+                <p class="text-xs text-gray-400 mb-4">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs md:text-sm">
+                        <thead class="text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="text-left py-2">Rotación</th>
+                                <th class="text-center">Puntos a favor</th>
+                                <th class="text-center">Puntos en contra</th>
+                                <th class="text-center">Diferencia</th>
+                                <th class="text-center">Eficiencia</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaRotaciones">
+                            <tr><td colspan="6" class="text-center py-8 text-gray-500">Cargando datos de rotaciones...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 GRÁFICO DE EFICIENCIA POR ROTACIÓN</h3>
+                <canvas id="rotacionesChart" class="w-full h-64 md:h-1"></canvas>
+            </div>
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💡 INSIGHTS DE ROTACIONES</h3>
+                <div id="rotacionesInsights" class="space-y-2">
+                    <div class="text-gray-400 text-sm">Seleccioná un partido para ver los insights...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VISTA EVOLUCION -->
+        <!-- ============================================================ -->
+        <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
+                <p class="text-sm text-gray-400 mb-3">Subí los archivos HTML generados por VoleyInsight para analizar la evolución del equipo</p>
+                <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
+                    <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
+                    <div class="flex flex-col items-center gap-2">
+                        <span class="text-3xl">📁</span>
+                        <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
+                        <span class="text-xs text-gray-500">Podés subir múltiples reportes</span>
+                    </div>
+                </div>
+                <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
+                <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 ANALIZAR EVOLUCIÓN</button>
+            </div>
+            <div id="analisisResultados" class="hidden">
+                <div class="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-4 md:p-6 border border-primary/30">
+                    <h3 class="text-base md:text-lg font-semibold mb-2">📋 RESUMEN EJECUTIVO</h3>
+                    <p id="resumenEjecutivo" class="text-gray-300 italic">Cargá reportes para ver el análisis...</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-green-500/30">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">✅ FORTALEZAS DETECTADAS</h3>
+                        <div id="fortalezasList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+                    </div>
+                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-red-500/30">
+                        <h3 class="text-base md:text-lg font-semibold mb-3 text-red-400">⚠️ DEBILIDADES A MEJORAR</h3>
+                        <div id="debilidadesList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
+                    </div>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 EVOLUCIÓN POR PARTIDO</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs md:text-sm">
+                            <thead class="text-gray-400 border-b border-gray-700">
+                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Clutch%</th><th class="text-center">Efi. Servicio</th><th class="text-center">Eficiencia</th></tr>
+                            </thead>
+                            <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA DE MÉTRICAS CLAVE</h3>
+                    <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VISTA INDIVIDUALES -->
+        <!-- ============================================================ -->
+        <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
+                <div class="flex flex-wrap gap-1 md:gap-2">
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="1">Set 1</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2">Set 2</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3">Set 3</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4">Set 4</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5">Set 5</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-yellow-600 text-white text-xs md:text-sm" data-set="all">📊 TODOS</button>
+                </div>
+            </div>
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
+                    <h3 class="text-base md:text-lg font-semibold text-blue-400">🔵 EQUIPO LOCAL</h3>
+                    <div class="flex gap-3 text-xs"><span class="text-gray-400" id="localTotalPts">Total: 0 pts</span><span class="text-gray-400" id="localTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="localTotalServErrors">❌ Err Serv: 0</span></div>
+                </div>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-xs md:text-sm min-w-[800px]">
+                        <thead class="text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="text-left py-1.5 md:py-2">Jugador</th>
+                                <th class="text-center">PTS</th>
+                                <th class="text-center">ATA</th>
+                                <th class="text-center">BLO</th>
+                                <th class="text-center">SAQUE</th>
+                                <th class="text-center">ERR</th>
+                                <th class="text-center">ASIS</th>
+                                <th class="text-center">EFI%</th>
+                                <th class="text-center bg-blue-900/30">📥 REC</th>
+                                <th class="text-center bg-green-900/30">REC%</th>
+                                <th class="text-center bg-purple-900/30">🛡️ DEF</th>
+                                <th class="text-center bg-yellow-900/30">DEF%</th>
+                                <th class="text-center bg-blue-900/30">🏐 SAQUE</th>
+                                <th class="text-center bg-red-900/30">❌ ERR SERV</th>
+                                <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
+                                <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaLocalBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
+                    <h3 class="text-base md:text-lg font-semibold text-red-400">🔴 EQUIPO VISITANTE</h3>
+                    <div class="flex gap-3 text-xs"><span class="text-gray-400" id="visitanteTotalPts">Total: 0 pts</span><span class="text-gray-400" id="visitanteTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="visitanteTotalServErrors">❌ Err Serv: 0</span></div>
+                </div>
+                <div class="overflow-x-auto table-container">
+                    <table class="w-full text-xs md:text-sm min-w-[800px]">
+                        <thead class="text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="text-left py-1.5 md:py-2">Jugador</th>
+                                <th class="text-center">PTS</th>
+                                <th class="text-center">ATA</th>
+                                <th class="text-center">BLO</th>
+                                <th class="text-center">SAQUE</th>
+                                <th class="text-center">ERR</th>
+                                <th class="text-center">ASIS</th>
+                                <th class="text-center">EFI%</th>
+                                <th class="text-center bg-blue-900/30">📥 REC</th>
+                                <th class="text-center bg-green-900/30">REC%</th>
+                                <th class="text-center bg-purple-900/30">🛡️ DEF</th>
+                                <th class="text-center bg-yellow-900/30">DEF%</th>
+                                <th class="text-center bg-blue-900/30">🎯 SAQUE</th>
+                                <th class="text-center bg-red-900/30">❌ ERR SERV</th>
+                                <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
+                                <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaVisitanteBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2"><span>⏸️</span> ANÁLISIS DE TIEMPOS MUERTOS</h3>
+                <div id="timeoutsList" class="space-y-3 max-h-[500px] overflow-y-auto"><div class="text-center text-gray-500 py-4">Sin timeouts registrados</div></div>
+            </div>
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">🏆 TOP 5 DEL PARTIDO</h3>
+                <div id="top5List" class="space-y-1 md:space-y-2"></div>
+            </div>
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">📊 PUNTOS POR JUGADOR (LOCAL)</h3>
+                <canvas id="puntosJugadoresChart" class="w-full h-48 md:h-64"></canvas>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- VISTA ANOTADOR (CANCHA EN VIVO) -->
+        <!-- ============================================================ -->
+        <div id="vistaAnotador" class="hidden">
+            <div class="max-w-2xl mx-auto">
+                <div class="header">
+                    <h1>🏐 Cancha en Vivo</h1>
+                    <div class="marcador">
+                        <span class="equipo local" id="localLabel">LOCAL</span>
+                        <span class="score" id="localScore">0</span>
+                        <span class="vs">VS</span>
+                        <span class="score" id="visitanteScore">0</span>
+                        <span class="equipo visitante" id="visitanteLabel">VISITANTE</span>
+                    </div>
+                    <div class="info-partido" style="display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
+                        <span style="display: flex; align-items: center; gap: 4px;">
+                            📊 SET 
+                            <select id="selectorSet" style="background: #1a1f2e; color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 2px 8px; font-size: 11px; font-weight: bold;">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </span>
+                        <span>🎯 Punto <span id="puntoActual">0</span></span>
+                        <span id="rotacionDisplay">🔄 LOCAL: 1 | VISITANTE: 1</span>
+                        <span id="servingDisplay">🏐 SACA LOCAL</span>
+                    </div>
+                </div>
+
+                <!-- CANCHA -->
+                <div class="cancha-wrapper" style="margin-top: 16px;">
+                    <div class="cancha" id="cancha">
+                        <div class="serving-badge" id="servingBadge">🏐 SACA LOCAL</div>
+                        <div class="ataque-izq"></div>
+                        <div class="ataque-der"></div>
+
+                        <!-- LOCAL -->
+                        <div style="grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                            <div class="jugadores" id="jugadoresLocal"></div>
+                        </div>
+
+                        <!-- VISITANTE -->
+                        <div style="grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                            <div class="jugadores" id="jugadoresVisitante"></div>
+                        </div>
+
+                        <div class="pelota"></div>
+                    </div>
+                </div>
+
+                <!-- BOTONERA -->
+                <div class="seccion-punto-ganado" style="margin-top: 12px; width: 100%;">
+                    <div style="text-align: center; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🏆 PUNTO GANADO</div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="btn-accion btn-ataque" data-accion="ATAQUE" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 10px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; background: linear-gradient(135deg, #059669, #047857);">
+                            <span style="font-size: 18px;">🎯</span>
+                            <span>ATAQUE</span>
+                        </button>
+                        <button class="btn-accion btn-bloqueo" data-accion="BLOQUEO" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 10px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; background: linear-gradient(135deg, #059669, #047857);">
+                            <span style="font-size: 18px;">🧱</span>
+                            <span>BLOQUEO</span>
+                        </button>
+                        <button class="btn-accion btn-saque" data-accion="ACE" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 10px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; background: linear-gradient(135deg, #059669, #047857);">
+                            <span style="font-size: 18px;">🏐✅</span>
+                            <span>SAQUE</span>
+                        </button>
+                        <button class="btn-accion btn-saque-malo" data-accion="ERROR_SAQUE" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 10px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 52px; background: linear-gradient(135deg, #dc2626, #991b1b);">
+                            <span style="font-size: 18px;">🏐❌</span>
+                            <span>SAQUE MALO</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="seccion-error" style="margin-top: 10px; width: 100%;">
+                    <button class="btn-accion btn-error" data-accion="ERROR" style="padding: 12px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 12px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 56px; width: 100%; background: linear-gradient(135deg, #dc2626, #991b1b);">
+                        <span style="font-size: 20px;">❌</span>
+                        <span>ERROR (punto para el rival)</span>
                     </button>
                 </div>
-                <div id="menuDesplegable" class="hidden md:hidden bg-card rounded-xl p-3 border border-white/10 flex flex-col gap-2">
-                    <button id="saveHTMLBtnMobile" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">💾 Guardar</button>
-                    <button id="soundToggleBtnMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-all w-full">🔊 Sonidos</button>
-                    <div class="flex gap-2">
-                        <select id="refreshIntervalSelectorMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-sm flex-1">
-                            <option value="5000">⏱️ 5 seg</option>
-                            <option value="10000" selected>⏱️ 10 seg</option>
-                            <option value="15000">⏱️ 15 seg</option>
-                        </select>
+
+                <div class="seccion-fundamentos" style="margin-top: 10px; width: 100%;">
+                    <div style="text-align: center; color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">📊 FUNDAMENTOS (NO suman punto)</div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="btn-accion btn-rec-positiva" data-accion="RECEPCION_POSITIVA" style="padding: 8px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 9px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 44px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <span style="font-size: 16px;">📥✅</span>
+                            <span>REC+</span>
+                        </button>
+                        <button class="btn-accion btn-rec-negativa" data-accion="RECEPCION_NEGATIVA" style="padding: 8px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 9px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 44px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <span style="font-size: 16px;">📥❌</span>
+                            <span>REC-</span>
+                        </button>
+                        <button class="btn-accion btn-def-positiva" data-accion="DEFENSA_POSITIVA" style="padding: 8px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 9px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 44px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <span style="font-size: 16px;">🛡️✅</span>
+                            <span>DEF+</span>
+                        </button>
+                        <button class="btn-accion btn-def-negativa" data-accion="DEFENSA_NEGATIVA" style="padding: 8px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 9px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 44px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <span style="font-size: 16px;">🛡️❌</span>
+                            <span>DEF-</span>
+                        </button>
                     </div>
                 </div>
+
+                <div class="acciones-principales" style="margin-top: 12px; width: 100%;">
+                    <div class="grid grid-cols-3 gap-2">
+                        <button class="btn-deshacer" id="deshacerBtn" style="padding: 12px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #dc2626, #991b1b);">
+                            <span style="font-size: 18px;">↩️</span>
+                            <span>DESHACER</span>
+                        </button>
+                        <button class="btn-confirmar" id="confirmarBtn" style="padding: 14px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #059669, #047857); grid-column: span 2;">
+                            <span style="font-size: 24px;">✅</span>
+                            <span>CONFIRMAR</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="acciones-secundarias" style="margin-top: 8px; width: 100%;">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="btn-timeout" id="btnTimeout" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #d97706, #b45309);">
+                            <span style="font-size: 18px;">⏸️</span>
+                            <span>TIMEOUT</span>
+                        </button>
+                        <button class="btn-break" id="btnBreak" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #7c3aed, #6d28d9);">
+                            <span style="font-size: 18px;">⚡</span>
+                            <span>BREAK</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PUNTOS API -->
+                <div class="puntos-api" id="puntosApi" style="margin-top: 12px;">
+                    <div style="text-align:center;color:#6b7280;font-size:8px;">No hay puntos registrados</div>
+                </div>
+
+                <!-- HISTORIAL -->
+                <div class="historial" id="historial" style="margin-top: 8px; width: 100%; background: #1a1f2e; border-radius: 12px; padding: 8px 10px; max-height: 80px; overflow-y: auto; font-size: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="text-align:center;color:#6b7280;font-size:8px;">Esperando puntos...</div>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
             </div>
+        </div>
 
-            <div id="vistaPartido">
-                <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Quiebre LOCAL</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Quiebre VISITA</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📊</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyHome">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia LOCAL</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📈</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyAway">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia VISITA</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎭</div><div class="text-xl md:text-2xl font-bold text-primary" id="clutchHome">0%</div><div class="text-xs text-gray-400 uppercase">Bajo presión</div></div>
-                    <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⏱️</div><div class="text-xl md:text-2xl font-bold text-primary" id="totalPoints">0</div><div class="text-xs text-gray-400 uppercase">Puntos Totales</div></div>
-                </div>
+        <!-- FOOTER -->
+        <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
+            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.6 - Estadísticas de servicio por jugador</p>
+        </div>
+    </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-blue-400">🏐 SERVICIO - LOCAL</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesHome">0</div><div class="text-xs text-gray-400">SAQUE</div></div>
-                            <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsHome">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
-                            <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyHome">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-red-400">🏐 SERVICIO - VISITANTE</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div><div class="text-2xl md:text-3xl font-bold text-primary" id="serviceAcesAway">0</div><div class="text-xs text-gray-400">SAQUE</div></div>
-                            <div><div class="text-2xl md:text-3xl font-bold text-red-400" id="serviceErrorsAway">0</div><div class="text-xs text-gray-400">ERRORES</div></div>
-                            <div><div class="text-2xl md:text-3xl font-bold text-green-400" id="serviceEfficiencyAway">0%</div><div class="text-xs text-gray-400">EFICIENCIA</div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 lg:col-span-2 chart-container">
-                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📈 Evolución del Marcador</h3><p class="text-xs text-gray-400">Progresión de puntos durante el partido</p></div>
-                        <canvas id="scoreEvolutionChart" class="max-h-[200px] md:max-h-[300px] w-full"></canvas>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">⚡ Índice de Momentum</h3><p class="text-xs text-gray-400">Dominancia en los últimos 5 puntos</p></div>
-                        <canvas id="momentumChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🔥 Mapa de Rachas</h3><p class="text-xs text-gray-400">Intensidad de las rachas por equipo</p></div>
-                        <canvas id="runsHeatmap" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 chart-container">
-                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">🎯 Eficiencia por Fase</h3><p class="text-xs text-gray-400">Rendimiento en Early, Mid y Late Game</p></div>
-                        <canvas id="phaseEfficiencyChart" class="max-h-[200px] md:max-h-[250px] w-full"></canvas>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📊 Dominancia por Set</h3><p class="text-xs text-gray-400">Control del partido set por set</p></div>
-                        <div id="setDominance" class="space-y-2 md:space-y-3"><div class="text-center text-gray-400 py-6 md:py-8 text-sm">Cargando datos...</div></div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
-                        <div class="bg-dark rounded-full h-6 md:h-8 flex overflow-hidden mb-2">
-                            <div id="clutchBarHome" class="bg-gradient-to-r from-primary to-secondary h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
-                            <div id="clutchBarAway" class="bg-gradient-to-r from-pink-500 to-rose-500 h-full flex items-center justify-center text-xs font-bold text-white transition-all duration-500" style="width: 0%">0%</div>
-                        </div>
-                        <div class="flex justify-between text-xs text-gray-400 mb-3 md:mb-4"><span>LOCAL</span><span>VISITANTE</span></div>
-                        <div id="clutchInsight" class="bg-primary/10 border-l-4 border-primary p-2 md:p-3 rounded text-xs md:text-sm text-gray-300">Cargando análisis...</div>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Puntos de Quiebre</h3>
-                        <div id="breakPointsList" class="max-h-[200px] overflow-y-auto space-y-2"><div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div></div>
-                    </div>
-                </div>
-
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                    <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">💡 Insights Automáticos</h2>
-                    <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3"></div>
-                </div>
-
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-4 md:mb-6">
-                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">📖 QUÉ SIGNIFICAN ESTOS NÚMEROS</h3>
-                    <div id="metricInterpretations" class="space-y-1 md:space-y-2 text-sm"></div>
-                </div>
-
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">🎯 QUÉ CAMBIAR PARA EL PRÓXIMO PARTIDO</h3>
-                    <div id="actionableRecommendations" class="space-y-1 md:space-y-2 text-sm"></div>
-                </div>
-
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
-                    <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">⏱️ Timeline de Eventos Críticos</h2>
-                    <div id="timeline" class="max-h-[300px] overflow-y-auto space-y-2"></div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-blue-400">📊 SIDEOUT%</h3>
-                        <div class="text-center mb-2">
-                            <span class="text-blue-400 font-bold" id="sideoutLocalLabel">0%</span>
-                            <span class="text-gray-500 mx-2">-</span>
-                            <span class="text-red-400 font-bold" id="sideoutVisitanteLabel">0%</span>
-                        </div>
-                        <div class="bg-dark rounded-full h-4 overflow-hidden">
-                            <div id="sideoutBarLocal" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
-                        </div>
-                        <div class="text-xs text-gray-500 text-center mt-2">💡 Eficiencia cuando se tiene el saque</div>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-purple-400">⚡ BREAKPOINT%</h3>
-                        <div class="text-center mb-2">
-                            <span class="text-blue-400 font-bold" id="breakpointLocalLabel">0%</span>
-                            <span class="text-gray-500 mx-2">-</span>
-                            <span class="text-red-400 font-bold" id="breakpointVisitanteLabel">0%</span>
-                        </div>
-                        <div class="bg-dark rounded-full h-4 overflow-hidden">
-                            <div id="breakpointBarLocal" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
-                        </div>
-                        <div class="text-xs text-gray-500 text-center mt-2">💡 Capacidad de romper el saque rival</div>
-                    </div>
-                </div>
+    <!-- COACH PANEL -->
+    <div id="coachPanel" class="fixed bottom-4 right-4 bg-dark rounded-xl shadow-lg border border-primary/30 z-50" style="min-width: 250px;">
+        <div class="flex justify-between items-center p-2 border-b border-gray-700 cursor-pointer" id="panelHeader">
+            <span class="text-xs font-bold text-primary">📊 VOLEYINSIGHT</span>
+            <button id="togglePanelBtn" class="text-gray-400 hover:text-white text-lg">−</button>
+        </div>
+        <div id="panelContent" class="p-3">
+            <div class="text-xs text-gray-400 mb-2">📊 ESTADO DEL SISTEMA</div>
+            <div class="flex items-center gap-2 mb-2">
+                <div id="connectionLed" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span id="connectionText" class="text-xs text-green-400">Tracker activo</span>
             </div>
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-xs">🕐</span>
+                <span id="lastPointTime" class="text-xs text-gray-400">Último punto: --</span>
+            </div>
+            <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
+            <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
+            <div class="mt-3 pt-2 border-t border-gray-700">
+                <div class="text-xs text-gray-400 mb-1">📅 CAMBIAR PARTIDO</div>
+                <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
+                <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
+            </div>
+            <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
+        </div>
+    </div>
 
-            <div id="vistaRotaciones" class="hidden space-y-4 md:space-y-6">
-    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
-        <p class="text-xs text-gray-400 mb-4">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+    <!-- MODAL DE DETALLE DE ROTACIÓN -->
+    <div id="modalRotacion" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f1119] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl">
+            <div class="flex justify-between items-center p-4 border-b border-gray-700/50 sticky top-0 bg-[#0f1119] rounded-t-2xl z-10">
+                <h3 id="modalRotacionTitulo" class="text-lg font-bold text-primary">🔄 Rotación 1</h3>
+                <button id="modalRotacionCerrar" class="text-gray-400 hover:text-white text-2xl transition-all hover:scale-110">✕</button>
+            </div>
+            <div id="modalRotacionContenido" class="p-4"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { VolleyballDashboard } from '/dashboard/js/dashboard.js';
+        import { OfflineManager, SoundManager } from '/dashboard/js/utils.js';
+        import { ReporteGenerator } from '/dashboard/js/reporteGenerator.js';
+        import { AnotadorManager } from '/dashboard/js/anotador.js';
         
-        <!-- Tabla de rotaciones -->
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs md:text-sm">
-                <thead class="text-gray-400 border-b border-gray-700">
-                    <tr>
-                        <th class="text-left py-2">Rotación</th>
-                        <th class="text-center">Puntos a favor</th>
-                        <th class="text-center">Puntos en contra</th>
-                        <th class="text-center">Diferencia</th>
-                        <th class="text-center">Eficiencia</th>
-                        <th class="text-center">Estado</th>
-                    </tr>
-                </thead>
-                <tbody id="tablaRotaciones">
-                    <tr><td colspan="6" class="text-center py-8 text-gray-500">Cargando datos de rotaciones...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dashboard = new VolleyballDashboard();
+            window.anotador = new AnotadorManager();
 
-    <!-- Gráfico de rotaciones -->
-    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 GRÁFICO DE EFICIENCIA POR ROTACIÓN</h3>
-        <canvas id="rotacionesChart" class="w-full h-64 md:h-1"></canvas>
-    </div>
+            const menuBtn = document.getElementById('menuHamburguesaBtn');
+            const menuDesplegable = document.getElementById('menuDesplegable');
 
-    <!-- Insights de rotaciones -->
-    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💡 INSIGHTS DE ROTACIONES</h3>
-        <div id="rotacionesInsights" class="space-y-2">
-            <div class="text-gray-400 text-sm">Seleccioná un partido para ver los insights...</div>
-        </div>
-    </div>
-</div>
-            <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
-                <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
-                    <p class="text-sm text-gray-400 mb-3">Subí los archivos HTML generados por VoleyInsight para analizar la evolución del equipo</p>
-                    <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
-                        <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
-                        <div class="flex flex-col items-center gap-2">
-                            <span class="text-3xl">📁</span>
-                            <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
-                            <span class="text-xs text-gray-500">Podés subir múltiples reportes</span>
-                        </div>
-                    </div>
-                    <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
-                    <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 ANALIZAR EVOLUCIÓN</button>
-                </div>
-                <div id="analisisResultados" class="hidden">
-                    <div class="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-4 md:p-6 border border-primary/30">
-                        <h3 class="text-base md:text-lg font-semibold mb-2">📋 RESUMEN EJECUTIVO</h3>
-                        <p id="resumenEjecutivo" class="text-gray-300 italic">Cargá reportes para ver el análisis...</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                        <div class="bg-card rounded-2xl p-4 md:p-6 border border-green-500/30">
-                            <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">✅ FORTALEZAS DETECTADAS</h3>
-                            <div id="fortalezasList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
-                        </div>
-                        <div class="bg-card rounded-2xl p-4 md:p-6 border border-red-500/30">
-                            <h3 class="text-base md:text-lg font-semibold mb-3 text-red-400">⚠️ DEBILIDADES A MEJORAR</h3>
-                            <div id="debilidadesList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 EVOLUCIÓN POR PARTIDO</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs md:text-sm">
-                                <thead class="text-gray-400 border-b border-gray-700">
-                                    <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Clutch%</th><th class="text-center">Efi. Servicio</th><th class="text-center">Eficiencia</th></tr>
-                                </thead>
-                                <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA DE MÉTRICAS CLAVE</h3>
-                        <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
-                    <div class="flex flex-wrap gap-1 md:gap-2">
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="1">Set 1</button>
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2">Set 2</button>
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3">Set 3</button>
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4">Set 4</button>
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5">Set 5</button>
-                        <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-yellow-600 text-white text-xs md:text-sm" data-set="all">📊 TODOS</button>
-                    </div>
-                </div>
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
-                        <h3 class="text-base md:text-lg font-semibold text-blue-400">🔵 EQUIPO LOCAL</h3>
-                        <div class="flex gap-3 text-xs"><span class="text-gray-400" id="localTotalPts">Total: 0 pts</span><span class="text-gray-400" id="localTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="localTotalServErrors">❌ Err Serv: 0</span></div>
-                    </div>
-                    <div class="overflow-x-auto table-container">
-                        <table class="w-full text-xs md:text-sm min-w-[800px]">
-                            <thead class="text-gray-400 border-b border-gray-700">
-                                <tr>
-                                    <th class="text-left py-1.5 md:py-2">Jugador</th>
-                                    <th class="text-center">PTS</th>
-                                    <th class="text-center">ATA</th>
-                                    <th class="text-center">BLO</th>
-                                    <th class="text-center">SAQUE</th>
-                                    <th class="text-center">ERR</th>
-                                    <th class="text-center">ASIS</th>
-                                    <th class="text-center">EFI%</th>
-                                    <th class="text-center bg-blue-900/30">📥 REC</th>
-                                    <th class="text-center bg-green-900/30">REC%</th>
-                                    <th class="text-center bg-purple-900/30">🛡️ DEF</th>
-                                    <th class="text-center bg-yellow-900/30">DEF%</th>
-                                    <th class="text-center bg-blue-900/30">🏐 SAQUE</th>
-                                    <th class="text-center bg-red-900/30">❌ ERR SERV</th>
-                                    <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
-                                    <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaLocalBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <div class="flex justify-between items-center mb-2 md:mb-3 flex-wrap gap-2">
-                        <h3 class="text-base md:text-lg font-semibold text-red-400">🔴 EQUIPO VISITANTE</h3>
-                        <div class="flex gap-3 text-xs"><span class="text-gray-400" id="visitanteTotalPts">Total: 0 pts</span><span class="text-gray-400" id="visitanteTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="visitanteTotalServErrors">❌ Err Serv: 0</span></div>
-                    </div>
-                    <div class="overflow-x-auto table-container">
-                        <table class="w-full text-xs md:text-sm min-w-[800px]">
-<thead class="text-gray-400 border-b border-gray-700">
-                                <tr>
-                                    <th class="text-left py-1.5 md:py-2">Jugador</th>
-                                    <th class="text-center">PTS</th>
-                                    <th class="text-center">ATA</th>
-                                    <th class="text-center">BLO</th>
-                                    <th class="text-center">SAQUE</th>
-                                    <th class="text-center">ERR</th>
-                                    <th class="text-center">ASIS</th>
-                                    <th class="text-center">EFI%</th>
-                                    <th class="text-center bg-blue-900/30">📥 REC</th>
-                                    <th class="text-center bg-green-900/30">REC%</th>
-                                    <th class="text-center bg-purple-900/30">🛡️ DEF</th>
-                                    <th class="text-center bg-yellow-900/30">DEF%</th>
-                                    <th class="text-center bg-blue-900/30">🎯 SAQUE</th>
-                                    <th class="text-center bg-red-900/30">❌ ERR SERV</th>
-                                    <th class="text-center bg-green-900/30">📊 EFI SERV%</th>
-                                    <th class="text-center bg-purple-900/30">🏐 TOT SERV</th>
-                                </tr>
-                            </thead>                            <tbody id="tablaVisitanteBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2"><span>⏸️</span> ANÁLISIS DE TIEMPOS MUERTOS</h3>
-                    <div id="timeoutsList" class="space-y-3 max-h-[500px] overflow-y-auto"><div class="text-center text-gray-500 py-4">Sin timeouts registrados</div></div>
-                </div>
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">🏆 TOP 5 DEL PARTIDO</h3>
-                    <div id="top5List" class="space-y-1 md:space-y-2"></div>
-                </div>
-                <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3">📊 PUNTOS POR JUGADOR (LOCAL)</h3>
-                    <canvas id="puntosJugadoresChart" class="w-full h-48 md:h-64"></canvas>
-                </div>
-            </div>
-
-                    <!-- ============================================================ -->
-            <!-- VISTA ANOTADOR (NUEVO DISEÑO) -->
-            <!-- ============================================================ -->
-            <div id="vistaAnotador" class="hidden">
-                <!-- PANTALLA DE CONFIGURACIÓN -->
-                <div id="pantallaConfig" class="max-w-2xl mx-auto">
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-6 text-center">
-                        <h1 class="text-2xl font-bold">⚙️ Configurar equipos</h1>
-                        <p class="text-sm">Agregá los números de los jugadores</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gray-800 rounded-2xl p-4">
-                            <h2 class="text-xl font-bold mb-3 text-blue-400">🔵 LOCAL</h2>
-                            <div id="configLocal" class="flex flex-wrap gap-2 mb-3"></div>
-                            <div class="flex gap-2 mb-3">
-                                <input type="number" id="nuevoLocal" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2">
-                                <button id="addLocal" class="bg-blue-600 px-4 py-2 rounded">+</button>
-                            </div>
-                            <div class="text-sm">🛡️ Líberos:</div>
-                            <div id="configLocalLiberos" class="flex flex-wrap gap-2 mt-2"></div>
-                        </div>
-                        <div class="bg-gray-800 rounded-2xl p-4">
-                            <h2 class="text-xl font-bold mb-3 text-red-400">🔴 VISITANTE</h2>
-                            <div id="configVisitante" class="flex flex-wrap gap-2 mb-3"></div>
-                            <div class="flex gap-2 mb-3">
-                                <input type="number" id="nuevoVisitante" placeholder="Número" class="flex-1 bg-gray-700 rounded px-3 py-2">
-                                <button id="addVisitante" class="bg-red-600 px-4 py-2 rounded">+</button>
-                            </div>
-                            <div class="text-sm">🛡️ Líberos:</div>
-                            <div id="configVisitanteLiberos" class="flex flex-wrap gap-2 mt-2"></div>
-                        </div>
-                    </div>
-                    <button id="comenzarBtn" class="w-full mt-6 py-4 rounded-xl bg-green-600 font-bold text-lg">▶️ COMENZAR</button>
-                </div>
-
-                <!-- PANTALLA DE ANOTACIÓN (NUEVO DISEÑO) -->
-                <div id="pantallaAnotacion" class="max-w-2xl mx-auto hidden">
-                    <!-- HEADER -->
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-4 mb-4 text-center">
-                        <div class="flex justify-between items-center">
-                            <div class="flex-1">
-                                <div class="text-xs" id="localLabel">LOCAL</div>
-                                <div class="text-4xl font-bold" id="localScore">0</div>
-                            </div>
-                            <div class="text-2xl">VS</div>
-                            <div class="flex-1">
-                                <div class="text-xs" id="visitanteLabel">VISITANTE</div>
-                                <div class="text-4xl font-bold" id="visitanteScore">0</div>
-                            </div>
-                        </div>
-                        <div class="flex justify-center items-center gap-4 mt-2">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-gray-200">📊 SET</span>
-                                <select id="selectorSet" class="bg-gray-800 text-white px-3 py-1 rounded-lg text-sm font-bold border border-white/20">
-                                    <option value="1">Set 1</option>
-                                    <option value="2">Set 2</option>
-                                    <option value="3">Set 3</option>
-                                    <option value="4">Set 4</option>
-                                    <option value="5">Set 5</option>
-                                </select>
-                            </div>
-                            <div class="text-xs text-gray-200">🎯 Punto <span id="currentPoint">0</span></div>
-                        </div>
-                        <div><span class="serving-badge" id="servingBadge">🏐 SACA LOCAL</span></div>
-                    </div>
-
-                    <!-- SELECCIÓN DE EQUIPO -->
-                    <div class="grid grid-cols-2 gap-3 mb-4">
-                        <button id="btnLocal" class="bg-blue-700 hover:bg-blue-600 py-3 rounded-xl font-bold text-white transition-all">🔵 LOCAL</button>
-                        <button id="btnVisitante" class="bg-gray-700 hover:bg-gray-600 py-3 rounded-xl font-bold text-white transition-all">🔴 VISITANTE</button>
-                    </div>
-
-                    <!-- SELECCIÓN DE JUGADOR -->
-                    <div class="bg-gray-800/70 rounded-2xl p-3 mb-4 border border-white/5">
-                        <div class="text-xs text-gray-400 mb-2 text-center">👤 SELECCIONÁ UN JUGADOR</div>
-                        <div id="canchaGrid" class="grid grid-cols-3 gap-2"></div>
-                        <div id="bancoContainer" class="mt-3"></div>
-                    </div>
-
-                    <!-- ACCIONES DEL PUNTO (NUEVO DISEÑO) -->
-                    <!-- ACCIONES DEL PUNTO (NUEVO DISEÑO) -->
-<div class="bg-gray-800/50 rounded-2xl p-3 mb-4 border border-white/5">
-    <div class="text-xs text-gray-400 text-center mb-2">🏆 PUNTO GANADO</div>
-    
-    <!-- FILA 1: ATAQUE y BLOQUEO -->
-    <div class="grid grid-cols-2 gap-2 mb-2">
-        <button class="btn-accion btn-punto-ganado" data-accion="ATAQUE">
-            <span class="icono">🎯</span>
-            <span class="label">ATAQUE</span>
-        </button>
-        <button class="btn-accion btn-punto-ganado" data-accion="BLOQUEO">
-            <span class="icono">🧱</span>
-            <span class="label">BLOQUEO</span>
-        </button>
-    </div>
-    
-    <!-- FILA 2: SAQUE BUENO y SAQUE MALO -->
-    <div class="grid grid-cols-2 gap-2 mb-3">
-        <button class="btn-accion btn-punto-ganado" data-accion="ACE">
-            <span class="icono">🏐✅</span>
-            <span class="label">SAQUE</span>
-        </button>
-        <button class="btn-accion btn-punto-perdido" data-accion="ERROR_SAQUE">
-            <span class="icono">🏐❌</span>
-            <span class="label">SAQUE MALO</span>
-        </button>
-    </div>
-    
-    <!-- FUNDAMENTOS (REC+, REC-, DEF+, DEF-) - IGUAL -->
-    <div class="text-xs text-gray-400 text-center mb-2">📊 FUNDAMENTOS (NO suman punto)</div>
-    <div class="grid grid-cols-2 gap-2 mb-3">
-        <button class="btn-accion btn-neutro" data-accion="RECEPCION_POSITIVA">
-            <span class="icono">📥✅</span><span class="label">REC+</span>
-        </button>
-        <button class="btn-accion btn-neutro" data-accion="RECEPCION_NEGATIVA">
-            <span class="icono">📥❌</span><span class="label">REC-</span>
-        </button>
-        <button class="btn-accion btn-neutro" data-accion="DEFENSA_POSITIVA">
-            <span class="icono">🛡️✅</span><span class="label">DEF+</span>
-        </button>
-        <button class="btn-accion btn-neutro" data-accion="DEFENSA_NEGATIVA">
-            <span class="icono">🛡️❌</span><span class="label">DEF-</span>
-        </button>
-    </div>
-    
-    <!-- PUNTO PERDIDO (ERROR genérico) -->
-    <div class="text-xs text-gray-400 text-center mb-2">❌ PUNTO PERDIDO</div>
-    <div class="grid grid-cols-1">
-        <button class="btn-accion btn-punto-perdido" data-accion="ERROR">
-            <span class="icono">❌</span><span class="label">ERROR</span>
-        </button>
-    </div>
-</div>
-
-                    <!-- CONFIRMAR Y DESHACER -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="confirmarBtn" class="py-4 rounded-xl font-bold bg-green-600 text-white text-lg transition-all active:scale-95">✅ CONFIRMAR</button>
-                        <button id="deshacerBtn" class="py-4 rounded-xl font-bold bg-red-600 text-white text-lg transition-all active:scale-95">↩️ DESHACER</button>
-                    </div>
-
-                    <!-- TIEMPO MUERTO Y BREAK -->
-                    <div class="grid grid-cols-2 gap-3 mt-3">
-                        <button id="btnTimeout" class="py-3 rounded-xl font-bold bg-yellow-600 hover:bg-yellow-700 transition-all text-white text-sm">⏸️ TIMEOUT</button>
-                        <button id="btnBreak" class="py-3 rounded-xl font-bold bg-green-600 hover:bg-green-700 transition-all text-white text-sm">⚡ BREAK</button>
-                    </div>
-
-                    <!-- HISTORIAL -->
-                    <div class="bg-gray-800/50 rounded-xl p-3 mt-4">
-                        <div class="text-xs text-gray-400">📋 ÚLTIMOS PUNTOS</div>
-                        <div id="historial" class="text-xs space-y-1 max-h-32 overflow-y-auto"></div>
-                    </div>
-
-                    <!-- FEEDBACK -->
-                    <div id="feedback" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full text-sm font-bold hidden z-50"></div>
-                </div>
-            </div>
-            <!-- ============================================================ -->
-            <!-- FIN VISTA ANOTADOR -->
-            <!-- ============================================================ -->
-
-            <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-                <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.6 - Estadísticas de servicio por jugador</p>
-            </div>
-        </div>
-
-        <div id="coachPanel" class="fixed bottom-4 right-4 bg-dark rounded-xl shadow-lg border border-primary/30 z-50" style="min-width: 250px;">
-            <div class="flex justify-between items-center p-2 border-b border-gray-700 cursor-pointer" id="panelHeader">
-                <span class="text-xs font-bold text-primary">📊 VOLEYINSIGHT</span>
-                <button id="togglePanelBtn" class="text-gray-400 hover:text-white text-lg">−</button>
-            </div>
-            <div id="panelContent" class="p-3">
-                <div class="text-xs text-gray-400 mb-2">📊 ESTADO DEL SISTEMA</div>
-                <div class="flex items-center gap-2 mb-2">
-                    <div id="connectionLed" class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span id="connectionText" class="text-xs text-green-400">Tracker activo</span>
-                </div>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-xs">🕐</span>
-                    <span id="lastPointTime" class="text-xs text-gray-400">Último punto: --</span>
-                </div>
-                <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
-                <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
-                <div class="mt-3 pt-2 border-t border-gray-700">
-                    <div class="text-xs text-gray-400 mb-1">📅 CAMBIAR PARTIDO</div>
-                    <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
-                    <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
-                </div>
-                <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
-            </div>
-        </div>
-
-        <script type="module">
-
-            import { VolleyballDashboard } from '/dashboard/js/dashboard.js';
-            import { OfflineManager, SoundManager } from '/dashboard/js/utils.js';
-            import { ReporteGenerator } from '/dashboard/js/reporteGenerator.js';
-            import { AnotadorManager } from '/dashboard/js/anotador.js';
-            
-            document.addEventListener('DOMContentLoaded', () => {
-                window.dashboard = new VolleyballDashboard();
-                window.anotador = new AnotadorManager();
-
-                const menuBtn = document.getElementById('menuHamburguesaBtn');
-                const menuDesplegable = document.getElementById('menuDesplegable');
-
-                if (menuBtn && menuDesplegable) {
-
-                    const toggleMenu = (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (menuDesplegable.classList.contains('hidden')) {
-                            menuDesplegable.classList.remove('hidden');
-                            menuDesplegable.style.display = 'flex';
-                            
-                            if (window.dashboard && window.dashboard.reasignarEventosMenuMovil) {
-                                window.dashboard.reasignarEventosMenuMovil();
-                            }
-                        } else {
-                            menuDesplegable.classList.add('hidden');
-                            menuDesplegable.style.display = 'none';
-                            console.log('📂 Menú cerrado');
+            if (menuBtn && menuDesplegable) {
+                const toggleMenu = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (menuDesplegable.classList.contains('hidden')) {
+                        menuDesplegable.classList.remove('hidden');
+                        menuDesplegable.style.display = 'flex';
+                        if (window.dashboard && window.dashboard.reasignarEventosMenuMovil) {
+                            window.dashboard.reasignarEventosMenuMovil();
                         }
-                    };
+                    } else {
+                        menuDesplegable.classList.add('hidden');
+                        menuDesplegable.style.display = 'none';
+                        console.log('📂 Menú cerrado');
+                    }
+                };
+                menuBtn.addEventListener('click', toggleMenu);
+                menuBtn.addEventListener('touchstart', toggleMenu);
+                const closeMenu = (e) => {
+                    if (!menuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
+                        menuDesplegable.classList.add('hidden');
+                        menuDesplegable.style.display = 'none';
+                    }
+                };
+                document.addEventListener('click', closeMenu);
+                document.addEventListener('touchstart', closeMenu);
+            } else {
+                console.log('❌ Menú no encontrado');
+            }
 
-                    // Eventos para click y touch
-                    menuBtn.addEventListener('click', toggleMenu);
-                    menuBtn.addEventListener('touchstart', toggleMenu);
+            const tabPartido = document.getElementById('tabPartido');
+            const tabIndividuales = document.getElementById('tabIndividuales');
+            const tabAnotador = document.getElementById('tabAnotador');
+            const tabEvolucion = document.getElementById('tabEvolucion');
+            const vistaPartido = document.getElementById('vistaPartido');
+            const vistaIndividuales = document.getElementById('vistaIndividuales');
+            const vistaAnotador = document.getElementById('vistaAnotador');
+            const vistaEvolucion = document.getElementById('vistaEvolucion');
+            const tabRotaciones = document.getElementById('tabRotaciones');
+            const vistaRotaciones = document.getElementById('vistaRotaciones');
 
-                    // Cerrar al hacer clic/tocar fuera
-                    const closeMenu = (e) => {
-                        if (!menuBtn.contains(e.target) && !menuDesplegable.contains(e.target)) {
-                            menuDesplegable.classList.add('hidden');
-                            menuDesplegable.style.display = 'none';
+            function cambiarPestana(activa) {
+                vistaPartido.classList.add('hidden');
+                vistaIndividuales.classList.add('hidden');
+                vistaAnotador.classList.add('hidden');
+                vistaEvolucion.classList.add('hidden');
+                vistaRotaciones.classList.add('hidden');
+                if (activa === 'partido') vistaPartido.classList.remove('hidden');
+                if (activa === 'individuales') vistaIndividuales.classList.remove('hidden');
+                if (activa === 'anotador') {
+                    vistaAnotador.classList.remove('hidden');
+                    setTimeout(() => {
+                        if (typeof inicializarCancha === 'function') {
+                            inicializarCancha();
                         }
-                    };
-                    document.addEventListener('click', closeMenu);
-                    document.addEventListener('touchstart', closeMenu);
-
-                } else {
-                    console.log('❌ Menú no encontrado');
+                    }, 200);
                 }
-                const tabPartido = document.getElementById('tabPartido');
-                const tabIndividuales = document.getElementById('tabIndividuales');
-                const tabAnotador = document.getElementById('tabAnotador');
-                const tabEvolucion = document.getElementById('tabEvolucion');
-                const vistaPartido = document.getElementById('vistaPartido');
-                const vistaIndividuales = document.getElementById('vistaIndividuales');
-                const vistaAnotador = document.getElementById('vistaAnotador');
-                const vistaEvolucion = document.getElementById('vistaEvolucion');
+                if (activa === 'evolucion') vistaEvolucion.classList.remove('hidden');
+                if (activa === 'rotaciones') {
+                    vistaRotaciones.classList.remove('hidden');
+                    if (window.dashboard) window.dashboard.mostrarRotaciones();
+                }
+                const tabs = [
+                    { btn: tabPartido, name: 'partido' },
+                    { btn: tabIndividuales, name: 'individuales' },
+                    { btn: tabAnotador, name: 'anotador' },
+                    { btn: tabEvolucion, name: 'evolucion' },
+                    { btn: tabRotaciones, name: 'rotaciones' }
+                ];
+                tabs.forEach(tab => {
+                    if (tab.btn) {
+                        tab.btn.className = 'tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all ' + 
+                            (activa === tab.name ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300');
+                    }
+                });
+            }
 
-                function cambiarPestana(activa) {
-                    vistaPartido.classList.add('hidden');
-                    vistaIndividuales.classList.add('hidden');
-                    vistaAnotador.classList.add('hidden');
-                    vistaEvolucion.classList.add('hidden');
-                    vistaRotaciones.classList.add('hidden');
-                    if (activa === 'partido') vistaPartido.classList.remove('hidden');
-                    if (activa === 'individuales') vistaIndividuales.classList.remove('hidden');
-                    if (activa === 'anotador') vistaAnotador.classList.remove('hidden');
-                    if (activa === 'evolucion') vistaEvolucion.classList.remove('hidden');
-                    if (activa === 'rotaciones') {
-                            vistaRotaciones.classList.remove('hidden');
-                            if (window.dashboard) window.dashboard.mostrarRotaciones();  
+            if (tabPartido) tabPartido.addEventListener('click', () => cambiarPestana('partido'));
+            if (tabIndividuales) tabIndividuales.addEventListener('click', () => cambiarPestana('individuales'));
+            if (tabAnotador) tabAnotador.addEventListener('click', () => cambiarPestana('anotador'));
+            if (tabEvolucion) tabEvolucion.addEventListener('click', () => cambiarPestana('evolucion'));
+            if (tabRotaciones) tabRotaciones.addEventListener('click', () => cambiarPestana('rotaciones'));
+
+            // ============================================================
+            // CANCHA EN VIVO - SCRIPT COMPLETO (CORREGIDO)
+            // ============================================================
+            let canchaInicializada = false;
+
+            async function inicializarCancha() {
+                if (canchaInicializada) return;
+                canchaInicializada = true;
+
+                console.log('🏐 Inicializando Cancha en Vivo...');
+
+                // --- ESTADO ---
+                const estado = {
+                    local: { score: 0 },
+                    visitante: { score: 0 },
+                    equipo: 'LOCAL',
+                    accion: null,
+                    jugador: null,
+                    set: 1,
+                    punto: 0,
+                    equipoQueSacaba: 'LOCAL',
+                    historial: [],
+                    puntosApi: [],
+                    matchId: null,
+                    homeTeamName: 'LOCAL',
+                    awayTeamName: 'VISITANTE',
+                    jugadoresListaLocal: [],
+                    jugadoresListaVisitante: [],
+                    rotacionLocal: 1,
+                    rotacionVisitante: 1,
+                };
+                window.estadoCancha = estado;
+
+                // --- JUGADORES ---
+                let jugadores = {
+                    local: [],
+                    visitante: []
+                };
+
+                function obtenerUrlApi() {
+                    return window.location.origin;
+                }
+
+                async function cargarJugadoresDesdeAPI() {
+                    try {
+                        const response = await fetch(`/data/full_${estado.matchId}.json?_t=${Date.now()}`);
+                        if (!response.ok) return false;
+                        const fullData = await response.json();
+                        const findCourt = (obj) => {
+                            if (!obj) return null;
+                            if (obj.court) return obj.court;
+                            if (obj.liveState?.court) return obj.liveState.court;
+                            for (let key in obj) {
+                                if (typeof obj[key] === 'object') {
+                                    let found = findCourt(obj[key]);
+                                    if (found) return found;
+                                }
+                            }
+                            return null;
+                        };
+                        const court = findCourt(fullData);
+                        if (!court) return false;
+                        
+                        const jugadoresLocal = [];
+                        const jugadoresVisitante = [];
+                        
+                        if (court.home?.positions) {
+                            for (const [pos, info] of Object.entries(court.home.positions)) {
+                                if (info.number) {
+                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
+                                    jugadoresLocal.push({
+                                        numero: info.number,
+                                        nombre: nombreCompleto || `Jugador ${info.number}`,
+                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
+                                        posicion: parseInt(pos)
+                                    });
+                                }
+                            }
                         }
-                    const tabs = [
-                        { btn: tabPartido, name: 'partido' },
-                        { btn: tabIndividuales, name: 'individuales' },
-                        { btn: tabAnotador, name: 'anotador' },
-                        { btn: tabEvolucion, name: 'evolucion' },
-                        { btn: tabRotaciones, name: 'rotaciones' }
-                    ];
-                    tabs.forEach(tab => {
-                        if (tab.btn) {
-                            tab.btn.className = 'tab-btn px-4 md:px-6 py-1.5 md:py-2 rounded-lg font-semibold transition-all ' + 
-                                (activa === tab.name ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300');
+                        if (court.home?.bench) {
+                            for (const info of court.home.bench) {
+                                if (info.number && !jugadoresLocal.find(j => j.numero === info.number)) {
+                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
+                                    jugadoresLocal.push({
+                                        numero: info.number,
+                                        nombre: nombreCompleto || `Jugador ${info.number}`,
+                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
+                                        posicion: 99
+                                    });
+                                }
+                            }
                         }
+                        if (court.away?.positions) {
+                            for (const [pos, info] of Object.entries(court.away.positions)) {
+                                if (info.number) {
+                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
+                                    jugadoresVisitante.push({
+                                        numero: info.number,
+                                        nombre: nombreCompleto || `Jugador ${info.number}`,
+                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
+                                        posicion: parseInt(pos)
+                                    });
+                                }
+                            }
+                        }
+                        if (court.away?.bench) {
+                            for (const info of court.away.bench) {
+                                if (info.number && !jugadoresVisitante.find(j => j.numero === info.number)) {
+                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
+                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
+                                    jugadoresVisitante.push({
+                                        numero: info.number,
+                                        nombre: nombreCompleto || `Jugador ${info.number}`,
+                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
+                                        posicion: 99
+                                    });
+                                }
+                            }
+                        }
+                        
+                        jugadoresLocal.sort((a, b) => a.posicion - b.posicion);
+                        jugadoresVisitante.sort((a, b) => a.posicion - b.posicion);
+                        jugadores.local = jugadoresLocal.slice(0, 6);
+                        jugadores.visitante = jugadoresVisitante.slice(0, 6);
+                        
+                        console.log('✅ Jugadores cargados desde API:', {
+                            local: jugadores.local.map(j => `${j.numero} - ${j.nombreCorto}`),
+                            visitante: jugadores.visitante.map(j => `${j.numero} - ${j.nombreCorto}`)
+                        });
+                        return true;
+                    } catch (e) {
+                        console.log('Error cargando jugadores:', e);
+                        return false;
+                    }
+                }
+
+                async function cargarConfiguracion() {
+                    try {
+                        const response = await fetch('/data/config.json');
+                        if (response.ok) {
+                            const config = await response.json();
+                            estado.matchId = config.matchId;
+                            estado.homeTeamName = config.homeTeam || 'LOCAL';
+                            estado.awayTeamName = config.awayTeam || 'VISITANTE';
+                            const localLabel = document.getElementById('localLabel');
+                            const visitanteLabel = document.getElementById('visitanteLabel');
+                            if (localLabel) localLabel.textContent = estado.homeTeamName;
+                            if (visitanteLabel) visitanteLabel.textContent = estado.awayTeamName;
+                            await cargarJugadoresDesdeAPI();
+                            return true;
+                        }
+                    } catch (e) {
+                        console.log('Error cargando configuración:', e);
+                    }
+                    return false;
+                }
+
+                async function cargarPuntosDesdeAPI() {
+                    try {
+                        const apiUrl = obtenerUrlApi();
+                        const response = await fetch(`${apiUrl}/api/puntos/${estado.matchId}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            estado.puntosApi = data.data || [];
+                            estado.historial = [...estado.puntosApi];
+                            if (estado.puntosApi.length > 0) {
+                                const ultimo = estado.puntosApi[estado.puntosApi.length - 1];
+                                estado.local.score = parseInt(ultimo.marcadorDespues.split('-')[0]) || 0;
+                                estado.visitante.score = parseInt(ultimo.marcadorDespues.split('-')[1]) || 0;
+                                estado.punto = ultimo.punto || 0;
+                                estado.set = ultimo.set || 1;
+                            }
+                            actualizarMarcador();
+                            renderizarCancha();
+                            renderizarHistorial();
+                            renderizarPuntosApi();
+                        }
+                    } catch (e) {
+                        console.log('Error cargando puntos:', e);
+                    }
+                }
+
+                async function guardarPuntoEnAPI(punto) {
+                    try {
+                        const apiUrl = obtenerUrlApi();
+                        const response = await fetch(`${apiUrl}/api/puntos`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ matchId: estado.matchId, punto: punto })
+                        });
+                        if (!response.ok) throw new Error('Error al guardar el punto');
+                        return true;
+                    } catch (e) {
+                        console.error('Error guardando punto:', e);
+                        mostrarFeedback('❌ Error al guardar el punto', true);
+                        return false;
+                    }
+                }
+
+                function renderizarCancha() {
+                    const containerLocal = document.getElementById('jugadoresLocal');
+                    const containerVisitante = document.getElementById('jugadoresVisitante');
+                    if (!containerLocal || !containerVisitante) return;
+
+                    if (jugadores.local.length === 0) {
+                        jugadores.local = [
+                            { numero: 10, nombre: 'Lazarte, Zoel', nombreCorto: 'Lazarte' },
+                            { numero: 3, nombre: 'Rios, Leila', nombreCorto: 'Rios' },
+                            { numero: 11, nombre: 'Montez, Marina', nombreCorto: 'Montez' },
+                            { numero: 21, nombre: 'Benitez, Jazmin', nombreCorto: 'Benitez' },
+                            { numero: 2, nombre: 'Pucheta, Victoria', nombreCorto: 'Pucheta' },
+                            { numero: 18, nombre: 'Lezcano, Berenice', nombreCorto: 'Lezcano' }
+                        ];
+                        jugadores.visitante = [
+                            { numero: 1, nombre: 'Suarez, Nayeli', nombreCorto: 'Suarez' },
+                            { numero: 7, nombre: 'Goggi, Luana', nombreCorto: 'Goggi' },
+                            { numero: 9, nombre: 'Pagano, Angeles', nombreCorto: 'Pagano' },
+                            { numero: 13, nombre: 'Maier Rearte, Sofia', nombreCorto: 'Maier' },
+                            { numero: 16, nombre: 'Stark, Melina', nombreCorto: 'Stark' },
+                            { numero: 23, nombre: 'Calvano Coleur, Luisina', nombreCorto: 'Calvano' }
+                        ];
+                    }
+
+                    const jugadoresLocalRotados = obtenerJugadoresRotados('local');
+                    const jugadoresVisitanteRotados = obtenerJugadoresRotados('visitante');
+
+                    containerLocal.innerHTML = '';
+                    const colsLocal = [[], []];
+                    jugadoresLocalRotados.forEach((j, i) => {
+                        colsLocal[i % 2].push(j);
+                    });
+                    colsLocal.forEach(col => {
+                        const div = document.createElement('div');
+                        div.className = 'columna';
+                        col.forEach(j => {
+                            const btn = document.createElement('div');
+                            btn.className = 'jugador local';
+                            btn.dataset.jugador = j.numero;
+                            btn.dataset.equipo = 'LOCAL';
+                            btn.innerHTML = `
+                                <span class="numero">${j.numero}</span>
+                                <span class="nombre-corto">${j.nombreCorto}</span>
+                            `;
+                            if (estado.jugador === j.numero && estado.equipo === 'LOCAL') {
+                                btn.classList.add('seleccionado');
+                            }
+                            btn.onclick = () => seleccionarJugador(j.numero, 'LOCAL');
+                            div.appendChild(btn);
+                        });
+                        containerLocal.appendChild(div);
+                    });
+
+                    containerVisitante.innerHTML = '';
+                    const colsVisitante = [[], []];
+                    jugadoresVisitanteRotados.forEach((j, i) => {
+                        colsVisitante[i % 2].push(j);
+                    });
+                    colsVisitante.forEach(col => {
+                        const div = document.createElement('div');
+                        div.className = 'columna';
+                        col.forEach(j => {
+                            const btn = document.createElement('div');
+                            btn.className = 'jugador visitante';
+                            btn.dataset.jugador = j.numero;
+                            btn.dataset.equipo = 'VISITANTE';
+                            btn.innerHTML = `
+                                <span class="numero">${j.numero}</span>
+                                <span class="nombre-corto">${j.nombreCorto}</span>
+                            `;
+                            if (estado.jugador === j.numero && estado.equipo === 'VISITANTE') {
+                                btn.classList.add('seleccionado');
+                            }
+                            btn.onclick = () => seleccionarJugador(j.numero, 'VISITANTE');
+                            div.appendChild(btn);
+                        });
+                        containerVisitante.appendChild(div);
+                    });
+
+                    const badge = document.getElementById('servingBadge');
+                    const servingText = estado.equipoQueSacaba === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName;
+                    if (badge) {
+                        badge.textContent = `🏐 SACA ${servingText}`;
+                        badge.style.background = estado.equipoQueSacaba === 'LOCAL' ? 'rgba(30,58,95,0.9)' : 'rgba(95,30,58,0.9)';
+                    }
+
+                    const rotDisplay = document.getElementById('rotacionDisplay');
+                    if (rotDisplay) {
+                        rotDisplay.textContent = `🔄 LOCAL: ${estado.rotacionLocal} | VISITANTE: ${estado.rotacionVisitante}`;
+                    }
+                }
+
+                function obtenerJugadoresRotados(equipo) {
+                    const lista = jugadores[equipo];
+                    if (lista.length === 0) return lista;
+                    const rotacion = equipo === 'local' ? estado.rotacionLocal : estado.rotacionVisitante;
+                    const offset = (rotacion - 1) % lista.length;
+                    const rotados = [];
+                    for (let i = 0; i < lista.length; i++) {
+                        const idx = (i + offset) % lista.length;
+                        rotados.push(lista[idx]);
+                    }
+                    return rotados;
+                }
+
+                function seleccionarJugador(numero, equipo) {
+                    estado.equipo = equipo;
+                    estado.jugador = numero;
+                    renderizarCancha();
+                    mostrarFeedback(`👤 ${equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName} - J${numero}`);
+                }
+
+                function actualizarMarcador() {
+                    const localScore = document.getElementById('localScore');
+                    const visitanteScore = document.getElementById('visitanteScore');
+                    const puntoActual = document.getElementById('puntoActual');
+                    const setActual = document.getElementById('setActual');
+                    if (localScore) localScore.textContent = estado.local.score;
+                    if (visitanteScore) visitanteScore.textContent = estado.visitante.score;
+                    if (puntoActual) puntoActual.textContent = estado.punto;
+                    if (setActual) setActual.textContent = estado.set;
+                }
+
+                function renderizarHistorial() {
+                    const container = document.getElementById('historial');
+                    if (!container) return;
+                    if (estado.historial.length === 0) {
+                        container.innerHTML = '<div style="text-align:center;color:#6b7280;font-size:8px;">Esperando puntos...</div>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    const ultimos = estado.historial.slice().reverse().slice(0, 10);
+                    ultimos.forEach(p => {
+                        const item = document.createElement('div');
+                        item.className = 'item';
+                        const nombreEquipo = p.equipoAnota === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName;
+                        const color = p.equipoAnota === 'LOCAL' ? '#93c5fd' : '#fca5a5';
+                        const jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
+                        item.innerHTML = `
+                            <span style="color:${color};font-weight:600;">${nombreEquipo}</span>
+                            <span>${jugadorDisplay}</span>
+                            <span style="color:#9ca3af;">${p.accion}</span>
+                            <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
+                        `;
+                        container.appendChild(item);
                     });
                 }
 
-                if (tabPartido) tabPartido.addEventListener('click', () => cambiarPestana('partido'));
-                if (tabIndividuales) tabIndividuales.addEventListener('click', () => cambiarPestana('individuales'));
-                if (tabAnotador) tabAnotador.addEventListener('click', () => cambiarPestana('anotador'));
-                if (tabEvolucion) tabEvolucion.addEventListener('click', () => cambiarPestana('evolucion'));
-                const tabRotaciones = document.getElementById('tabRotaciones');
-                if (tabRotaciones) tabRotaciones.addEventListener('click', () => cambiarPestana('rotaciones'));
+                function renderizarPuntosApi() {
+                    const container = document.getElementById('puntosApi');
+                    if (!container) return;
+                    if (estado.puntosApi.length === 0) {
+                        container.innerHTML = '<div style="text-align:center;color:#6b7280;font-size:8px;">No hay puntos registrados</div>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    const ultimos = estado.puntosApi.slice().reverse().slice(0, 15);
+                    ultimos.forEach(p => {
+                        const item = document.createElement('div');
+                        item.className = 'item';
+                        const nombreEquipo = p.equipoAnota === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName;
+                        const color = p.equipoAnota === 'LOCAL' ? '#93c5fd' : '#fca5a5';
+                        const jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
+                        item.innerHTML = `
+                            <span style="color:${color};font-weight:600;">${nombreEquipo}</span>
+                            <span>${jugadorDisplay}</span>
+                            <span style="color:#9ca3af;">${p.accion}</span>
+                            <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
+                        `;
+                        container.appendChild(item);
+                    });
+                }
+
+                function mostrarFeedback(msg, error = false) {
+                    const fb = document.getElementById('feedback');
+                    if (!fb) return;
+                    fb.textContent = msg;
+                    fb.className = 'feedback visible';
+                    fb.style.borderColor = error ? 'rgba(239,68,68,0.5)' : 'rgba(102,126,234,0.3)';
+                    clearTimeout(fb._timeout);
+                    fb._timeout = setTimeout(() => {
+                        fb.classList.remove('visible');
+                    }, 1500);
+                }
+
+                // ============================================================
+                // CONFIRMAR PUNTO
+                // ============================================================
+                const confirmarBtn = document.getElementById('confirmarBtn');
+                if (confirmarBtn) {
+                    confirmarBtn.onclick = async () => {
+                        if (!estado.accion) {
+                            mostrarFeedback('❌ Seleccioná una ACCIÓN', true);
+                            return;
+                        }
+                        if (!estado.jugador) {
+                            mostrarFeedback('❌ Seleccioná un JUGADOR', true);
+                            return;
+                        }
+
+                        const accionesPunto = ['ATAQUE', 'BLOQUEO', 'ACE'];
+                        const esPunto = accionesPunto.includes(estado.accion);
+
+                        let equipoAnota = null;
+                        if (estado.accion === 'ERROR' || estado.accion === 'ERROR_SAQUE') {
+                            equipoAnota = estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
+                        } else if (esPunto) {
+                            equipoAnota = estado.equipo;
+                        }
+
+                        const marcadorAntes = `${estado.local.score}-${estado.visitante.score}`;
+
+                        if (equipoAnota === 'LOCAL') {
+                            estado.local.score++;
+                            mostrarFeedback(`✅ Punto de ${estado.homeTeamName} - J${estado.jugador}`);
+                        } else if (equipoAnota === 'VISITANTE') {
+                            estado.visitante.score++;
+                            mostrarFeedback(`✅ Punto de ${estado.awayTeamName} - J${estado.jugador}`);
+                        } else {
+                            mostrarFeedback(`📊 ${estado.accion} registrada (sin punto)`);
+                        }
+
+                        const marcadorDespues = `${estado.local.score}-${estado.visitante.score}`;
+
+                        const punto = {
+                            timestamp: new Date().toISOString(),
+                            set: estado.set,
+                            punto: estado.punto + 1,
+                            equipo: estado.equipo,
+                            equipoAnota: equipoAnota,
+                            jugador: estado.jugador,
+                            accion: estado.accion,
+                            asistencia: null,
+                            marcadorAntes: marcadorAntes,
+                            marcadorDespues: marcadorDespues,
+                            rotacionLocal: estado.equipo === 'LOCAL' ? estado.rotacionLocal : null,
+                            rotacionVisitante: estado.equipo === 'VISITANTE' ? estado.rotacionVisitante : null,
+                            equipoSacaba: estado.equipoQueSacaba
+                        };
+
+                        await guardarPuntoEnAPI(punto);
+
+                        estado.puntosApi.push(punto);
+                        estado.historial.push(punto);
+
+                        // ✅ Solo incrementar estado.punto si la acción suma punto
+                        if (equipoAnota !== null) {
+                            estado.punto++;
+                        } else {
+                            console.log('📊 Fundamentos registrados (no suman punto)');
+                        }
+
+                        // ✅ Solo rotar si la acción suma punto
+                        if (equipoAnota && equipoAnota !== estado.equipoQueSacaba) {
+                            if (equipoAnota === 'LOCAL') {
+                                estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
+                            } else {
+                                estado.rotacionVisitante = (estado.rotacionVisitante % 6) + 1;
+                            }
+                            estado.equipoQueSacaba = equipoAnota;
+                        }
+
+                        actualizarMarcador();
+                        renderizarCancha();
+                        renderizarHistorial();
+                        renderizarPuntosApi();
+
+                        estado.accion = null;
+                        estado.jugador = null;
+                        document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('seleccionado'));
+                        document.querySelectorAll('.jugador').forEach(b => b.classList.remove('seleccionado', 'visitante-seleccionado'));
+                    };
+                }
+
+                // ============================================================
+                // DESHACER
+                // ============================================================
+                const deshacerBtn = document.getElementById('deshacerBtn');
+                if (deshacerBtn) {
+                    deshacerBtn.onclick = async () => {
+                        if (estado.punto === 0) {
+                            mostrarFeedback('⚠️ No hay puntos para deshacer', true);
+                            return;
+                        }
+                        const ultimo = estado.historial.pop();
+                        estado.puntosApi.pop();
+                        if (!ultimo) return;
+                        if (ultimo.equipoAnota === 'LOCAL') {
+                            estado.local.score--;
+                        } else if (ultimo.equipoAnota === 'VISITANTE') {
+                            estado.visitante.score--;
+                        }
+                        estado.punto--;
+                        try {
+                            const apiUrl = obtenerUrlApi();
+                            await fetch(`${apiUrl}/api/puntos/${estado.matchId}`, { method: 'DELETE' });
+                            await cargarPuntosDesdeAPI();
+                        } catch (e) {
+                            const puntosKey = `puntos_${estado.matchId}`;
+                            localStorage.setItem(puntosKey, JSON.stringify(estado.puntosApi));
+                        }
+                        actualizarMarcador();
+                        renderizarHistorial();
+                        renderizarPuntosApi();
+                        renderizarCancha();
+                        mostrarFeedback('↩️ Deshecho');
+                    };
+                }
+
+                // ============================================================
+                // EVENTOS DE LA BOTONERA
+                // ============================================================
+                document.querySelectorAll('.btn-accion').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('seleccionado'));
+                        btn.classList.add('seleccionado');
+                        estado.accion = btn.dataset.accion;
+                        mostrarFeedback(`⚡ ${btn.dataset.accion} seleccionado`);
+                    };
+                });
+
+                const togglePuntosBtn = document.getElementById('togglePuntosBtn');
+                if (togglePuntosBtn) {
+                    togglePuntosBtn.onclick = () => {
+                        const container = document.getElementById('puntosApi');
+                        if (container.style.display === 'block') {
+                            container.style.display = 'none';
+                            togglePuntosBtn.innerHTML = '📋 PUNTOS';
+                        } else {
+                            container.style.display = 'block';
+                            togglePuntosBtn.innerHTML = '📋 OCULTAR';
+                            renderizarPuntosApi();
+                        }
+                    };
+                }
+
+                const btnBreak = document.getElementById('btnBreak');
+                if (btnBreak) {
+                    btnBreak.onclick = () => {
+                        const breakPoint = {
+                            timestamp: new Date().toISOString(),
+                            set: estado.set,
+                            equipo: estado.equipo,
+                            tipo: 'break',
+                            marcador: `${estado.local.score}-${estado.visitante.score}`
+                        };
+                        let breaksGuardados = JSON.parse(localStorage.getItem(`breaks_${estado.matchId}`) || '[]');
+                        breaksGuardados.push(breakPoint);
+                        localStorage.setItem(`breaks_${estado.matchId}`, JSON.stringify(breaksGuardados));
+                        mostrarFeedback(`⚡ BREAK! ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName} rompe el saque`);
+                    };
+                }
+
+                const btnTimeout = document.getElementById('btnTimeout');
+                if (btnTimeout) {
+                    btnTimeout.onclick = () => {
+                        if (!estado.equipo) {
+                            mostrarFeedback('❌ Seleccioná un equipo primero', true);
+                            return;
+                        }
+                        const timeout = {
+                            id: `timeout_${Date.now()}`,
+                            timestamp: new Date().toISOString(),
+                            set: estado.set,
+                            equipo: estado.equipo,
+                            marcador: `${estado.local.score}-${estado.visitante.score}`
+                        };
+                        let timeoutsGuardados = JSON.parse(localStorage.getItem(`timeouts_${estado.matchId}`) || '[]');
+                        timeoutsGuardados.push(timeout);
+                        localStorage.setItem(`timeouts_${estado.matchId}`, JSON.stringify(timeoutsGuardados));
+                        mostrarFeedback(`⏸️ TIMEOUT - ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName}`);
+                    };
+                }
+
+                // ============================================================
+                // SELECTOR DE SET
+                // ============================================================
+                const selectorSet = document.getElementById('selectorSet');
+                if (selectorSet) {
+                    selectorSet.onchange = function() {
+                        const nuevoSet = parseInt(this.value);
+                        if (nuevoSet !== estado.set) {
+                            estado.set = nuevoSet;
+                            estado.local.score = 0;
+                            estado.visitante.score = 0;
+                            estado.punto = 0;
+                            estado.historial = [];
+                            estado.puntosApi = [];
+                            estado.equipoQueSacaba = 'LOCAL';
+                            estado.rotacionLocal = 1;
+                            estado.rotacionVisitante = 1;
+                            actualizarMarcador();
+                            renderizarCancha();
+                            renderizarHistorial();
+                            renderizarPuntosApi();
+                            mostrarFeedback(`📊 Cambiado a Set ${nuevoSet} - Marcador 0-0`, 'info');
+                        }
+                    };
+                }
+
+                // ============================================================
+                // ATAJOS DE TECLADO
+                // ============================================================
+                document.addEventListener('keydown', (e) => {
+                    const key = e.key.toLowerCase();
+                    if (key === '1') document.querySelector('.btn-ataque')?.click();
+                    if (key === '2') document.querySelector('.btn-bloqueo')?.click();
+                    if (key === '3') document.querySelector('.btn-saque')?.click();
+                    if (key === '4') document.querySelector('.btn-saque-malo')?.click();
+                    if (key === '5') document.querySelector('.btn-rec-positiva')?.click();
+                    if (key === '6') document.querySelector('.btn-rec-negativa')?.click();
+                    if (key === '7') document.querySelector('.btn-def-positiva')?.click();
+                    if (key === '8') document.querySelector('.btn-def-negativa')?.click();
+                    if (key === '9') document.querySelector('.btn-error')?.click();
+                    if (key === 'enter') document.getElementById('confirmarBtn')?.click();
+                    if (key === 'z') document.getElementById('deshacerBtn')?.click();
+                    if (key === 'b') document.getElementById('btnBreak')?.click();
+                    if (key === 't') document.getElementById('btnTimeout')?.click();
+                });
+
+                // ============================================================
+                // INICIALIZAR
+                // ============================================================
+                console.log('🏐 Inicializando Cancha en Vivo con API...');
+                await cargarConfiguracion();
+                
+                if (jugadores.local.length === 0) {
+                    console.log('⚠️ Usando jugadores predefinidos (sin API)');
+                    jugadores.local = [
+                        { numero: 10, nombre: 'Lazarte, Zoel', nombreCorto: 'Lazarte' },
+                        { numero: 3, nombre: 'Rios, Leila', nombreCorto: 'Rios' },
+                        { numero: 11, nombre: 'Montez, Marina', nombreCorto: 'Montez' },
+                        { numero: 21, nombre: 'Benitez, Jazmin', nombreCorto: 'Benitez' },
+                        { numero: 2, nombre: 'Pucheta, Victoria', nombreCorto: 'Pucheta' },
+                        { numero: 18, nombre: 'Lezcano, Berenice', nombreCorto: 'Lezcano' }
+                    ];
+                    jugadores.visitante = [
+                        { numero: 1, nombre: 'Suarez, Nayeli', nombreCorto: 'Suarez' },
+                        { numero: 7, nombre: 'Goggi, Luana', nombreCorto: 'Goggi' },
+                        { numero: 9, nombre: 'Pagano, Angeles', nombreCorto: 'Pagano' },
+                        { numero: 13, nombre: 'Maier Rearte, Sofia', nombreCorto: 'Maier' },
+                        { numero: 16, nombre: 'Stark, Melina', nombreCorto: 'Stark' },
+                        { numero: 23, nombre: 'Calvano Coleur, Luisina', nombreCorto: 'Calvano' }
+                    ];
+                }
+                
+                await cargarPuntosDesdeAPI();
+                renderizarCancha();
+                actualizarMarcador();
+                renderizarHistorial();
+                renderizarPuntosApi();
+                
+                console.log('🏐 CANCHA EN VIVO: Inicializada correctamente');
+                console.log('🎮 ATAJOS: 1=ATAQUE 2=BLOQUEO 3=SAQUE 4=SAQUE MALO');
+                console.log('  5=REC+ 6=REC- 7=DEF+ 8=DEF- 9=ERROR');
+                console.log('  ENTER=Confirmar  Z=Deshacer  B=Break  T=Timeout');
+            }
+
+            window.inicializarCancha = inicializarCancha;
+
+            // ============================================================
+            // EVENTOS DEL MODAL DE ROTACIÓN (UN SOLO EVENTO)
+            // ============================================================
+            const modal = document.getElementById('modalRotacion');
+            const cerrarBtn = document.getElementById('modalRotacionCerrar');
+            
+            function cerrarModal() {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            if (cerrarBtn) {
+                cerrarBtn.addEventListener('click', cerrarModal);
+            }
+            
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        cerrarModal();
+                    }
+                });
+            }
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                    cerrarModal();
+                }
             });
-            if ('serviceWorker' in navigator) navigator.serviceWorker.register('/dashboard/js/sw.js').catch(err => console.log('❌ Error registrando SW:', err));
-        </script>
-    </body>
-    </html>
+
+        });
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/dashboard/js/sw.js').catch(err => console.log('❌ Error registrando SW:', err));
+    </script>
+</body>
+</html> 

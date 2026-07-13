@@ -19,6 +19,8 @@ export class AnotadorManager {
         this.homeTeamName = "LOCAL";
         this.awayTeamName = "VISITANTE";
         this.puntosManuales = [];
+        this.rotacionActual = 1; 
+        this.equipoQueSacaba = "LOCAL";
         this.init();
     }
 
@@ -75,9 +77,7 @@ export class AnotadorManager {
     }
 
     async obtenerUrlApi() {
-    // Usar la misma URL que el dashboard (Cloudflare o localhost)
     const url = window.location.origin;
-    console.log('📡 API URL (misma que dashboard):', url);
     return url;
 }
 
@@ -207,6 +207,8 @@ renderConfig() {
         this.actualizarBadgeSaque();
         this.actualizarCancha();
         this.renderizarBanco();
+         this.rotacionActual = 1;
+        this.equipoQueSacaba = "LOCAL";
         const selectorSet = document.getElementById('selectorSet');
         if (selectorSet) selectorSet.value = 1;
         const pantallaConfig = document.getElementById('pantallaConfig');
@@ -360,7 +362,6 @@ renderConfig() {
     }
 
         async cargarJugadoresDesdeAPI() {
-        // ✅ Si ya hay jugadores configurados, no los sobreescribimos
         if (this.config.local.jugadores.length > 0 || this.config.visitante.jugadores.length > 0) return true;
         
         try {
@@ -438,69 +439,18 @@ renderConfig() {
             console.log('Error cargando jugadores desde API:', e);
         }
         
-        // ============================================================
-        // 📝 DATOS DE PRUEBA (cuando no hay API)
-        // ============================================================
-                // ============================================================
-        // 📝 DATOS DE PRUEBA (cuando no hay API)
-        // ============================================================
-        console.log('📝 Usando datos de prueba (sin API)');
-        
-        // ✅ LIMPIAR datos viejos de localStorage
-        localStorage.removeItem(`jugadores_${this.matchIdActual}_local`);
-        localStorage.removeItem(`jugadores_${this.matchIdActual}_visitante`);
-        localStorage.removeItem(`config_${this.matchIdActual}`);
-        
-        // LOCAL - 8 jugadores (6 titulares + 2 suplentes)
-        this.config.local.jugadores = [1, 2, 3, 4, 5, 6, 7, 8];
-        this.config.local.liberos = [4];
-        this.config.local.nombres = {
-            1: 'Gimenez Sofia Solerno',
-            2: 'Aylen Valentina Murciano',
-            3: 'Paula Adrimar Baricelli Zambrano',
-            4: 'Zoe Sofia Muñoz',
-            5: 'Gimenez Victoria Solerno',
-            6: 'Daiana Magdalena Vega',
-            7: 'Valentina Sofía Ruiz',
-            8: 'Kiara Candela Pinaicobo'
-        };
-        
-        // VISITANTE - 8 jugadores (6 titulares + 2 suplentes)
-        this.config.visitante.jugadores = [9, 10, 11, 12, 13, 14, 15, 16];
-        this.config.visitante.liberos = [12];
-        this.config.visitante.nombres = {
-            9: 'Rosana Gabriela Policella',
-            10: 'Zoel Victoria Lazarte',
-            11: 'Debora Danisa Arriola',
-            12: 'Yesica Judith Condori Navarro',
-            13: 'Guadalupe Julieta Baez',
-            14: 'Silvia Quiroga',
-            15: 'Silvia Karina Costa',
-            16: 'Aldana Solange Gaete'
-        };
-        
-        this.renderConfig();
-        
-        // ✅ Guardar en localStorage para el dashboard
-        localStorage.setItem(`jugadores_${this.matchIdActual}_local`, JSON.stringify(this.config.local.nombres));
-        localStorage.setItem(`jugadores_${this.matchIdActual}_visitante`, JSON.stringify(this.config.visitante.nombres));
-        
-        return true;
     }
 
         determinarEquipoQueAnota() {
-        // ERROR y ERROR_SAQUE: punto para el otro equipo
         if (this.estado.accion === 'ERROR' || this.estado.accion === 'ERROR_SAQUE') {
             return this.estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
         }
-        // Las acciones de fundamentos NO suman punto
         if (this.estado.accion === 'RECEPCION_POSITIVA' || 
             this.estado.accion === 'RECEPCION_NEGATIVA' ||
             this.estado.accion === 'DEFENSA_POSITIVA' || 
             this.estado.accion === 'DEFENSA_NEGATIVA') {
-            return null; // No suman punto
+            return null; 
         }
-        // ATAQUE, BLOQUEO, ACE: punto para el equipo
         return this.estado.equipo;
     }
 
@@ -539,7 +489,9 @@ renderConfig() {
             marcadorAntes: marcadorAntes,
             marcadorDespues: marcadorDespues
         };
-
+        punto.rotacionLocal = this.estado.equipo === 'LOCAL' ? this.rotacionActual : null;
+        punto.rotacionVisitante = this.estado.equipo === 'VISITANTE' ? this.rotacionActual : null;
+        punto.equipoSacaba = this.equipoQueSacaba;
         try {
             const apiUrl = await this.obtenerUrlApi();
             const response = await fetch(`${apiUrl}/api/puntos`, {
@@ -554,7 +506,10 @@ renderConfig() {
             this.estado.historial.push(punto);
             this.actualizarMarcador();
             this.renderHistorial();
-
+            if (equipoQueAnota !== this.equipoQueSacaba) {
+                        this.rotacionActual = (this.rotacionActual % 6) + 1; 
+                        this.equipoQueSacaba = equipoQueAnota;
+                    }
             this.jugadorSeleccionado = null;
             this.estado.accion = null;
             document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
@@ -616,11 +571,9 @@ renderConfig() {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             const key = e.key.toLowerCase();
             
-            // ✅ Selección de equipo
             if (key === 'q') { e.preventDefault(); document.getElementById('btnLocal')?.click(); }
             else if (key === 'w') { e.preventDefault(); document.getElementById('btnVisitante')?.click(); }
             
-            // ✅ Acciones del nuevo anotador (usando las clases .btn-accion)
            else if (key === '1') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ATAQUE"]')?.click(); }
             else if (key === '2') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="BLOQUEO"]')?.click(); }
             else if (key === '3') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ACE"]')?.click(); }
@@ -631,13 +584,11 @@ renderConfig() {
             else if (key === '8') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="DEFENSA_NEGATIVA"]')?.click(); }
             else if (key === '9') { e.preventDefault(); document.querySelector('.btn-accion[data-accion="ERROR"]')?.click(); }
             
-            // ✅ Otras funciones
             else if (key === 'b') { e.preventDefault(); this.guardarBreak(); }
             else if (key === 't') { e.preventDefault(); this.guardarTimeout(); }
             else if (key === 'enter') { e.preventDefault(); this.guardarPunto(); }
             else if (key === 'z') { e.preventDefault(); this.deshacer(); }
             
-            // ✅ Selección de jugador por número
             else if (/^[0-9]$/.test(key)) {
                 e.preventDefault();
                 const numero = parseInt(key);
@@ -646,7 +597,6 @@ renderConfig() {
                     if (parseInt(btn.dataset.jugador) === numero) { btn.click(); break; }
                 }
             }
-            // ✅ Navegación entre jugadores
             else if (key === '+' || key === '=') { e.preventDefault(); this.navegarJugador('next'); }
             else if (key === '-') { e.preventDefault(); this.navegarJugador('prev'); }
         });
@@ -663,9 +613,6 @@ renderConfig() {
         const confirmarBtn = document.getElementById('confirmarBtn');
         const deshacerBtn = document.getElementById('deshacerBtn');
 
-        // ============================================================
-        // AGREGAR JUGADORES
-        // ============================================================
         if (addLocal) {
             addLocal.onclick = () => {
                 let n = parseInt(document.getElementById('nuevoLocal')?.value);
@@ -690,16 +637,11 @@ renderConfig() {
             };
         }
 
-        // ============================================================
-        // TIMEOUT Y BREAK
-        // ============================================================
         if (btnTimeout) btnTimeout.onclick = () => this.guardarTimeout();
         if (btnBreak) btnBreak.onclick = () => this.guardarBreak();
         if (comenzarBtn) comenzarBtn.onclick = () => this.comenzarPartido();
 
-        // ============================================================
-        // SELECCIÓN DE EQUIPO
-        // ============================================================
+
         if (btnLocal) {
             btnLocal.onclick = () => {
                 this.estado.equipo = 'LOCAL';
@@ -708,7 +650,6 @@ renderConfig() {
                 document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
                     btn.classList.remove('seleccionado');
                 });
-                // Limpiar selección de acciones
                 document.querySelectorAll('#pantallaAnotacion .btn-accion').forEach(b => {
                     b.classList.remove('btn-seleccionado');
                 });
@@ -731,7 +672,6 @@ renderConfig() {
                 document.querySelectorAll('#canchaGrid .jugador-btn, #bancoContainer .banco-item').forEach(btn => {
                     btn.classList.remove('seleccionado');
                 });
-                // Limpiar selección de acciones
                 document.querySelectorAll('#pantallaAnotacion .btn-accion').forEach(b => {
                     b.classList.remove('btn-seleccionado');
                 });
@@ -745,20 +685,13 @@ renderConfig() {
                 this.mostrarFeedback(`🔴 ${this.awayTeamName} seleccionado`, 'info');
             };
         }
-
-        // ============================================================
-        // ✅ NUEVO: EVENTOS PARA LOS BOTONES DE ACCIÓN (.btn-accion)
-        // ============================================================
         document.querySelectorAll('#pantallaAnotacion .btn-accion').forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
-                // Remover selección de todos los botones de acción
                 document.querySelectorAll('#pantallaAnotacion .btn-accion').forEach(b => {
                     b.classList.remove('btn-seleccionado');
                 });
-                // Seleccionar el botón clickeado
                 btn.classList.add('btn-seleccionado');
-                // Guardar la acción en el estado
                 this.estado.accion = btn.dataset.accion;
                 const labels = {
                     'ATAQUE': '🎯 ATAQUE',
@@ -775,9 +708,6 @@ renderConfig() {
             };
         });
 
-        // ============================================================
-        // CONFIRMAR Y DESHACER
-        // ============================================================
         if (confirmarBtn) confirmarBtn.onclick = () => this.guardarPunto();
         if (deshacerBtn) deshacerBtn.onclick = () => this.deshacer();
     }

@@ -68,9 +68,6 @@ async function obtenerEstadoPartido(matchId) {
     return null;
 }
 
-// ============================================================
-// NUEVAS FUNCIONES PARA PUNTOS MANUALES
-// ============================================================
 
 async function guardarPuntosManuales(matchId, puntos) {
     try {
@@ -103,9 +100,6 @@ function emitPuntoManual(matchId, punto) {
     }
 }
 
-// ============================================================
-// ENDPOINTS NUEVOS PARA PUNTOS MANUALES
-// ============================================================
 
 app.post('/api/puntos', async (req, res) => {
     try {
@@ -148,9 +142,6 @@ app.delete('/api/puntos/:matchId', async (req, res) => {
     }
 });
 
-// ============================================================
-// WEBSOCKET - AGREGAR EVENTO punto_manual
-// ============================================================
 
 io.on('connection', (socket) => {
     console.log('🔌 Cliente conectado:', socket.id);
@@ -190,10 +181,6 @@ io.on('connection', (socket) => {
         console.log('🔌 Cliente desconectado:', socket.id);
     });
 });
-
-// ============================================================
-// RESTAURANTE DEL CÓDIGO (igual que antes)
-// ============================================================
 
 function emitNewPoint(matchId, pointData) {
     if (connectedClients.has(matchId)) {
@@ -461,19 +448,22 @@ app.post('/api/config', async (req, res) => {
 app.use(express.static('./'));
 
 app.use('/dashboard', express.static('./dashboard'));
+
 app.get('/', (req, res) => {
     res.redirect('/dashboard/index.html');
 });
+
 server.listen(PORT, () => {
     console.log(`
+
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
 ║   🏐 VOLEYINSIGHT v2.5 - SERVIDOR API + WEBSOCKET           ║
 ║                                                              ║
 ║   📡 API REST: http://localhost:${PORT}/api/status           ║
 ║   🔌 WebSocket: ws://localhost:${PORT}                       ║
-║   🖥️  Dashboard: http://localhost:${PORT}/dashboard/index.html ║
-║                                                              ║
+║   🖥️Dashboard: http://localhost:${PORT}/dashboard/index.html║
+║                                                               ║
 ╚══════════════════════════════════════════════════════════════╝
     `);
 });

@@ -1,38 +1,20 @@
 {
-  "matchId": 260210,
-  "homeTeam": "ATTITUDE",
-  "awayTeam": "MORON C",
-  "categoria": "sub_14",
+  "matchId": 258891,
+  "homeTeam": "CAIT",
+  "awayTeam": "VELEZ C",
+  "categoria": "sub_13",
   "partidos": [
     {
-      "id": 259880,
-      "homeTeam": "ATTITUDE",
-      "awayTeam": "MORON C",
-      "categoria": "sub_14"
+      "id": 258891,
+      "homeTeam": "CAIT",
+      "awayTeam": "VELEZ C",
+      "categoria": "sub_13"
     },
     {
-      "id": 259990,
-      "homeTeam": "ATTITUDE",
-      "awayTeam": "MORON C",
-      "categoria": "sub_15"
-    },
-    {
-      "id": 260100,
-      "homeTeam": "ATTITUDE",
-      "awayTeam": "MORON C",
-      "categoria": "sub_16"
-    },
-    {
-      "id": 260210,
-      "homeTeam": "ATTITUDE",
-      "awayTeam": "MORON C",
-      "categoria": "sub_18"
-    },
-    {
-      "id": 260320,
-      "homeTeam": "ATTITUDE",
-      "awayTeam": "MORON C",
-      "categoria": "sub_21"
+      "id": 157806,
+      "homeTeam": "CAIT",
+      "awayTeam": "FLORIDA",
+      "categoria": "mayores"
     }
   ]
 }
