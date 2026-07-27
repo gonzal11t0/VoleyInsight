@@ -24,6 +24,89 @@ export class AnotadorManager {
         this.init();
     }
 
+    detectarOrdenVisual(jugadoresAPI, jugadoresWeb) {
+    const ordenesPosibles = [
+        [1, 2, 3, 4, 5, 6],
+        
+        [4, 3, 2, 5, 6, 1], 
+        [3, 2, 1, 6, 5, 4],  
+        [2, 1, 4, 3, 6, 5], 
+        [5, 6, 1, 2, 3, 4], 
+        [6, 5, 4, 1, 2, 3],  
+        [4, 5, 6, 1, 2, 3], 
+        [5, 6, 4, 2, 3, 1],  
+        [6, 4, 5, 3, 1, 2], 
+        [3, 1, 2, 6, 4, 5], 
+        [2, 3, 1, 5, 6, 4], 
+        [1, 3, 2, 4, 6, 5],  
+        [4, 2, 3, 5, 1, 6], 
+        [3, 4, 2, 6, 5, 1], 
+        [2, 4, 3, 1, 5, 6], 
+        [1, 4, 2, 3, 6, 5],  
+        [4, 1, 3, 5, 2, 6],  
+        [3, 1, 4, 6, 5, 2],  
+        [2, 1, 3, 4, 6, 5],  
+        [5, 3, 1, 6, 4, 2],  
+        [6, 2, 4, 1, 5, 3],  
+        [4, 6, 2, 5, 1, 3],  
+        [3, 5, 1, 4, 6, 2],  
+        [2, 6, 3, 1, 4, 5],  
+        [1, 5, 3, 2, 6, 4],  
+        [4, 2, 6, 3, 1, 5],  
+        [5, 4, 2, 1, 3, 6],  
+        [6, 3, 1, 4, 2, 5],  
+        [2, 5, 4, 6, 1, 3],  
+        [1, 6, 5, 2, 4, 3], 
+        [3, 4, 6, 5, 1, 2],  
+        [6, 1, 3, 2, 5, 4],  
+        [5, 2, 1, 4, 6, 3],  
+        [4, 3, 5, 1, 2, 6],  
+        [2, 6, 4, 3, 1, 5],  
+        [1, 4, 6, 5, 3, 2],  
+        [3, 5, 2, 6, 4, 1],  
+        [6, 2, 5, 1, 3, 4],  
+        [5, 1, 3, 2, 6, 4],  
+        [4, 6, 1, 3, 5, 2],  
+        [2, 3, 5, 4, 1, 6],  
+        [1, 5, 4, 6, 2, 3],  
+        [3, 6, 2, 1, 4, 5],  
+        [6, 4, 3, 5, 2, 1],  
+        [5, 2, 6, 3, 1, 4],  
+        [4, 1, 5, 2, 6, 3],
+    ];
+    
+    
+    for (const orden of ordenesPosibles) {
+        const reordenados = orden.map(pos => {
+            const idx = pos - 1;
+            return jugadoresAPI[idx] || null;
+        });
+        if (JSON.stringify(reordenados) === JSON.stringify(jugadoresWeb)) {
+            console.log('✅ Orden visual detectado:', orden);
+            return orden;
+        }
+    }
+    
+    console.warn('⚠️ No se encontró coincidencia, usando orden normal (1-6)');
+    return [1, 2, 3, 4, 5, 6];
+    }
+    obtenerOrdenWeb(jugadoresConPosicion) {
+
+    const ordenesPosibles = [
+        [4, 3, 2, 5, 6, 1],
+        [3, 2, 1, 6, 5, 4],
+        [2, 1, 4, 3, 6, 5],
+        [5, 6, 1, 2, 3, 4],
+        [6, 5, 4, 1, 2, 3],
+        [4, 5, 6, 1, 2, 3],
+        [5, 6, 4, 2, 3, 1],
+        [6, 4, 5, 3, 1, 2],
+        [3, 1, 2, 6, 4, 5],
+        [2, 3, 1, 5, 6, 4],
+    ];
+    
+    return [4, 3, 2, 5, 6, 1];
+    }
     async init() {
         await this.cargarConfiguracion();
         const configGuardada = localStorage.getItem(`config_${this.matchIdActual}`);
@@ -145,7 +228,7 @@ export class AnotadorManager {
         this.mostrarFeedback(`⚡ BREAK! ${this.estado.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} rompe el saque (${breakPoint.marcador})`, 'success');
     }
 
-renderConfig() {
+    renderConfig() {
     const render = (equipo, data, containerId, liberosContainerId) => {
         const container = document.getElementById(containerId);
         const liberosContainer = document.getElementById(liberosContainerId);
@@ -231,31 +314,31 @@ renderConfig() {
         this.actualizarBadgeSaque();
     }
 
-     actualizarCancha() {
-        let jugadoresLista = this.estado.equipo === 'LOCAL' ? this.estado.local.jugadoresLista : this.estado.visitante.jugadoresLista;
-        const nombres = this.estado.equipo === 'LOCAL' ? this.config.local.nombres : this.config.visitante.nombres;
-        const primeros6 = jugadoresLista.slice(0, 6);
-        const container = document.getElementById('canchaGrid');
-        if (!container) return;
+    actualizarCancha() {
+    let jugadoresLista = this.estado.equipo === 'LOCAL' ? this.estado.local.jugadoresLista : this.estado.visitante.jugadoresLista;
+    const nombres = this.estado.equipo === 'LOCAL' ? this.config.local.nombres : this.config.visitante.nombres;
+    
+    const container = document.getElementById('canchaGrid');
+    if (!container) return;
 
-        container.innerHTML = primeros6.map(n => {
-            const nombre = nombres?.[n] || `Jugador ${n}`;
-            return `<button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold transition-all ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}" style="min-width: 72px; max-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; border: none; color: white; cursor: pointer;">
-                <span style="font-size: 20px; line-height: 1.2; font-weight: 700;">${n}</span>
-                <span style="font-size: 10px; opacity: 0.8; line-height: 1.3; text-align: center; margin-top: 2px;">${nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre}</span>
-            </button>`;
-        }).join('');
+    container.innerHTML = jugadoresLista.map(n => {
+        const nombre = nombres?.[n] || `Jugador ${n}`;
+        return `<button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold transition-all ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}" style="min-width: 72px; max-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; border: none; color: white; cursor: pointer;">
+            <span style="font-size: 20px; line-height: 1.2; font-weight: 700;">${n}</span>
+            <span style="font-size: 10px; opacity: 0.8; line-height: 1.3; text-align: center; margin-top: 2px;">${nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre}</span>
+        </button>`;
+    }).join('');
 
-        document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
-            b.onclick = () => {
-                const num = parseInt(b.dataset.jugador);
-                this.jugadorSeleccionado = num;
-                this.mostrarFeedback(`👕 Jugador ${this.jugadorSeleccionado} seleccionado`, 'info');
-                this.actualizarCancha();
-                this.renderizarBanco();
-            };
-        });
-    }
+    document.querySelectorAll('#canchaGrid .jugador-btn').forEach(b => {
+        b.onclick = () => {
+            const num = parseInt(b.dataset.jugador);
+            this.jugadorSeleccionado = num;
+            this.mostrarFeedback(`👕 Jugador ${this.jugadorSeleccionado} seleccionado`, 'info');
+            this.actualizarCancha();
+            this.renderizarBanco();
+        };
+    });
+        }   
 
     renderizarBanco() {
         let bancoEquipo, nombreEquipo, claseEquipo, nombres;
@@ -361,87 +444,176 @@ renderConfig() {
         }
     }
 
-        async cargarJugadoresDesdeAPI() {
-        if (this.config.local.jugadores.length > 0 || this.config.visitante.jugadores.length > 0) return true;
-        
-        try {
-            const response = await fetch(`/data/full_${this.matchIdActual}.json?_t=${Date.now()}`);
-            if (response.ok) {
-                const fullData = await response.json();
-                const court = fullData.liveState?.court;
-                if (court) {
-                    const jugadoresLocal = [],
-                        jugadoresVisitante = [],
-                        liberosLocal = [],
-                        liberosVisitante = [];
+    async cargarJugadoresDesdeAPI() {
+    try {
+        const response = await fetch(`/data/full_${this.matchIdActual}.json?_t=${Date.now()}`);
+        if (response.ok) {
+            const fullData = await response.json();
+            const court = this.findCourt(fullData);
+            
+            if (court) {
+                let jugadoresLocal = [];
+                let jugadoresVisitante = [];
+                const liberosLocal = [];
+                const liberosVisitante = [];
+                
+                this.config.local.nombres = {};
+                this.config.visitante.nombres = {};
+                
+                if (court.home?.positions) {
+                    const todosLosJugadores = [];
+                    for (const [pos, info] of Object.entries(court.home.positions)) {
+                        if (info.number) {
+                            todosLosJugadores.push({
+                                posicion: parseInt(pos),
+                                numero: info.number,
+                                nombre: `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`,
+                                isLibero: info.isLibero || false,
+                                substitutedFor: info.substitutedFor || null
+                            });
+                        }
+                    }
                     
-                    this.config.local.nombres = {};
-                    this.config.visitante.nombres = {};
-
-                    if (court.home?.positions) {
-                        for (const [pos, info] of Object.entries(court.home.positions)) {
-                            if (info.number && info.lastName) {
-                                jugadoresLocal.push(info.number);
-                                this.config.local.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                if (info.isLibero) liberosLocal.push(info.number);
+                    const jugadoresFiltrados = [];
+                    for (const jugador of todosLosJugadores) {
+                        if (jugador.isLibero) {
+                            if (jugador.substitutedFor) {
+                                const original = court.home?.bench?.find(b => b.number === jugador.substitutedFor);
+                                if (original) {
+                                    jugadoresFiltrados.push({
+                                        posicion: jugador.posicion,
+                                        numero: original.number,
+                                        nombre: `${original.firstName || ''} ${original.lastName || ''}`.trim() || `Jugador ${original.number}`,
+                                        isLibero: false
+                                    });
+                                } else {
+                                    jugadoresFiltrados.push(jugador);
+                                }
+                            } else {
+                                jugadoresFiltrados.push(jugador);
                             }
+                        } else {
+                            jugadoresFiltrados.push(jugador);
                         }
                     }
-                    if (court.home?.bench) {
-                        for (const info of court.home.bench) {
-                            if (info.number && info.lastName && !jugadoresLocal.includes(info.number)) {
-                                jugadoresLocal.push(info.number);
-                                this.config.local.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                if (info.isLibero) liberosLocal.push(info.number);
-                            }
+                    
+                    jugadoresFiltrados.sort((a, b) => a.posicion - b.posicion);
+                    
+                    const jugadoresAPI = jugadoresFiltrados.map(j => j.numero);
+                    const jugadoresWeb = this.obtenerOrdenWeb(jugadoresFiltrados);
+                    const ordenDetectado = this.detectarOrdenVisual(jugadoresAPI, jugadoresWeb);
+                    
+                    const jugadoresReordenados = [];
+                    for (const pos of ordenDetectado) {
+                        const jugador = jugadoresFiltrados.find(j => j.posicion === pos);
+                        if (jugador) {
+                            jugadoresReordenados.push(jugador);
                         }
                     }
-                    if (court.away?.positions) {
-                        for (const [pos, info] of Object.entries(court.away.positions)) {
-                            if (info.number && info.lastName) {
-                                jugadoresVisitante.push(info.number);
-                                this.config.visitante.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                if (info.isLibero) liberosVisitante.push(info.number);
-                            }
-                        }
+                    
+                    jugadoresLocal = jugadoresReordenados.map(j => j.numero);
+                    for (const j of jugadoresReordenados) {
+                        this.config.local.nombres[j.numero] = j.nombre;
                     }
-                    if (court.away?.bench) {
-                        for (const info of court.away.bench) {
-                            if (info.number && info.lastName && !jugadoresVisitante.includes(info.number)) {
-                                jugadoresVisitante.push(info.number);
-                                this.config.visitante.nombres[info.number] = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                if (info.isLibero) liberosVisitante.push(info.number);
-                            }
-                        }
-                    }
-
-                    if (jugadoresLocal.length) {
-                        this.config.local.jugadores = jugadoresLocal.sort((a, b) => a - b);
-                        this.config.local.liberos = liberosLocal;
-                    }
-                    if (jugadoresVisitante.length) {
-                        this.config.visitante.jugadores = jugadoresVisitante.sort((a, b) => a - b);
-                        this.config.visitante.liberos = liberosVisitante;
-                    }
-                    this.renderConfig();
-
-                    if (jugadoresLocal.length > 0) {
-                        localStorage.setItem(`jugadores_${this.matchIdActual}_local`, JSON.stringify(this.config.local.nombres));
-                    }
-                    if (jugadoresVisitante.length > 0) {
-                        localStorage.setItem(`jugadores_${this.matchIdActual}_visitante`, JSON.stringify(this.config.visitante.nombres));
-                    }
-
-                    return true;
                 }
+                
+                if (court.away?.positions) {
+                    const todosLosJugadores = [];
+                    for (const [pos, info] of Object.entries(court.away.positions)) {
+                        if (info.number) {
+                            todosLosJugadores.push({
+                                posicion: parseInt(pos),
+                                numero: info.number,
+                                nombre: `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`,
+                                isLibero: info.isLibero || false,
+                                substitutedFor: info.substitutedFor || null
+                            });
+                        }
+                    }
+                    
+                    const jugadoresFiltrados = [];
+                    for (const jugador of todosLosJugadores) {
+                        if (jugador.isLibero) {
+                            if (jugador.substitutedFor) {
+                                const original = court.away?.bench?.find(b => b.number === jugador.substitutedFor);
+                                if (original) {
+                                    jugadoresFiltrados.push({
+                                        posicion: jugador.posicion,
+                                        numero: original.number,
+                                        nombre: `${original.firstName || ''} ${original.lastName || ''}`.trim() || `Jugador ${original.number}`,
+                                        isLibero: false
+                                    });
+                                } else {
+                                    jugadoresFiltrados.push(jugador);
+                                }
+                            } else {
+                                jugadoresFiltrados.push(jugador);
+                            }
+                        } else {
+                            jugadoresFiltrados.push(jugador);
+                        }
+                    }
+                    
+                    jugadoresFiltrados.sort((a, b) => a.posicion - b.posicion);
+                    
+                    const jugadoresAPI = jugadoresFiltrados.map(j => j.numero);
+                    const jugadoresWeb = this.obtenerOrdenWeb(jugadoresFiltrados);
+                    const ordenDetectado = this.detectarOrdenVisual(jugadoresAPI, jugadoresWeb);
+                    
+                    const jugadoresReordenados = [];
+                    for (const pos of ordenDetectado) {
+                        const jugador = jugadoresFiltrados.find(j => j.posicion === pos);
+                        if (jugador) {
+                            jugadoresReordenados.push(jugador);
+                        }
+                    }
+                    
+                    jugadoresVisitante = jugadoresReordenados.map(j => j.numero);
+                    for (const j of jugadoresReordenados) {
+                        this.config.visitante.nombres[j.numero] = j.nombre;
+                    }
+                }
+
+                if (jugadoresLocal.length) {
+                    this.config.local.jugadores = jugadoresLocal;
+                    this.config.local.liberos = liberosLocal;
+                }
+                if (jugadoresVisitante.length) {
+                    this.config.visitante.jugadores = jugadoresVisitante;
+                    this.config.visitante.liberos = liberosVisitante;
+                }
+                
+                this.renderConfig();
+
+                if (jugadoresLocal.length > 0) {
+                    localStorage.setItem(`jugadores_${this.matchIdActual}_local`, JSON.stringify(this.config.local.nombres));
+                }
+                if (jugadoresVisitante.length > 0) {
+                    localStorage.setItem(`jugadores_${this.matchIdActual}_visitante`, JSON.stringify(this.config.visitante.nombres));
+                }
+
+                return true;
             }
-        } catch (e) {
-            console.log('Error cargando jugadores desde API:', e);
         }
-        
+    } catch (e) {
+        console.log('Error cargando jugadores desde API:', e);
+    }
+    return false;
     }
 
-        determinarEquipoQueAnota() {
+    findCourt(obj) {
+        if (!obj) return null;
+        if (obj.court) return obj.court;
+        if (obj.liveState?.court) return obj.liveState.court;
+        for (let key in obj) {
+            if (typeof obj[key] === 'object') {
+                let found = this.findCourt(obj[key]);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+    determinarEquipoQueAnota() {
         if (this.estado.accion === 'ERROR' || this.estado.accion === 'ERROR_SAQUE') {
             return this.estado.equipo === 'LOCAL' ? 'VISITANTE' : 'LOCAL';
         }
@@ -566,7 +738,7 @@ renderConfig() {
         btns[currentIndex].click();
     }
 
-        initKeyboardShortcuts() {
+    initKeyboardShortcuts() {
         document.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             const key = e.key.toLowerCase();
@@ -602,7 +774,7 @@ renderConfig() {
         });
     }
 
-        setupEventListeners() {
+    setupEventListeners() {
         const addLocal = document.getElementById('addLocal');
         const addVisitante = document.getElementById('addVisitante');
         const btnTimeout = document.getElementById('btnTimeout');

@@ -78,8 +78,9 @@ export class VolleyballDashboard {
                 await fetch('/keepalive');
             } catch (e) {}
         }, 25000);
-    }
+    } 
 
+    
 
     destruirGrafico(canvasId, chartKey) {
         if (this.charts[chartKey]) {
@@ -98,9 +99,6 @@ export class VolleyballDashboard {
         }
     }
 
-    // ============================================================
-    // EVENTOS DEL MODAL DE ROTACIÓN
-    // ============================================================
     setupModalEvents() {
         const modal = document.getElementById('modalRotacion');
         const cerrarBtn = document.getElementById('modalRotacionCerrar');
@@ -137,9 +135,6 @@ export class VolleyballDashboard {
         return url;
     }
 
-    // ============================================================
-    // CARGAR PUNTOS MANUALES DESDE EL SERVIDOR
-    // ============================================================
 
     async cargarPuntosJugadores() {
         try {
@@ -169,9 +164,6 @@ export class VolleyballDashboard {
         this.actualizarVistaIndividuales();
     }
 
-    // ============================================================
-    // RECARGAR PUNTOS MANUALES (usado por WebSocket)
-    // ============================================================
 
     async recargarPuntosManuales() {
         try {
@@ -187,19 +179,12 @@ export class VolleyballDashboard {
         }
     }
 
-    // ============================================================
-    // startAutoRefreshPuntos - ya no usa localStorage
-    // ============================================================
 
     startAutoRefreshPuntos() {
         setInterval(() => {
             this.recargarPuntosManuales();
         }, 10000);
     }
-
-    // ============================================================
-    // connectWebSocket - agregar listener para punto_manual
-    // ============================================================
 
     async connectWebSocket() {
         if (!this.useWebSocket) return;
@@ -229,6 +214,8 @@ export class VolleyballDashboard {
             this.socket.on('new_point', (data) => {
                 this.loadData();
                 this.actualizarSets();
+                    this.actualizarFormacionDesdeAPI();
+
             });
             
             this.socket.on('disconnect', () => this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling'));
@@ -242,9 +229,6 @@ export class VolleyballDashboard {
         }
     }
 
-    // ============================================================
-    // LIMPIAR DOM
-    // ============================================================
 
     limpiarDOMCompletamente() {
         const elementos = ['homeScore', 'awayScore', 'tablaLocalBody', 'tablaVisitanteBody', 'maxRunHome', 'maxRunAway',
@@ -686,7 +670,13 @@ export class VolleyballDashboard {
         }
     }
 
-    startAutoRefresh() { setInterval(() => { this.loadData(); }, 10000); }
+    startAutoRefresh() {
+        setInterval(() => {
+            this.loadData();
+            this.actualizarFormacionDesdeAPI();
+        }, 10000);
+    }    
+    
     setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
 
     startConnectionMonitor() {
@@ -1003,6 +993,118 @@ export class VolleyballDashboard {
             }
         } catch (e) {}
         return false;
+    }
+
+    async actualizarFormacionDesdeAPI() {
+        try {
+            const response = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
+            if (!response.ok) return false;
+            
+            const fullData = await response.json();
+            const court = this.findCourt(fullData);
+            if (!court) return false;
+            
+            let formacionTitular = null;
+            if (fullData.liveState?.timeline) {
+                const timeline = fullData.liveState.timeline;
+                const lineupHome = timeline.filter(e => e.type === 'LINEUP_SET' && e.team === 'home');
+                const lineupAway = timeline.filter(e => e.type === 'LINEUP_SET' && e.team === 'away');
+                
+                const ultimoHome = lineupHome[lineupHome.length - 1];
+                const ultimoAway = lineupAway[lineupAway.length - 1];
+                
+                if (ultimoHome) {
+                    formacionTitular = formacionTitular || {};
+                    formacionTitular.home = {};
+                    for (const pos of ultimoHome.data.positions) {
+                        formacionTitular.home[pos.position] = pos.jersey;
+                    }
+                }
+                if (ultimoAway) {
+                    formacionTitular = formacionTitular || {};
+                    formacionTitular.away = {};
+                    for (const pos of ultimoAway.data.positions) {
+                        formacionTitular.away[pos.position] = pos.jersey;
+                    }
+                }
+            }
+            
+            let huboCambios = false;
+            let nuevosJugadoresLocal = {};
+            let nuevosJugadoresVisitante = {};
+            
+            if (formacionTitular?.home) {
+                for (const [pos, numero] of Object.entries(formacionTitular.home)) {
+                    const info = court.home?.positions?.[pos];
+                    const nombre = info ? `${info.firstName || ''} ${info.lastName || ''}`.trim() : `Jugador ${numero}`;
+                    nuevosJugadoresLocal[numero] = nombre;
+                }
+            } else if (court.home?.positions) {
+                for (const [pos, info] of Object.entries(court.home.positions)) {
+                    if (info.number) {
+                        const nombre = `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`;
+                        nuevosJugadoresLocal[info.number] = nombre;
+                    }
+                }
+            }
+            
+            if (formacionTitular?.away) {
+                for (const [pos, numero] of Object.entries(formacionTitular.away)) {
+                    const info = court.away?.positions?.[pos];
+                    const nombre = info ? `${info.firstName || ''} ${info.lastName || ''}`.trim() : `Jugador ${numero}`;
+                    nuevosJugadoresVisitante[numero] = nombre;
+                }
+            } else if (court.away?.positions) {
+                for (const [pos, info] of Object.entries(court.away.positions)) {
+                    if (info.number) {
+                        const nombre = `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`;
+                        nuevosJugadoresVisitante[info.number] = nombre;
+                    }
+                }
+            }
+            
+            const actualesLocal = Object.keys(this.jugadoresLocal).sort();
+            const nuevosLocal = Object.keys(nuevosJugadoresLocal).sort();
+            if (JSON.stringify(actualesLocal) !== JSON.stringify(nuevosLocal)) {
+                huboCambios = true;
+                this.jugadoresLocal = nuevosJugadoresLocal;
+                localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
+                console.log('🔄 Cambio en formación LOCAL (titular):', nuevosJugadoresLocal);
+            }
+            
+            const actualesVisitante = Object.keys(this.jugadoresVisitante).sort();
+            const nuevosVisitante = Object.keys(nuevosJugadoresVisitante).sort();
+            if (JSON.stringify(actualesVisitante) !== JSON.stringify(nuevosVisitante)) {
+                huboCambios = true;
+                this.jugadoresVisitante = nuevosJugadoresVisitante;
+                localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
+                console.log('🔄 Cambio en formación VISITANTE (titular):', nuevosJugadoresVisitante);
+            }
+            
+            if (huboCambios) {
+                this.actualizarVistaIndividuales();
+                if (window.estadoCancha) {
+                    console.log('🔄 Formación actualizada en tiempo real');
+                }
+                return true;
+            }
+            return false;
+        } catch (e) {
+            console.log('Error actualizando formación:', e);
+            return false;
+        }
+    }
+    findCourt(obj) {
+        if (!obj) return null;
+        if (obj.court) return obj.court;
+        if (obj.liveState?.court) return obj.liveState.court;
+        for (let key in obj) {
+            if (typeof obj[key] === 'object') {
+                let found = this.findCourt(obj[key]);
+                if (found) return found;
+            }
+        }
+        return null;
     }
 
     async loadData() {
@@ -1465,171 +1567,160 @@ export class VolleyballDashboard {
         return rotaciones;
     }
 
-    // ============================================================
-// GENERAR ROTACIONES HTML PARA EL REPORTE (CON FORMACIÓN)
-// ============================================================
-// ============================================================
-// GENERAR ROTACIONES HTML PARA EL REPORTE (CON FORMACIÓN)
-// ============================================================
-generarRotacionesHTML() {
-    const datos = this.calcularRotaciones();
-    if (!datos) {
-        return '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>';
-    }
+    generarRotacionesHTML() {
+        const datos = this.calcularRotaciones();
+        if (!datos) {
+            return '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>';
+        }
 
-    // Función para obtener los jugadores en una rotación específica
-    const obtenerJugadoresEnRotacion = (equipo, rotacionNum) => {
-        const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
-        
-        // Si no hay jugadores reales, usar predefinidos
-        if (Object.keys(jugadoresMap).length === 0) {
-            const predefinidos = equipo === 'LOCAL' 
-                ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
-                : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
-            const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
-                numero: parseInt(num),
-                nombre: nombre,
-                nombreCorto: nombre?.split(' ')[0] || `J${num}`
-            }));
-            const offset = (rotacionNum - 1) % lista.length;
+        const obtenerJugadoresEnRotacion = (equipo, rotacionNum) => {
+            const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
+            
+            if (Object.keys(jugadoresMap).length === 0) {
+                const predefinidos = equipo === 'LOCAL' 
+                    ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
+                    : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
+                const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
+                    numero: parseInt(num),
+                    nombre: nombre,
+                    nombreCorto: nombre?.split(' ')[0] || `J${num}`
+                }));
+                const offset = (rotacionNum - 1) % lista.length;
+                const rotados = [];
+                for (let i = 0; i < lista.length; i++) {
+                    rotados.push(lista[(i + offset) % lista.length]);
+                }
+                return rotados.slice(0, 6);
+            }
+            
+            const jugadoresLista = Object.entries(jugadoresMap)
+                .filter(([num]) => !isNaN(parseInt(num)))
+                .map(([num, nombre]) => ({
+                    numero: parseInt(num),
+                    nombre: nombre,
+                    nombreCorto: nombre?.split(' ')[0] || `J${num}`
+                }));
+            jugadoresLista.sort((a, b) => a.numero - b.numero);
+            const offset = (rotacionNum - 1) % jugadoresLista.length;
             const rotados = [];
-            for (let i = 0; i < lista.length; i++) {
-                rotados.push(lista[(i + offset) % lista.length]);
+            for (let i = 0; i < jugadoresLista.length; i++) {
+                rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
             }
             return rotados.slice(0, 6);
-        }
-        
-        // Usar jugadores reales
-        const jugadoresLista = Object.entries(jugadoresMap)
-            .filter(([num]) => !isNaN(parseInt(num)))
-            .map(([num, nombre]) => ({
-                numero: parseInt(num),
-                nombre: nombre,
-                nombreCorto: nombre?.split(' ')[0] || `J${num}`
-            }));
-        jugadoresLista.sort((a, b) => a.numero - b.numero);
-        const offset = (rotacionNum - 1) % jugadoresLista.length;
-        const rotados = [];
-        for (let i = 0; i < jugadoresLista.length; i++) {
-            rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
-        }
-        return rotados.slice(0, 6);
-    };
+        };
 
-    let html = `
-        <div class="section">
-            <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
-            <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
-            
-            <div style="overflow-x:auto; margin-bottom: 20px;">
-                <table style="width:100%;border-collapse:collapse;min-width:900px;background:#1a1f2e;border-radius:12px;overflow:hidden;">
-                    <thead>
-                        <tr style="background:#0f1119;border-bottom:2px solid #2d3748;">
-                            <th style="text-align:left; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Rotación</th>
-                            <th style="text-align:center; padding:12px 10px; color:#93c5fd; font-weight:600; font-size:11px; text-transform:uppercase;">Formación LOCAL</th>
-                            <th style="text-align:center; padding:12px 10px; color:#fca5a5; font-weight:600; font-size:11px; text-transform:uppercase;">Formación VISITANTE</th>
-                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts F</th>
-                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts C</th>
-                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Eficiencia</th>
-                            <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+        let html = `
+            <div class="section">
+                <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
+                <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+                
+                <div style="overflow-x:auto; margin-bottom: 20px;">
+                    <table style="width:100%;border-collapse:collapse;min-width:900px;background:#1a1f2e;border-radius:12px;overflow:hidden;">
+                        <thead>
+                            <tr style="background:#0f1119;border-bottom:2px solid #2d3748;">
+                                <th style="text-align:left; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Rotación</th>
+                                <th style="text-align:center; padding:12px 10px; color:#93c5fd; font-weight:600; font-size:11px; text-transform:uppercase;">Formación LOCAL</th>
+                                <th style="text-align:center; padding:12px 10px; color:#fca5a5; font-weight:600; font-size:11px; text-transform:uppercase;">Formación VISITANTE</th>
+                                <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts F</th>
+                                <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts C</th>
+                                <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Eficiencia</th>
+                                <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
 
-    for (let i = 1; i <= 6; i++) {
-        const r = datos[i];
-        const tieneDatos = r && r.totalPuntos > 0;
-        
-        // ✅ SOLO calcular formación si HAY datos en esa rotación
-        let localNombres = 'Sin datos';
-        let visitanteNombres = 'Sin datos';
-        
-        if (tieneDatos) {
-            const jugadoresLocal = obtenerJugadoresEnRotacion('LOCAL', i);
-            const jugadoresVisitante = obtenerJugadoresEnRotacion('VISITANTE', i);
+        for (let i = 1; i <= 6; i++) {
+            const r = datos[i];
+            const tieneDatos = r && r.totalPuntos > 0;
             
-            localNombres = jugadoresLocal.map(j => 
-                `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
-            ).join(' • ');
+            let localNombres = 'Sin datos';
+            let visitanteNombres = 'Sin datos';
             
-            visitanteNombres = jugadoresVisitante.map(j => 
-                `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
-            ).join(' • ');
-        }
+            if (tieneDatos) {
+                const jugadoresLocal = obtenerJugadoresEnRotacion('LOCAL', i);
+                const jugadoresVisitante = obtenerJugadoresEnRotacion('VISITANTE', i);
+                
+                localNombres = jugadoresLocal.map(j => 
+                    `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
+                ).join(' • ');
+                
+                visitanteNombres = jugadoresVisitante.map(j => 
+                    `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
+                ).join(' • ');
+            }
 
-        if (!tieneDatos) {
+            if (!tieneDatos) {
+                html += `<tr style="border-bottom:1px solid #2d3748;">
+                    <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
+                    <td colspan="6" style="text-align:center; color:#6b7280; padding:12px 10px; font-style:italic;">⚠️ Sin datos - Esta rotación no se jugó</td>
+                </tr>`;
+                continue;
+            }
+
+            const eficiencia = parseFloat(r.eficiencia);
+            let estado = '⚖️ NEUTRA';
+            let estadoColor = '#f59e0b';
+            
+            if (eficiencia > 60) {
+                estado = '✅ FUERTE';
+                estadoColor = '#10b981';
+            } else if (eficiencia < 40) {
+                estado = '❌ DÉBIL';
+                estadoColor = '#ef4444';
+            }
+            
+            const diferencia = r.diferencia || 0;
+            const diferenciaColor = diferencia > 0 ? '#10b981' : (diferencia < 0 ? '#ef4444' : '#6b7280');
+
             html += `<tr style="border-bottom:1px solid #2d3748;">
                 <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
-                <td colspan="6" style="text-align:center; color:#6b7280; padding:12px 10px; font-style:italic;">⚠️ Sin datos - Esta rotación no se jugó</td>
+                <td style="text-align:center; color:#93c5fd; font-size:11px; padding:12px 10px; background:rgba(59,130,246,0.05); border-radius:4px;">
+                    ${localNombres}
+                </td>
+                <td style="text-align:center; color:#fca5a5; font-size:11px; padding:12px 10px; background:rgba(239,68,68,0.05); border-radius:4px;">
+                    ${visitanteNombres}
+                </td>
+                <td style="text-align:center; color:#3b82f6; font-weight:bold; padding:12px 10px;">${r.puntosAFavor}</td>
+                <td style="text-align:center; color:#ef4444; font-weight:bold; padding:12px 10px;">${r.puntosEnContra}</td>
+                <td style="text-align:center; font-weight:bold; color:${estadoColor}; padding:12px 10px;">${eficiencia}%</td>
+                <td style="text-align:center; color:${estadoColor}; font-weight:bold; padding:12px 10px;">${estado}</td>
             </tr>`;
-            continue;
         }
 
-        const eficiencia = parseFloat(r.eficiencia);
-        let estado = '⚖️ NEUTRA';
-        let estadoColor = '#f59e0b';
-        
-        if (eficiencia > 60) {
-            estado = '✅ FUERTE';
-            estadoColor = '#10b981';
-        } else if (eficiencia < 40) {
-            estado = '❌ DÉBIL';
-            estadoColor = '#ef4444';
+        html += `</tbody></table></div>`;
+
+        let rotacionesFuertes = [];
+        let rotacionesDebiles = [];
+        for (let i = 1; i <= 6; i++) {
+            const r = datos[i];
+            if (!r || r.totalPuntos === 0) continue;
+            const eficiencia = parseFloat(r.eficiencia);
+            if (eficiencia > 60) rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
+            else if (eficiencia < 40) rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
         }
-        
-        const diferencia = r.diferencia || 0;
-        const diferenciaColor = diferencia > 0 ? '#10b981' : (diferencia < 0 ? '#ef4444' : '#6b7280');
 
-        html += `<tr style="border-bottom:1px solid #2d3748;">
-            <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
-            <td style="text-align:center; color:#93c5fd; font-size:11px; padding:12px 10px; background:rgba(59,130,246,0.05); border-radius:4px;">
-                ${localNombres}
-            </td>
-            <td style="text-align:center; color:#fca5a5; font-size:11px; padding:12px 10px; background:rgba(239,68,68,0.05); border-radius:4px;">
-                ${visitanteNombres}
-            </td>
-            <td style="text-align:center; color:#3b82f6; font-weight:bold; padding:12px 10px;">${r.puntosAFavor}</td>
-            <td style="text-align:center; color:#ef4444; font-weight:bold; padding:12px 10px;">${r.puntosEnContra}</td>
-            <td style="text-align:center; font-weight:bold; color:${estadoColor}; padding:12px 10px;">${eficiencia}%</td>
-            <td style="text-align:center; color:${estadoColor}; font-weight:bold; padding:12px 10px;">${estado}</td>
-        </tr>`;
-    }
+        html += `<div style="margin-top:20px;">`;
+        if (rotacionesFuertes.length > 0) {
+            html += `<div style="background:rgba(16,185,129,0.1); border-left:4px solid #10b981; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
+                <span style="font-weight:bold; color:#10b981;">✅ FORTALEZAS:</span>
+                <span style="color:#e5e7eb;">${rotacionesFuertes.join(', ')}</span>
+                <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
+            </div>`;
+        }
+        if (rotacionesDebiles.length > 0) {
+            html += `<div style="background:rgba(239,68,68,0.1); border-left:4px solid #ef4444; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
+                <span style="font-weight:bold; color:#ef4444;">❌ DEBILIDADES:</span>
+                <span style="color:#e5e7eb;">${rotacionesDebiles.join(', ')}</span>
+                <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
+            </div>`;
+        }
+        if (rotacionesFuertes.length === 0 && rotacionesDebiles.length === 0) {
+            html += `<div style="text-align:center; color:#6b7280; padding:10px;">No hay suficientes datos para generar insights de rotaciones.</div>`;
+        }
+        html += `</div></div>`;
 
-    html += `</tbody></table></div>`;
-
-    // Insights (solo con rotaciones que tienen datos)
-    let rotacionesFuertes = [];
-    let rotacionesDebiles = [];
-    for (let i = 1; i <= 6; i++) {
-        const r = datos[i];
-        if (!r || r.totalPuntos === 0) continue;
-        const eficiencia = parseFloat(r.eficiencia);
-        if (eficiencia > 60) rotacionesFuertes.push(`Rotación ${i} (${eficiencia}%)`);
-        else if (eficiencia < 40) rotacionesDebiles.push(`Rotación ${i} (${eficiencia}%)`);
+        return html;
     }
-
-    html += `<div style="margin-top:20px;">`;
-    if (rotacionesFuertes.length > 0) {
-        html += `<div style="background:rgba(16,185,129,0.1); border-left:4px solid #10b981; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
-            <span style="font-weight:bold; color:#10b981;">✅ FORTALEZAS:</span>
-            <span style="color:#e5e7eb;">${rotacionesFuertes.join(', ')}</span>
-            <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Estas rotaciones están funcionando bien. Mantener la estrategia.</div>
-        </div>`;
-    }
-    if (rotacionesDebiles.length > 0) {
-        html += `<div style="background:rgba(239,68,68,0.1); border-left:4px solid #ef4444; padding:12px 16px; border-radius:6px; margin-bottom:10px;">
-            <span style="font-weight:bold; color:#ef4444;">❌ DEBILIDADES:</span>
-            <span style="color:#e5e7eb;">${rotacionesDebiles.join(', ')}</span>
-            <div style="color:#9ca3af; font-size:12px; margin-top:4px;">💡 Revisar el sistema defensivo y la recepción en estas rotaciones.</div>
-        </div>`;
-    }
-    if (rotacionesFuertes.length === 0 && rotacionesDebiles.length === 0) {
-        html += `<div style="text-align:center; color:#6b7280; padding:10px;">No hay suficientes datos para generar insights de rotaciones.</div>`;
-    }
-    html += `</div></div>`;
-
-    return html;
-}
 
     mostrarRotaciones() {
         const tabla = document.getElementById('tablaRotaciones');
@@ -1774,9 +1865,6 @@ generarRotacionesHTML() {
         }
     }
 
-    // ============================================================
-    // MOSTRAR MODAL DE ROTACIÓN
-    // ============================================================
     mostrarDetalleRotacion(rotacionNum) {
         const jugadoresLocal = this.obtenerJugadoresEnRotacion('LOCAL', rotacionNum);
         const jugadoresVisitante = this.obtenerJugadoresEnRotacion('VISITANTE', rotacionNum);
@@ -1844,9 +1932,6 @@ generarRotacionesHTML() {
         document.body.style.overflow = 'hidden';
     }
 
-    // ============================================================
-    // OBTENER JUGADORES EN UNA ROTACIÓN
-    // ============================================================
     obtenerJugadoresEnRotacion(equipo, rotacionNum) {
         const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
         if (Object.keys(jugadoresMap).length === 0) {
@@ -1881,9 +1966,6 @@ generarRotacionesHTML() {
         return rotados.slice(0, 6);
     }
 
-    // ============================================================
-    // OBTENER ESTADÍSTICAS DE UNA ROTACIÓN
-    // ============================================================
     obtenerStatsRotacion(rotacionNum) {
         if (!this.puntosJugadores || this.puntosJugadores.length === 0) return null;
         const puntosRotacion = this.puntosJugadores.filter(p => 
@@ -1900,9 +1982,6 @@ generarRotacionesHTML() {
         return { puntosAFavor, puntosEnContra, eficiencia: parseFloat(eficiencia), estado };
     }
 
-    // ============================================================
-    // updateCharts USANDO destruirGrafico
-    // ============================================================
     updateCharts() {
         if (!this.data) return;
         

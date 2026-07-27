@@ -518,7 +518,6 @@
     </style>
 </head>
 <body class="bg-dark text-white">
-    <!-- SKELETON LOADER -->
     <div id="skeletonLoader" class="max-w-[1400px] mx-auto p-3 md:p-6">
         <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
             <div class="skeleton skeleton-title mx-auto mb-4" style="width: 200px;"></div>
@@ -548,9 +547,7 @@
         </div>
     </div>
 
-    <!-- CONTENIDO REAL -->
     <div id="realContent" class="max-w-[1400px] mx-auto p-3 md:p-6" style="display: none;">
-        <!-- HEADER PRINCIPAL -->
         <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
             <div class="text-center md:text-left">
                 <div class="flex items-center justify-center md:justify-start gap-2">
@@ -570,7 +567,6 @@
             <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
         </div>
 
-        <!-- PESTAÑAS -->
         <div class="flex flex-col gap-3 mb-4 md:mb-6">
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="grid grid-cols-3 gap-2 md:flex md:gap-4 w-full md:w-auto">
@@ -606,11 +602,6 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- VISTA PARTIDO -->
-        <!-- ============================================================ -->
-        <div id="vistaPartido">
-            <!-- Stats grid -->
             <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
@@ -622,7 +613,6 @@
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⏱️</div><div class="text-xl md:text-2xl font-bold text-primary" id="totalPoints">0</div><div class="text-xs text-gray-400 uppercase">Puntos Totales</div></div>
             </div>
 
-            <!-- Servicio -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-blue-400">🏐 SERVICIO - LOCAL</h3>
@@ -642,7 +632,6 @@
                 </div>
             </div>
 
-            <!-- Gráficos -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 lg:col-span-2 chart-container">
                     <div class="mb-3 md:mb-4"><h3 class="text-base md:text-lg font-semibold">📈 Evolución del Marcador</h3><p class="text-xs text-gray-400">Progresión de puntos durante el partido</p></div>
@@ -672,7 +661,6 @@
                 </div>
             </div>
 
-            <!-- Clutch y Quiebres -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
@@ -689,13 +677,11 @@
                 </div>
             </div>
 
-            <!-- Insights -->
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
                 <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">💡 Insights Automáticos</h2>
                 <div id="insightsList" class="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3"></div>
             </div>
 
-            <!-- Interpretaciones y Recomendaciones -->
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-4 md:mb-6">
                 <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-3 flex items-center gap-2">📖 QUÉ SIGNIFICAN ESTOS NÚMEROS</h3>
                 <div id="metricInterpretations" class="space-y-1 md:space-y-2 text-sm"></div>
@@ -706,13 +692,11 @@
                 <div id="actionableRecommendations" class="space-y-1 md:space-y-2 text-sm"></div>
             </div>
 
-            <!-- Timeline -->
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mb-6 md:mb-8">
                 <h2 class="text-lg md:text-xl font-semibold mb-3 md:mb-4">⏱️ Timeline de Eventos Críticos</h2>
                 <div id="timeline" class="max-h-[300px] overflow-y-auto space-y-2"></div>
             </div>
 
-            <!-- Sideout y Breakpoint -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-blue-400">📊 SIDEOUT%</h3>
@@ -741,9 +725,6 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- VISTA ROTACIONES -->
-        <!-- ============================================================ -->
         <div id="vistaRotaciones" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                 <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
@@ -778,9 +759,6 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- VISTA EVOLUCION -->
-        <!-- ============================================================ -->
         <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                 <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
@@ -829,9 +807,6 @@
             </div>
         </div>
 
-        <!-- ============================================================ -->
-        <!-- VISTA INDIVIDUALES -->
-        <!-- ============================================================ -->
         <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
                 <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
@@ -919,10 +894,6 @@
                 <canvas id="puntosJugadoresChart" class="w-full h-48 md:h-64"></canvas>
             </div>
         </div>
-
-        <!-- ============================================================ -->
-        <!-- VISTA ANOTADOR (CANCHA EN VIVO) -->
-        <!-- ============================================================ -->
         <div id="vistaAnotador" class="hidden">
             <div class="max-w-2xl mx-auto">
                 <div class="header">
@@ -951,19 +922,16 @@
                     </div>
                 </div>
 
-                <!-- CANCHA -->
                 <div class="cancha-wrapper" style="margin-top: 16px;">
                     <div class="cancha" id="cancha">
                         <div class="serving-badge" id="servingBadge">🏐 SACA LOCAL</div>
                         <div class="ataque-izq"></div>
                         <div class="ataque-der"></div>
 
-                        <!-- LOCAL -->
                         <div style="grid-column: 1; grid-row: 1; display: flex; align-items: center; justify-content: center; padding: 4px;">
                             <div class="jugadores" id="jugadoresLocal"></div>
                         </div>
 
-                        <!-- VISITANTE -->
                         <div style="grid-column: 2; grid-row: 1; display: flex; align-items: center; justify-content: center; padding: 4px;">
                             <div class="jugadores" id="jugadoresVisitante"></div>
                         </div>
@@ -972,7 +940,6 @@
                     </div>
                 </div>
 
-                <!-- BOTONERA -->
                 <div class="seccion-punto-ganado" style="margin-top: 12px; width: 100%;">
                     <div style="text-align: center; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🏆 PUNTO GANADO</div>
                     <div class="grid grid-cols-4 gap-2">
@@ -1050,12 +1017,10 @@
                     </div>
                 </div>
 
-                <!-- PUNTOS API -->
                 <div class="puntos-api" id="puntosApi" style="margin-top: 12px;">
                     <div style="text-align:center;color:#6b7280;font-size:8px;">No hay puntos registrados</div>
                 </div>
 
-                <!-- HISTORIAL -->
                 <div class="historial" id="historial" style="margin-top: 8px; width: 100%; background: #1a1f2e; border-radius: 12px; padding: 8px 10px; max-height: 80px; overflow-y: auto; font-size: 10px; border: 1px solid rgba(255,255,255,0.05);">
                     <div style="text-align:center;color:#6b7280;font-size:8px;">Esperando puntos...</div>
                 </div>
@@ -1064,13 +1029,11 @@
             </div>
         </div>
 
-        <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
             <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.6 - Estadísticas de servicio por jugador</p>
         </div>
     </div>
 
-    <!-- COACH PANEL -->
     <div id="coachPanel" class="fixed bottom-4 right-4 bg-dark rounded-xl shadow-lg border border-primary/30 z-50" style="min-width: 250px;">
         <div class="flex justify-between items-center p-2 border-b border-gray-700 cursor-pointer" id="panelHeader">
             <span class="text-xs font-bold text-primary">📊 VOLEYINSIGHT</span>
@@ -1097,7 +1060,6 @@
         </div>
     </div>
 
-    <!-- MODAL DE DETALLE DE ROTACIÓN -->
     <div id="modalRotacion" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-[#0f1119] rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-white/10 shadow-2xl">
             <div class="flex justify-between items-center p-4 border-b border-gray-700/50 sticky top-0 bg-[#0f1119] rounded-t-2xl z-10">
@@ -1204,9 +1166,6 @@
             if (tabEvolucion) tabEvolucion.addEventListener('click', () => cambiarPestana('evolucion'));
             if (tabRotaciones) tabRotaciones.addEventListener('click', () => cambiarPestana('rotaciones'));
 
-            // ============================================================
-            // CANCHA EN VIVO - SCRIPT COMPLETO (CORREGIDO)
-            // ============================================================
             let canchaInicializada = false;
 
             async function inicializarCancha() {
@@ -1215,7 +1174,6 @@
 
                 console.log('🏐 Inicializando Cancha en Vivo...');
 
-                // --- ESTADO ---
                 const estado = {
                     local: { score: 0 },
                     visitante: { score: 0 },
@@ -1237,7 +1195,6 @@
                 };
                 window.estadoCancha = estado;
 
-                // --- JUGADORES ---
                 let jugadores = {
                     local: [],
                     visitante: []
@@ -1591,9 +1548,6 @@
                     }, 1500);
                 }
 
-                // ============================================================
-                // CONFIRMAR PUNTO
-                // ============================================================
                 const confirmarBtn = document.getElementById('confirmarBtn');
                 if (confirmarBtn) {
                     confirmarBtn.onclick = async () => {
@@ -1651,14 +1605,12 @@
                         estado.puntosApi.push(punto);
                         estado.historial.push(punto);
 
-                        // ✅ Solo incrementar estado.punto si la acción suma punto
                         if (equipoAnota !== null) {
                             estado.punto++;
                         } else {
                             console.log('📊 Fundamentos registrados (no suman punto)');
                         }
 
-                        // ✅ Solo rotar si la acción suma punto
                         if (equipoAnota && equipoAnota !== estado.equipoQueSacaba) {
                             if (equipoAnota === 'LOCAL') {
                                 estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
@@ -1679,10 +1631,6 @@
                         document.querySelectorAll('.jugador').forEach(b => b.classList.remove('seleccionado', 'visitante-seleccionado'));
                     };
                 }
-
-                // ============================================================
-                // DESHACER
-                // ============================================================
                 const deshacerBtn = document.getElementById('deshacerBtn');
                 if (deshacerBtn) {
                     deshacerBtn.onclick = async () => {
@@ -1715,9 +1663,6 @@
                     };
                 }
 
-                // ============================================================
-                // EVENTOS DE LA BOTONERA
-                // ============================================================
                 document.querySelectorAll('.btn-accion').forEach(btn => {
                     btn.onclick = () => {
                         document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('seleccionado'));
@@ -1779,10 +1724,6 @@
                         mostrarFeedback(`⏸️ TIMEOUT - ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName}`);
                     };
                 }
-
-                // ============================================================
-                // SELECTOR DE SET
-                // ============================================================
                 const selectorSet = document.getElementById('selectorSet');
                 if (selectorSet) {
                     selectorSet.onchange = function() {
@@ -1806,9 +1747,6 @@
                     };
                 }
 
-                // ============================================================
-                // ATAJOS DE TECLADO
-                // ============================================================
                 document.addEventListener('keydown', (e) => {
                     const key = e.key.toLowerCase();
                     if (key === '1') document.querySelector('.btn-ataque')?.click();
@@ -1825,10 +1763,6 @@
                     if (key === 'b') document.getElementById('btnBreak')?.click();
                     if (key === 't') document.getElementById('btnTimeout')?.click();
                 });
-
-                // ============================================================
-                // INICIALIZAR
-                // ============================================================
                 console.log('🏐 Inicializando Cancha en Vivo con API...');
                 await cargarConfiguracion();
                 
@@ -1866,9 +1800,6 @@
 
             window.inicializarCancha = inicializarCancha;
 
-            // ============================================================
-            // EVENTOS DEL MODAL DE ROTACIÓN (UN SOLO EVENTO)
-            // ============================================================
             const modal = document.getElementById('modalRotacion');
             const cerrarBtn = document.getElementById('modalRotacionCerrar');
             

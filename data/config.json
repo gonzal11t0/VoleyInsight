@@ -1,20 +1,14 @@
 {
-  "matchId": 258891,
-  "homeTeam": "CAIT",
-  "awayTeam": "VELEZ C",
-  "categoria": "sub_13",
+  "matchId": 156293,
+  "homeTeam": "DMORON",
+  "awayTeam": "ECHAGÜE",
+  "categoria": "superiores",
   "partidos": [
     {
-      "id": 258891,
-      "homeTeam": "CAIT",
-      "awayTeam": "VELEZ C",
-      "categoria": "sub_13"
-    },
-    {
-      "id": 157806,
-      "homeTeam": "CAIT",
-      "awayTeam": "FLORIDA",
-      "categoria": "mayores"
+      "id": 156293,
+      "homeTeam": "DMORON",
+      "awayTeam": "ECHAGÜE",
+      "categoria": "superiores"
     }
   ]
-}
+}  
