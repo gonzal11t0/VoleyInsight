@@ -318,9 +318,7 @@ export class VolleyballDashboard {
                 localStorage.removeItem(`${prefix}_${this.matchId}`);
             });
             if (window.anotador) {
-                window.anotador.matchIdActual = nuevoId;
-                window.anotador.cargarConfiguracion();
-                window.anotador.cargarPuntosManuales();
+                await window.anotador.cambiarPartido(nuevoId);
             }
             this.data = [];
             this.puntosJugadores = [];

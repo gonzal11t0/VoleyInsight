@@ -5,7 +5,8 @@
   "main": "server-api.js",
   "scripts": {
     "start": "node server-api.js",
-    "tracker": "node index.js"
+    "tracker": "node index.js",
+    "test": "node tests/formacionHelper.test.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

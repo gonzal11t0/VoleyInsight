@@ -948,6 +948,7 @@
                         <span>🎯 Punto <span id="puntoActual">0</span></span>
                         <span id="rotacionDisplay">🔄 LOCAL: 1 | VISITANTE: 1</span>
                         <span id="servingDisplay">🏐 SACA LOCAL</span>
+                        <span id="formacionStatus" title="Estado de la formación">⚪ Formación sin cargar</span>
                     </div>
                 </div>
 
@@ -1112,11 +1113,15 @@
         import { VolleyballDashboard } from '/dashboard/js/dashboard.js';
         import { OfflineManager, SoundManager } from '/dashboard/js/utils.js';
         import { ReporteGenerator } from '/dashboard/js/reporteGenerator.js';
-        import { AnotadorManager } from '/dashboard/js/anotador.js';
+        import {
+            findCourt,
+            normalizarPosiciones,
+            obtenerFirmaFormacion,
+            ordenarJugadoresParaCancha
+        } from '/dashboard/js/formacionHelper.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             window.dashboard = new VolleyballDashboard();
-            window.anotador = new AnotadorManager();
 
             const menuBtn = document.getElementById('menuHamburguesaBtn');
             const menuDesplegable = document.getElementById('menuDesplegable');
@@ -1242,103 +1247,99 @@
                     local: [],
                     visitante: []
                 };
+                let firmaFormacion = '';
+                let sincronizacionFormacionInterval = null;
 
                 function obtenerUrlApi() {
                     return window.location.origin;
                 }
 
-                async function cargarJugadoresDesdeAPI() {
+                function actualizarEstadoFormacion(tipo, mensaje) {
+                    const status = document.getElementById('formacionStatus');
+                    if (!status) return;
+                    const iconos = {
+                        api: '🟢',
+                        cache: '🟡',
+                        error: '🔴',
+                        loading: '⚪'
+                    };
+                    status.textContent = `${iconos[tipo] || '⚪'} ${mensaje}`;
+                    status.dataset.estado = tipo;
+                }
+
+                function guardarFormacionEnCache() {
+                    if (!estado.matchId || jugadores.local.length !== 6 || jugadores.visitante.length !== 6) return;
+                    localStorage.setItem(`formacion_${estado.matchId}`, JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        local: jugadores.local,
+                        visitante: jugadores.visitante
+                    }));
+                }
+
+                function cargarFormacionDesdeCache() {
+                    try {
+                        const cache = JSON.parse(localStorage.getItem(`formacion_${estado.matchId}`) || 'null');
+                        if (!cache || cache.local?.length !== 6 || cache.visitante?.length !== 6) return false;
+                        jugadores.local = cache.local;
+                        jugadores.visitante = cache.visitante;
+                        firmaFormacion = obtenerFirmaFormacion(jugadores);
+                        actualizarEstadoFormacion('cache', 'Usando última formación guardada');
+                        return true;
+                    } catch (error) {
+                        console.warn('No se pudo leer la formación guardada:', error);
+                        return false;
+                    }
+                }
+
+                async function cargarJugadoresDesdeAPI({ silencioso = false } = {}) {
                     try {
                         const response = await fetch(`/data/full_${estado.matchId}.json?_t=${Date.now()}`);
-                        if (!response.ok) return false;
+                        if (!response.ok) {
+                            if (!silencioso && jugadores.local.length === 0) {
+                                actualizarEstadoFormacion('error', 'API sin formación');
+                            }
+                            return false;
+                        }
                         const fullData = await response.json();
-                        const findCourt = (obj) => {
-                            if (!obj) return null;
-                            if (obj.court) return obj.court;
-                            if (obj.liveState?.court) return obj.liveState.court;
-                            for (let key in obj) {
-                                if (typeof obj[key] === 'object') {
-                                    let found = findCourt(obj[key]);
-                                    if (found) return found;
-                                }
-                            }
-                            return null;
-                        };
                         const court = findCourt(fullData);
-                        if (!court) return false;
-                        
-                        const jugadoresLocal = [];
-                        const jugadoresVisitante = [];
-                        
-                        if (court.home?.positions) {
-                            for (const [pos, info] of Object.entries(court.home.positions)) {
-                                if (info.number) {
-                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
-                                    jugadoresLocal.push({
-                                        numero: info.number,
-                                        nombre: nombreCompleto || `Jugador ${info.number}`,
-                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
-                                        posicion: parseInt(pos)
-                                    });
-                                }
+                        if (!court) {
+                            if (!silencioso && jugadores.local.length === 0) {
+                                actualizarEstadoFormacion('error', 'El partido todavía no tiene court');
                             }
+                            return false;
                         }
-                        if (court.home?.bench) {
-                            for (const info of court.home.bench) {
-                                if (info.number && !jugadoresLocal.find(j => j.numero === info.number)) {
-                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
-                                    jugadoresLocal.push({
-                                        numero: info.number,
-                                        nombre: nombreCompleto || `Jugador ${info.number}`,
-                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
-                                        posicion: 99
-                                    });
-                                }
+
+                        const nuevaFormacion = {
+                            local: normalizarPosiciones(court.home),
+                            visitante: normalizarPosiciones(court.away)
+                        };
+                        if (nuevaFormacion.local.length !== 6 || nuevaFormacion.visitante.length !== 6) {
+                            if (!silencioso && jugadores.local.length === 0) {
+                                actualizarEstadoFormacion('error', 'Formación incompleta en la API');
                             }
+                            return false;
                         }
-                        if (court.away?.positions) {
-                            for (const [pos, info] of Object.entries(court.away.positions)) {
-                                if (info.number) {
-                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
-                                    jugadoresVisitante.push({
-                                        numero: info.number,
-                                        nombre: nombreCompleto || `Jugador ${info.number}`,
-                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
-                                        posicion: parseInt(pos)
-                                    });
-                                }
-                            }
+
+                        const nuevaFirma = obtenerFirmaFormacion(nuevaFormacion);
+                        const cambio = nuevaFirma !== firmaFormacion;
+                        jugadores = nuevaFormacion;
+                        firmaFormacion = nuevaFirma;
+                        guardarFormacionEnCache();
+                        actualizarEstadoFormacion('api', 'Formación sincronizada');
+
+                        if (cambio) {
+                            renderizarCancha();
+                            console.log('✅ Formación actualizada desde court.positions:', {
+                                local: jugadores.local.map(j => `P${j.posicion}: #${j.numero}`),
+                                visitante: jugadores.visitante.map(j => `P${j.posicion}: #${j.numero}`)
+                            });
                         }
-                        if (court.away?.bench) {
-                            for (const info of court.away.bench) {
-                                if (info.number && !jugadoresVisitante.find(j => j.numero === info.number)) {
-                                    const nombreCompleto = `${info.firstName || ''} ${info.lastName || ''}`.trim();
-                                    const nombreCorto = info.lastName || `Jugador ${info.number}`;
-                                    jugadoresVisitante.push({
-                                        numero: info.number,
-                                        nombre: nombreCompleto || `Jugador ${info.number}`,
-                                        nombreCorto: nombreCorto.split(' ')[0] || nombreCorto,
-                                        posicion: 99
-                                    });
-                                }
-                            }
-                        }
-                        
-                        jugadoresLocal.sort((a, b) => a.posicion - b.posicion);
-                        jugadoresVisitante.sort((a, b) => a.posicion - b.posicion);
-                        jugadores.local = jugadoresLocal.slice(0, 6);
-                        jugadores.visitante = jugadoresVisitante.slice(0, 6);
-                        
-                        console.log('✅ Jugadores cargados desde API:', {
-                            local: jugadores.local.map(j => `${j.numero} - ${j.nombreCorto}`),
-                            visitante: jugadores.visitante.map(j => `${j.numero} - ${j.nombreCorto}`)
-                        });
                         return true;
                     } catch (e) {
-                        console.log('Error cargando jugadores:', e);
+                        console.log('Error cargando formación:', e);
+                        if (!silencioso && jugadores.local.length === 0) {
+                            actualizarEstadoFormacion('error', 'No se pudo consultar la formación');
+                        }
                         return false;
                     }
                 }
@@ -1378,6 +1379,9 @@
                                 estado.visitante.score = parseInt(ultimo.marcadorDespues.split('-')[1]) || 0;
                                 estado.punto = ultimo.punto || 0;
                                 estado.set = ultimo.set || 1;
+                                estado.rotacionLocal = ultimo.rotacionLocalDespues || ultimo.rotacionLocal || 1;
+                                estado.rotacionVisitante = ultimo.rotacionVisitanteDespues || ultimo.rotacionVisitante || 1;
+                                estado.equipoQueSacaba = ultimo.equipoSacaDespues || ultimo.equipoSacaba || 'LOCAL';
                             }
                             actualizarMarcador();
                             renderizarCancha();
@@ -1411,33 +1415,14 @@
                     const containerVisitante = document.getElementById('jugadoresVisitante');
                     if (!containerLocal || !containerVisitante) return;
 
-                    if (jugadores.local.length === 0) {
-                        jugadores.local = [
-                            { numero: 10, nombre: 'Lazarte, Zoel', nombreCorto: 'Lazarte' },
-                            { numero: 3, nombre: 'Rios, Leila', nombreCorto: 'Rios' },
-                            { numero: 11, nombre: 'Montez, Marina', nombreCorto: 'Montez' },
-                            { numero: 21, nombre: 'Benitez, Jazmin', nombreCorto: 'Benitez' },
-                            { numero: 2, nombre: 'Pucheta, Victoria', nombreCorto: 'Pucheta' },
-                            { numero: 18, nombre: 'Lezcano, Berenice', nombreCorto: 'Lezcano' }
-                        ];
-                        jugadores.visitante = [
-                            { numero: 1, nombre: 'Suarez, Nayeli', nombreCorto: 'Suarez' },
-                            { numero: 7, nombre: 'Goggi, Luana', nombreCorto: 'Goggi' },
-                            { numero: 9, nombre: 'Pagano, Angeles', nombreCorto: 'Pagano' },
-                            { numero: 13, nombre: 'Maier Rearte, Sofia', nombreCorto: 'Maier' },
-                            { numero: 16, nombre: 'Stark, Melina', nombreCorto: 'Stark' },
-                            { numero: 23, nombre: 'Calvano Coleur, Luisina', nombreCorto: 'Calvano' }
-                        ];
+                    if (jugadores.local.length !== 6 || jugadores.visitante.length !== 6) {
+                        containerLocal.innerHTML = '<div style="color:#9ca3af;font-size:10px;padding:12px;">Sin formación</div>';
+                        containerVisitante.innerHTML = '<div style="color:#9ca3af;font-size:10px;padding:12px;">Sin formación</div>';
+                        return;
                     }
 
-                    const jugadoresLocalRotados = obtenerJugadoresRotados('local');
-                    const jugadoresVisitanteRotados = obtenerJugadoresRotados('visitante');
-
                     containerLocal.innerHTML = '';
-                    const colsLocal = [[], []];
-                    jugadoresLocalRotados.forEach((j, i) => {
-                        colsLocal[i % 2].push(j);
-                    });
+                    const colsLocal = ordenarJugadoresParaCancha(jugadores.local, 'LOCAL');
                     colsLocal.forEach(col => {
                         const div = document.createElement('div');
                         div.className = 'columna';
@@ -1446,6 +1431,8 @@
                             btn.className = 'jugador local';
                             btn.dataset.jugador = j.numero;
                             btn.dataset.equipo = 'LOCAL';
+                            btn.dataset.posicion = j.posicion;
+                            btn.title = `Posición ${j.posicion} · #${j.numero} ${j.nombre}`;
                             btn.innerHTML = `
                                 <span class="numero">${j.numero}</span>
                                 <span class="nombre-corto">${j.nombreCorto}</span>
@@ -1460,10 +1447,7 @@
                     });
 
                     containerVisitante.innerHTML = '';
-                    const colsVisitante = [[], []];
-                    jugadoresVisitanteRotados.forEach((j, i) => {
-                        colsVisitante[i % 2].push(j);
-                    });
+                    const colsVisitante = ordenarJugadoresParaCancha(jugadores.visitante, 'VISITANTE');
                     colsVisitante.forEach(col => {
                         const div = document.createElement('div');
                         div.className = 'columna';
@@ -1472,6 +1456,8 @@
                             btn.className = 'jugador visitante';
                             btn.dataset.jugador = j.numero;
                             btn.dataset.equipo = 'VISITANTE';
+                            btn.dataset.posicion = j.posicion;
+                            btn.title = `Posición ${j.posicion} · #${j.numero} ${j.nombre}`;
                             btn.innerHTML = `
                                 <span class="numero">${j.numero}</span>
                                 <span class="nombre-corto">${j.nombreCorto}</span>
@@ -1496,19 +1482,10 @@
                     if (rotDisplay) {
                         rotDisplay.textContent = `🔄 LOCAL: ${estado.rotacionLocal} | VISITANTE: ${estado.rotacionVisitante}`;
                     }
-                }
-
-                function obtenerJugadoresRotados(equipo) {
-                    const lista = jugadores[equipo];
-                    if (lista.length === 0) return lista;
-                    const rotacion = equipo === 'local' ? estado.rotacionLocal : estado.rotacionVisitante;
-                    const offset = (rotacion - 1) % lista.length;
-                    const rotados = [];
-                    for (let i = 0; i < lista.length; i++) {
-                        const idx = (i + offset) % lista.length;
-                        rotados.push(lista[idx]);
+                    const servingDisplay = document.getElementById('servingDisplay');
+                    if (servingDisplay) {
+                        servingDisplay.textContent = `🏐 SACA ${servingText}`;
                     }
-                    return rotados;
                 }
 
                 function seleccionarJugador(numero, equipo) {
@@ -1630,6 +1607,19 @@
 
                         const marcadorDespues = `${estado.local.score}-${estado.visitante.score}`;
 
+                        const rotacionLocalAntes = estado.rotacionLocal;
+                        const rotacionVisitanteAntes = estado.rotacionVisitante;
+                        const equipoSacabaAntes = estado.equipoQueSacaba;
+
+                        if (equipoAnota && equipoAnota !== equipoSacabaAntes) {
+                            if (equipoAnota === 'LOCAL') {
+                                estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
+                            } else {
+                                estado.rotacionVisitante = (estado.rotacionVisitante % 6) + 1;
+                            }
+                            estado.equipoQueSacaba = equipoAnota;
+                        }
+
                         const punto = {
                             timestamp: new Date().toISOString(),
                             set: estado.set,
@@ -1641,12 +1631,23 @@
                             asistencia: null,
                             marcadorAntes: marcadorAntes,
                             marcadorDespues: marcadorDespues,
-                            rotacionLocal: estado.equipo === 'LOCAL' ? estado.rotacionLocal : null,
-                            rotacionVisitante: estado.equipo === 'VISITANTE' ? estado.rotacionVisitante : null,
-                            equipoSacaba: estado.equipoQueSacaba
+                            rotacionLocal: rotacionLocalAntes,
+                            rotacionVisitante: rotacionVisitanteAntes,
+                            equipoSacaba: equipoSacabaAntes,
+                            rotacionLocalDespues: estado.rotacionLocal,
+                            rotacionVisitanteDespues: estado.rotacionVisitante,
+                            equipoSacaDespues: estado.equipoQueSacaba
                         };
 
-                        await guardarPuntoEnAPI(punto);
+                        const guardado = await guardarPuntoEnAPI(punto);
+                        if (!guardado) {
+                            estado.rotacionLocal = rotacionLocalAntes;
+                            estado.rotacionVisitante = rotacionVisitanteAntes;
+                            estado.equipoQueSacaba = equipoSacabaAntes;
+                            if (equipoAnota === 'LOCAL') estado.local.score--;
+                            if (equipoAnota === 'VISITANTE') estado.visitante.score--;
+                            return;
+                        }
 
                         estado.puntosApi.push(punto);
                         estado.historial.push(punto);
@@ -1656,16 +1657,6 @@
                             estado.punto++;
                         } else {
                             console.log('📊 Fundamentos registrados (no suman punto)');
-                        }
-
-                        // ✅ Solo rotar si la acción suma punto
-                        if (equipoAnota && equipoAnota !== estado.equipoQueSacaba) {
-                            if (equipoAnota === 'LOCAL') {
-                                estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
-                            } else {
-                                estado.rotacionVisitante = (estado.rotacionVisitante % 6) + 1;
-                            }
-                            estado.equipoQueSacaba = equipoAnota;
                         }
 
                         actualizarMarcador();
@@ -1806,6 +1797,32 @@
                     };
                 }
 
+                window.anotador = {
+                    async cambiarPartido(nuevoId) {
+                        estado.matchId = Number(nuevoId);
+                        estado.local.score = 0;
+                        estado.visitante.score = 0;
+                        estado.punto = 0;
+                        estado.set = 1;
+                        estado.historial = [];
+                        estado.puntosApi = [];
+                        estado.rotacionLocal = 1;
+                        estado.rotacionVisitante = 1;
+                        estado.equipoQueSacaba = 'LOCAL';
+                        jugadores = { local: [], visitante: [] };
+                        firmaFormacion = '';
+                        actualizarEstadoFormacion('loading', 'Consultando formación...');
+
+                        const cargada = await cargarJugadoresDesdeAPI();
+                        if (!cargada && !cargarFormacionDesdeCache()) {
+                            actualizarEstadoFormacion('error', 'No hay formación disponible');
+                        }
+                        await cargarPuntosDesdeAPI();
+                        renderizarCancha();
+                        actualizarMarcador();
+                    }
+                };
+
                 // ============================================================
                 // ATAJOS DE TECLADO
                 // ============================================================
@@ -1830,26 +1847,13 @@
                 // INICIALIZAR
                 // ============================================================
                 console.log('🏐 Inicializando Cancha en Vivo con API...');
+                actualizarEstadoFormacion('loading', 'Consultando formación...');
                 await cargarConfiguracion();
                 
                 if (jugadores.local.length === 0) {
-                    console.log('⚠️ Usando jugadores predefinidos (sin API)');
-                    jugadores.local = [
-                        { numero: 10, nombre: 'Lazarte, Zoel', nombreCorto: 'Lazarte' },
-                        { numero: 3, nombre: 'Rios, Leila', nombreCorto: 'Rios' },
-                        { numero: 11, nombre: 'Montez, Marina', nombreCorto: 'Montez' },
-                        { numero: 21, nombre: 'Benitez, Jazmin', nombreCorto: 'Benitez' },
-                        { numero: 2, nombre: 'Pucheta, Victoria', nombreCorto: 'Pucheta' },
-                        { numero: 18, nombre: 'Lezcano, Berenice', nombreCorto: 'Lezcano' }
-                    ];
-                    jugadores.visitante = [
-                        { numero: 1, nombre: 'Suarez, Nayeli', nombreCorto: 'Suarez' },
-                        { numero: 7, nombre: 'Goggi, Luana', nombreCorto: 'Goggi' },
-                        { numero: 9, nombre: 'Pagano, Angeles', nombreCorto: 'Pagano' },
-                        { numero: 13, nombre: 'Maier Rearte, Sofia', nombreCorto: 'Maier' },
-                        { numero: 16, nombre: 'Stark, Melina', nombreCorto: 'Stark' },
-                        { numero: 23, nombre: 'Calvano Coleur, Luisina', nombreCorto: 'Calvano' }
-                    ];
+                    if (!cargarFormacionDesdeCache()) {
+                        actualizarEstadoFormacion('error', 'No hay formación disponible');
+                    }
                 }
                 
                 await cargarPuntosDesdeAPI();
@@ -1857,6 +1861,10 @@
                 actualizarMarcador();
                 renderizarHistorial();
                 renderizarPuntosApi();
+
+                sincronizacionFormacionInterval = setInterval(() => {
+                    cargarJugadoresDesdeAPI({ silencioso: true });
+                }, 3000);
                 
                 console.log('🏐 CANCHA EN VIVO: Inicializada correctamente');
                 console.log('🎮 ATAJOS: 1=ATAQUE 2=BLOQUEO 3=SAQUE 4=SAQUE MALO');

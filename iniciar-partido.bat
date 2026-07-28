@@ -7,7 +7,6 @@ cd /d "C:\Users\User\Desktop\voley"
 
 :: Matar procesos previos
 taskkill /f /im cloudflared.exe >nul 2>&1
-taskkill /f /im ssh.exe >nul 2>&1
 
 :: ========================================
 :: INICIO
@@ -16,7 +15,7 @@ echo.
 echo ========================================
 echo    VOLEYINSIGHT - SISTEMA COMPLETO
 echo ========================================
-echo    Modo: LOCAL + TUNEL (Cloudflare + Serveo)
+echo    Modo: LOCAL + TUNEL CLOUDFLARE
 echo ========================================
 echo.
 
@@ -52,12 +51,12 @@ echo.
 
 
 :: ========================================
-:: INICIAR SERVIDOR API (puerto 3002)
+:: INICIAR SERVIDOR API + DASHBOARD (puerto 5501)
 :: ========================================
 echo [4/6] Iniciando servidor API + WebSocket...
 start "API Server" cmd /k "node server-api.js"
 timeout /t 3 /nobreak >nul
-echo OK API en http://localhost:3002
+echo OK Sistema en http://localhost:5501
 echo.
 
 :: ========================================
@@ -69,16 +68,9 @@ timeout /t 3 /nobreak >nul
 echo OK Tracker iniciado
 echo.
 
-:: ========================================
-:: INICIAR TUNEL CLOUDFLARE (Dashboard)
-:: ========================================
-echo [6/6] Iniciando túneles...
-echo    Iniciando Cloudflare Tunnel para Dashboard...
-start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5501"
-timeout /t 5 /nobreak >nul
 
 :: ========================================
-:: INICIAR TUNEL SERVEO (API)
+:: INICIAR TUNEL CLOUDFLARE
 :: ========================================
 echo [6/6] Iniciando túnel Cloudflare...
 start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5501"
