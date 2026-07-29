@@ -63,14 +63,16 @@ class MatchTracker {
 
     connectWebSocket() {
         try {
-            this.socket = io('http://localhost:3002');
+            this.socket = io(config.server.localUrl, {
+                transports: ['polling', 'websocket'],
+                reconnection: true
+            });
             this.socket.on('connect', () => {
                 logger.info('🔌 WebSocket conectado al servidor');
                 this.socket.emit('subscribe', this.matchId);
             });
             this.socket.on('disconnect', () => {
-                logger.warn('⚠️ WebSocket desconectado, reintentando en 5s');
-                setTimeout(() => this.connectWebSocket(), 5000);
+                logger.warn('⚠️ WebSocket desconectado; Socket.IO intentará reconectar');
             });
             this.socket.on('subscribed', (data) => {
                 logger.info(`📡 Suscrito a partido ${data.matchId}`);
@@ -188,8 +190,7 @@ class MatchTracker {
                             point: snapshot
                         });
                         try {
-                            const fetch = require('node-fetch');
-                            await fetch('http://localhost:3002/api/webhook/point', {
+                            await fetch(`${config.server.localUrl}/api/webhook/point`, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({

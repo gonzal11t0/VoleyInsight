@@ -1,6 +1,6 @@
 {
   "name": "voleyinsight",
-  "version": "2.6.0",
+  "version": "2.9.0",
   "description": "Sistema de análisis de partidos de voleibol",
   "main": "server-api.js",
   "scripts": {

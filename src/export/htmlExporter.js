@@ -273,7 +273,7 @@ class HTMLExporter {
         </div>
         
         <div class="footer">
-            <p>Reporte generado automáticamente por Metro Vóley Tracker v2.0</p>
+            <p>Reporte generado automáticamente por VoleyInsight v2.9</p>
             <p>Fecha: ${new Date().toLocaleString()}</p>
         </div>
     </div>

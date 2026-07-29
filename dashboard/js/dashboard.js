@@ -36,6 +36,10 @@ export class VolleyballDashboard {
         this.configSets = { maxSets: 3, setsParaGanar: 2, puntosSetNormal: 25, puntosSetDecisivo: 15 };
         this.offlineMode = false;
         this.chartRotaciones = null;
+        this.puntosManualesInterval = null;
+        this.livePanelInterval = null;
+        this.socketKeepAliveInterval = null;
+        this.keepAliveInterval = null;
         window.dashboard = this;
 
         this.setupEventListeners();
@@ -56,7 +60,6 @@ export class VolleyballDashboard {
                 this.aplicarConfiguracionSets();
                 this.connectWebSocket();
                 this.loadData();
-                this.startAutoRefresh();
                 this.setupRefreshIntervalSelector();
                 this.startConnectionMonitor();
                 this.setupLivePanel();
@@ -73,7 +76,7 @@ export class VolleyballDashboard {
             });
         });
 
-        setInterval(async () => {
+        this.keepAliveInterval = setInterval(async () => {
             try {
                 await fetch('/keepalive');
             } catch (e) {}
@@ -181,7 +184,8 @@ export class VolleyballDashboard {
 
 
     startAutoRefreshPuntos() {
-        setInterval(() => {
+        if (this.puntosManualesInterval) clearInterval(this.puntosManualesInterval);
+        this.puntosManualesInterval = setInterval(() => {
             this.recargarPuntosManuales();
         }, 10000);
     }
@@ -195,32 +199,30 @@ export class VolleyballDashboard {
             this.socket.on('connect', () => {
                 this.socket.emit('subscribe', this.matchId);
                 this.mostrarFeedbackPartido('📡 Conexión en tiempo real activada');
-                
-                this.socket.on('partido_terminado', (data) => {
-                    console.log('🏁 Partido terminado, guardando reporte automático...');
-                    this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
-                    setTimeout(() => {
-                        this.saveAsHTML();
-                        this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
-                    }, 2000);
-                });
+            });
 
-                this.socket.on('punto_manual', (punto) => {
-                    console.log('📝 Punto manual recibido:', punto);
-                    this.recargarPuntosManuales();
-                });
+            this.socket.on('partido_terminado', () => {
+                console.log('🏁 Partido terminado, guardando reporte automático...');
+                this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
+                setTimeout(() => {
+                    this.saveAsHTML();
+                    this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
+                }, 2000);
+            });
+
+            this.socket.on('punto_manual', (punto) => {
+                console.log('📝 Punto manual recibido:', punto);
+                this.recargarPuntosManuales();
             });
             
-            this.socket.on('new_point', (data) => {
+            this.socket.on('new_point', () => {
                 this.loadData();
-                this.actualizarSets();
-                    this.actualizarFormacionDesdeAPI();
-
             });
             
             this.socket.on('disconnect', () => this.mostrarFeedbackPartido('⚠️ Cambiando a modo polling'));
             
-            setInterval(() => {
+            if (this.socketKeepAliveInterval) clearInterval(this.socketKeepAliveInterval);
+            this.socketKeepAliveInterval = setInterval(() => {
                 if (this.socket && this.socket.connected) this.socket.emit('ping_keepalive');
             }, 25000);
         } catch (e) {
@@ -668,14 +670,12 @@ export class VolleyballDashboard {
         }
     }
 
-    startAutoRefresh() {
-        setInterval(() => {
-            this.loadData();
-            this.actualizarFormacionDesdeAPI();
-        }, 10000);
-    }    
-    
-    setupLivePanel() { setInterval(() => { if (this.data && this.data.length > 0) this.updateLivePanel(); }, 1000); }
+    setupLivePanel() {
+        if (this.livePanelInterval) clearInterval(this.livePanelInterval);
+        this.livePanelInterval = setInterval(() => {
+            if (this.data && this.data.length > 0) this.updateLivePanel();
+        }, 1000);
+    }
 
     startConnectionMonitor() {
         let interval = 10000;
@@ -993,105 +993,6 @@ export class VolleyballDashboard {
         return false;
     }
 
-    async actualizarFormacionDesdeAPI() {
-        try {
-            const response = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
-            if (!response.ok) return false;
-            
-            const fullData = await response.json();
-            const court = this.findCourt(fullData);
-            if (!court) return false;
-            
-            let formacionTitular = null;
-            if (fullData.liveState?.timeline) {
-                const timeline = fullData.liveState.timeline;
-                const lineupHome = timeline.filter(e => e.type === 'LINEUP_SET' && e.team === 'home');
-                const lineupAway = timeline.filter(e => e.type === 'LINEUP_SET' && e.team === 'away');
-                
-                const ultimoHome = lineupHome[lineupHome.length - 1];
-                const ultimoAway = lineupAway[lineupAway.length - 1];
-                
-                if (ultimoHome) {
-                    formacionTitular = formacionTitular || {};
-                    formacionTitular.home = {};
-                    for (const pos of ultimoHome.data.positions) {
-                        formacionTitular.home[pos.position] = pos.jersey;
-                    }
-                }
-                if (ultimoAway) {
-                    formacionTitular = formacionTitular || {};
-                    formacionTitular.away = {};
-                    for (const pos of ultimoAway.data.positions) {
-                        formacionTitular.away[pos.position] = pos.jersey;
-                    }
-                }
-            }
-            
-            let huboCambios = false;
-            let nuevosJugadoresLocal = {};
-            let nuevosJugadoresVisitante = {};
-            
-            if (formacionTitular?.home) {
-                for (const [pos, numero] of Object.entries(formacionTitular.home)) {
-                    const info = court.home?.positions?.[pos];
-                    const nombre = info ? `${info.firstName || ''} ${info.lastName || ''}`.trim() : `Jugador ${numero}`;
-                    nuevosJugadoresLocal[numero] = nombre;
-                }
-            } else if (court.home?.positions) {
-                for (const [pos, info] of Object.entries(court.home.positions)) {
-                    if (info.number) {
-                        const nombre = `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`;
-                        nuevosJugadoresLocal[info.number] = nombre;
-                    }
-                }
-            }
-            
-            if (formacionTitular?.away) {
-                for (const [pos, numero] of Object.entries(formacionTitular.away)) {
-                    const info = court.away?.positions?.[pos];
-                    const nombre = info ? `${info.firstName || ''} ${info.lastName || ''}`.trim() : `Jugador ${numero}`;
-                    nuevosJugadoresVisitante[numero] = nombre;
-                }
-            } else if (court.away?.positions) {
-                for (const [pos, info] of Object.entries(court.away.positions)) {
-                    if (info.number) {
-                        const nombre = `${info.firstName || ''} ${info.lastName || ''}`.trim() || `Jugador ${info.number}`;
-                        nuevosJugadoresVisitante[info.number] = nombre;
-                    }
-                }
-            }
-            
-            const actualesLocal = Object.keys(this.jugadoresLocal).sort();
-            const nuevosLocal = Object.keys(nuevosJugadoresLocal).sort();
-            if (JSON.stringify(actualesLocal) !== JSON.stringify(nuevosLocal)) {
-                huboCambios = true;
-                this.jugadoresLocal = nuevosJugadoresLocal;
-                localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
-                console.log('🔄 Cambio en formación LOCAL (titular):', nuevosJugadoresLocal);
-            }
-            
-            const actualesVisitante = Object.keys(this.jugadoresVisitante).sort();
-            const nuevosVisitante = Object.keys(nuevosJugadoresVisitante).sort();
-            if (JSON.stringify(actualesVisitante) !== JSON.stringify(nuevosVisitante)) {
-                huboCambios = true;
-                this.jugadoresVisitante = nuevosJugadoresVisitante;
-                localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
-                console.log('🔄 Cambio en formación VISITANTE (titular):', nuevosJugadoresVisitante);
-            }
-            
-            if (huboCambios) {
-                this.actualizarVistaIndividuales();
-                if (window.estadoCancha) {
-                    console.log('🔄 Formación actualizada en tiempo real');
-                }
-                return true;
-            }
-            return false;
-        } catch (e) {
-            console.log('Error actualizando formación:', e);
-            return false;
-        }
-    }
     findCourt(obj) {
         if (!obj) return null;
         if (obj.court) return obj.court;
@@ -1333,7 +1234,7 @@ export class VolleyballDashboard {
     }
 
     actualizarBadgeSaque(serving) {
-        const bc = document.getElementById('servingBadge');
+        const bc = document.getElementById('servingBadgeDashboard');
         if (!bc) return;
         if (this.partidoTerminado || !serving) { bc.innerHTML = '';
             bc.classList.add('hidden'); return; }

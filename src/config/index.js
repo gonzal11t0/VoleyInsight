@@ -3,7 +3,13 @@ const path = require('path');
 
 dotenv.config();
 
+const serverPort = parseInt(process.env.PORT || '5501', 10);
+
 const config = {
+    server: {
+        port: serverPort,
+        localUrl: process.env.LOCAL_SERVER_URL || `http://localhost:${serverPort}`
+    },
     match: {
         id: parseInt(process.env.MATCH_ID || '240704', 10),
         pollIntervalMs: parseInt(process.env.POLL_INTERVAL_MS || '3000', 10),

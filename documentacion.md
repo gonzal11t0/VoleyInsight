@@ -27,7 +27,7 @@ Estadísticas de servicio por jugador (SAQUE, errores, eficiencia, total de saqu
 
 🆕 RESUSCRIPCIÓN WEBSOCKET: Al cambiar de partido, el WebSocket se resuscribe automáticamente
 
-🆕 DOBLE TÚNEL: Cloudflare (dashboard) + Serveo (API) para acceso remoto desde el celular
+🆕 TÚNEL ÚNICO: Cloudflare publica Dashboard, API y WebSocket desde el puerto 5501
 
 🆕 ESTADÍSTICAS DE RECEPCIÓN: REC+ (positiva), REC- (negativa) y eficiencia de recepción
 
@@ -83,10 +83,9 @@ text
 │                            │                                                │
 │                            ▼                                                │
 │   ┌─────────────────────────────────────────────────────────────────────┐  │
-│   │                        TÚNELES PARA ACCESO REMOTO                    │  │
-│   │   Cloudflare Tunnel → Dashboard (puerto 5501)                       │  │
-│   │   Serveo Tunnel → API (puerto 3002)                                 │  │
-│   │   El dashboard lee la URL de la API desde data/api_url.txt          │  │
+│   │                         ACCESO REMOTO                               │  │
+│   │   Cloudflare Tunnel → Dashboard + API + WebSocket (puerto 5501)     │  │
+│   │   El frontend usa el mismo origen para todos los servicios          │  │
 │   └─────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -107,7 +106,6 @@ voley/
 ├── data/
 │   ├── config.json             # { matchId, homeTeam, awayTeam, categoria, partidos[] }
 │   ├── reglamento.json         # Configuración de sets por categoría
-│   ├── api_url.txt             # 🆕 URL del túnel de Serveo (API)
 │   ├── match_*.json            # Puntos del partido (automático)
 │   ├── full_*.json             # Datos completos de API
 │   ├── jugadores_*.json        # Puntos anotados manualmente
@@ -122,7 +120,7 @@ voley/
 │   └── analytics/
 │       ├── performanceAnalyzer.js  # Análisis de rendimiento
 │       └── volleyballMetrics.js    # Métricas de voleibol
-├── server-api.js               # Servidor Express (puerto 3002) con CORS y WebSocket
+├── server-api.js               # Servidor Express (puerto 5501) con CORS y WebSocket
 ├── index.js                    # Punto de entrada del tracker
 └── iniciar-partido.bat         # Lanzador automático (Windows) con dos túneles
 4. COMPONENTES DEL SISTEMA
@@ -167,7 +165,7 @@ Botón	Función
 📡 Modo offline	Forzar uso de datos cacheados
 🆕 Funciones en dashboard.js:
 
-obtenerUrlApi(): Lee la URL de la API desde data/api_url.txt
+obtenerUrlApi(): Usa el mismo origen desde el que se abrió el dashboard
 
 setupSelectorPartido(): Maneja el cambio de partido con resuscripción WebSocket
 
@@ -265,14 +263,11 @@ const io = socketIo(server, {
         transports: ['polling', 'websocket']
     }
 });
-4.7 Túneles para acceso remoto
+4.7 Túnel para acceso remoto
 Servicio	Puerto	Comando	URL
-Cloudflare	5501 (dashboard)	cloudflared tunnel --url http://localhost:5501	https://xxxx.trycloudflare.com
-Serveo	3002 (API)	ssh -R 80:localhost:3002 serveo.net	https://yyyy.serveo.net
-El dashboard lee la URL de la API desde data/api_url.txt:
+Cloudflare	5501 (sistema completo)	cloudflared tunnel --url http://localhost:5501	https://xxxx.trycloudflare.com
 
-text
-https://yyyy.serveo.net
+El dashboard, la API REST y WebSocket comparten la misma URL.
 5. FLUJO DE DATOS (ACTUALIZADO)
 text
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -293,13 +288,13 @@ text
 │     └── 🆕 Configuración CORS (origin: true)                                │
 │                                                                             │
 │  3. DASHBOARD (PC - localhost)                                              │
-│     ├── Conecta WebSocket a localhost:3002                                  │
+│     ├── Conecta WebSocket a localhost:5501                                  │
 │     ├── Lee data/config.json, match_*.json, full_*.json                     │
 │     ├── Calcula Sideout% y Breakpoint%                                      │
 │     └── 🆕 Selector de partidos: cambia ID, nombres y datos                 │
 │                                                                             │
 │  4. DASHBOARD (Celular - remoto)                                            │
-│     ├── Conecta WebSocket a la URL de Serveo (desde api_url.txt)            │
+│     ├── Conecta WebSocket al mismo origen publicado por Cloudflare          │
 │     ├── Lee data/config.json, match_*.json a través del túnel               │
 │     ├── 🆕 Selector: envía POST a la API y resuscribe WebSocket             │
 │     └── 🆕 Ping keepalive cada 25 segundos                                  │
@@ -346,13 +341,10 @@ json
     }
   }
 }
-6.3 Archivo data/api_url.txt
-Contiene la URL del túnel de Serveo para la API, por ejemplo:
-
+6.3 Archivo .env
 text
-https://59204d76bd84656e-181-24-199-174.serveousercontent.com
-6.4 Archivo .env
-text
+PORT=5501
+LOCAL_SERVER_URL=http://localhost:5501
 POLL_INTERVAL_MS=3000
 SAVE_INTERVAL_MS=10000
 API_BASE_URL=https://metrovoley.com.ar/api/matches
@@ -360,13 +352,10 @@ API_TIMEOUT_MS=10000
 API_RETRY_ATTEMPTS=3
 API_RETRY_BACKOFF_MS=1000
 LOG_LEVEL=info
-6.5 Túneles
+6.4 Túnel
 text
-# Terminal 1 - Cloudflare (Dashboard)
+# Publica Dashboard, API REST y WebSocket
 cloudflared tunnel --url http://localhost:5501
-
-# Terminal 2 - Serveo (API)
-ssh -R 80:localhost:3002 serveo.net
 7. MÉTRICAS CALCULADAS
 Métrica	Cálculo	Qué indica
 Racha	Puntos consecutivos del mismo equipo	Dominio momentáneo
@@ -395,34 +384,24 @@ color 0A
 chcp 65001 >nul
 cd /d "%~dp0"
 taskkill /f /im cloudflared.exe >nul 2>&1
-taskkill /f /im ssh.exe >nul 2>&1
 
-echo [1/5] Iniciando servidor local...
-start "Servidor Local" cmd /k "npx serve . -p 5501"
-timeout /t 3 /nobreak >nul
-
-echo [2/5] Iniciando API server...
+echo [1/3] Iniciando API + Dashboard + WebSocket...
 start "API Server" cmd /k "node server-api.js"
 timeout /t 3 /nobreak >nul
 
-echo [3/5] Iniciando tracker...
+echo [2/3] Iniciando tracker...
 start "Tracker" cmd /k "npm run tracker"
 timeout /t 3 /nobreak >nul
 
-echo [4/5] Iniciando Cloudflare Tunnel...
+echo [3/3] Iniciando Cloudflare Tunnel...
 start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5501"
 timeout /t 5 /nobreak >nul
-
-echo [5/5] Iniciando Serveo Tunnel (API)...
-start "Serveo API" cmd /k "ssh -R 80:localhost:3002 serveo.net"
-timeout /t 8 /nobreak >nul
 
 echo ========================================
 echo    🚀 SISTEMA ACTIVO
 echo ========================================
 echo.
 echo 📱 Dashboard (compartir): mirá la ventana "Cloudflare Tunnel"
-echo 🔌 API URL (copiar a data/api_url.txt): mirá la ventana "Serveo API"
 echo.
 pause
 9.2 Manualmente
@@ -433,14 +412,8 @@ node server-api.js
 # Terminal 2 - Tracker
 npm start
 
-# Terminal 3 - Servidor web
-npx serve . -p 5501
-
-# Terminal 4 - Cloudflare Tunnel
+# Terminal 3 - Cloudflare Tunnel
 cloudflared tunnel --url http://localhost:5501
-
-# Terminal 5 - Serveo Tunnel
-ssh -R 80:localhost:3002 serveo.net
 
 # Navegador (local)
 http://localhost:5501/dashboard/index.html
@@ -449,9 +422,9 @@ http://localhost:5501/dashboard/anotador.html
 Recurso	URL local	URL remota (túnel)
 Dashboard	http://localhost:5501/dashboard/index.html	https://xxxx.trycloudflare.com/dashboard/index.html
 Anotador	http://localhost:5501/dashboard/anotador.html	https://xxxx.trycloudflare.com/dashboard/anotador.html
-API Status	http://localhost:3002/api/status	https://yyyy.serveo.net/api/status
-API Config	http://localhost:3002/api/config	https://yyyy.serveo.net/api/config
-WebSocket	ws://localhost:3002	wss://yyyy.serveo.net (con Socket.IO)
+API Status	http://localhost:5501/api/status	https://xxxx.trycloudflare.com/api/status
+API Config	http://localhost:5501/api/config	https://xxxx.trycloudflare.com/api/config
+WebSocket	ws://localhost:5501	wss://xxxx.trycloudflare.com (con Socket.IO)
 11. FORMATOS DE ARCHIVO
 11.1 match_XXXXX.json (puntos del partido)
 json
@@ -529,20 +502,18 @@ TailwindCSS
 
 Socket.IO ^4.7.2
 
-Túneles:
+Túnel:
 
-cloudflared (para el dashboard)
-
-ssh (para Serveo, incluido en Windows 10/11)
+cloudflared (para Dashboard, API y WebSocket)
 
 13. REQUISITOS TÉCNICOS
 Requisito	Mínimo
 Node.js	18.0.0 o superior
 Navegador	Moderno (Chrome, Firefox, Edge)
 Sistema operativo	Windows, Linux, macOS
-Puertos	3002 (API/WebSocket), 5501 (dashboard)
-Conexión	Internet (para API Metro Vóley y túneles)
-Túneles	Cloudflared instalado, Windows 10/11 (cliente SSH incluido)
+Puertos	5501 (API, Dashboard y WebSocket)
+Conexión	Internet (para API Metro Vóley y túnel)
+Túneles	Cloudflared instalado
 14. ESTADÍSTICAS DE SERVICIO POR JUGADOR
 Columna	Descripción
 🏐 SAQUE	Puntos directos de saque del jugador
@@ -625,9 +596,7 @@ Color	Significado
 El selector de partidos permite cambiar entre diferentes partidos sin modificar manualmente config.json.
 
 19.2 Requisitos para que funcione en el celular:
-data/api_url.txt debe contener la URL del túnel de Serveo (API)
-
-El túnel de Serveo debe estar corriendo (ssh -R 80:localhost:3002 serveo.net)
+El túnel de Cloudflare debe estar publicando el puerto 5501.
 
 CORS configurado con origin: true en server-api.js
 
@@ -670,7 +639,7 @@ Un solo partido	El tracker solo puede seguir un partido a la vez
 Dependencia externa	Requiere que Metro Vóley tenga el partido (para datos automáticos)
 Sin base de datos	Los datos se guardan en archivos JSON
 Sin autenticación	Cualquiera con la URL puede ver el dashboard
-POST a la API en celular	Puede fallar si el túnel de Serveo no es accesible (no afecta la visualización)
+POST a la API en celular	Puede fallar si el túnel de Cloudflare no está activo
 
 21. SOLUCIÓN DE PROBLEMAS COMUNES (ACTUALIZADA)
 Problema	Causa	Solución
@@ -678,7 +647,7 @@ Tracker se cierra	Error no manejado	Agregar manejadores de errores en index.js
 Dashboard no muestra datos	match_*.json no existe o está vacío	Verificar que el tracker esté corriendo
 No se ven nombres de jugadores	La API no devuelve court	Esperar a que el partido empiece (court aparece después del inicio)
 Error 404 en JSON	El partido no empezó o el ID es incorrecto	Verificar ID en config.json
-Puerto 3002 en uso	Otro proceso usando el puerto	Cambiar puerto en server-api.js
+Puerto 5501 en uso	Otro proceso usando el puerto	Cambiar PORT en el archivo .env
 Gráficos no cargan	Problema en stateProcessor.js	Verificar los datos de entrada
 Sets no se muestran	La API devuelve datos en match.sets	Verificar la estructura de la respuesta
 Modo offline no funciona	Service Worker no registrado	Verificar sw.js y que IndexedDB esté disponible
@@ -686,13 +655,13 @@ WebSocket no conecta	server-api.js no está corriendo	Verificar que el servidor 
 Skeleton no se oculta	Timeout de seguridad	Verificar el constructor
 Sideout/Breakpoint no se ven	IDs incorrectos en HTML	Verificar los labels en index.html
 Análisis evolutivo no muestra datos	Reportes HTML no válidos	Asegurar que sean generados por VoleyInsight
-🆕 Selector no cambia nombres	No se actualiza matchId en el dashboard	Verificar que api_url.txt exista y tenga la URL correcta
-🆕 Error "Error al cambiar partido en el servidor"	POST a /api/config falla	Verificar túnel de Serveo y CORS; el error no bloquea el selector
+🆕 Selector no cambia nombres	No se actualiza matchId en el dashboard	Verificar config.json y que el servidor esté activo
+🆕 Error "Error al cambiar partido en el servidor"	POST a /api/config falla	Verificar el servidor y el túnel de Cloudflare
 🆕 Mezcla de nombres con puntos de otro partido	localStorage residual	El dashboard limpia automáticamente los datos viejos
 🆕 WebSocket no se resuscribe	Cliente no envía unsubscribe/subscribe	La función setupSelectorPartido() ya lo maneja
 🆕 El tracker no cambia de partido	No monitorea config.json	tracker.js incluye configMonitorInterval cada 5s
 🆕 El celular no ve el selector	CORS bloquea la petición	Configurar origin: true en server-api.js
-🆕 El túnel de Serveo se cae	Conexión inactiva	Agregar ping keepalive cada 25s
+🆕 El túnel de Cloudflare se cae	Conexión inactiva	Reiniciar cloudflared
 
 
 
@@ -719,11 +688,11 @@ Compará partidos para ver si las mejoras que entrenaste realmente aparecen en l
 Recurso	Descripción
 Configuración	data/config.json (cambiar ID, nombres y categoría)
 Reglamento	data/reglamento.json (configurar sets por categoría)
-URL de la API	data/api_url.txt (actualizar cuando cambie el túnel de Serveo)
+URL de la API	Mismo origen que el dashboard
 Logs	tracker.log (en carpeta raíz)
 Datos	Carpeta data/ (todos los JSON)
 Reportes exportados	Se guardan donde el usuario elija
-API Docs	http://localhost:3002/api/status
+API Docs	http://localhost:5501/api/status
 
 24. RESUMEN DE ESTADO
 
@@ -746,7 +715,7 @@ API Docs	http://localhost:3002/api/status
 ║   ✅ Estadísticas de defensa por jugador                                    ║
 ║   ✅ Análisis evolutivo (comparativa de partidos)                            ║
 ║   ✅ SELECTOR DE PARTIDOS (funciona en celular)                              ║
-║   ✅ DOBLE TÚNEL (Cloudflare + Serveo)                                       ║
+║   ✅ TÚNEL ÚNICO CLOUDFLARE                                                  ║
 ║   ✅ LIMPIEZA AUTOMÁTICA DE LOCALSTORAGE                                     ║
 ║   ✅ PING KEEPALIVE PARA TÚNELES                                             ║
 ║   ✅ INSIGHTS SIEMPRE PARA ATTITUDE (o LOCAL)                               ║
@@ -759,6 +728,4 @@ API Docs	http://localhost:3002/api/status
 Documentación generada: Junio 2026
 Versión del sistema: VoleyInsight v2.9
 Estado: Producción - 46/50 mejoras implementadas (92%)
-Novedades principales: Selector de partidos funcional en celular, doble túnel (Cloudflare + Serveo), resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.
-
-
+Novedades principales: Selector de partidos funcional en celular, túnel único de Cloudflare, resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.

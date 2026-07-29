@@ -2,7 +2,7 @@
 title VoleyInsight 
 color 0A
 chcp 65001 >nul
-cd /d "C:\Users\User\Desktop\voley"
+cd /d "%~dp0"
 
 
 :: Matar procesos previos
@@ -22,7 +22,7 @@ echo.
 :: ========================================
 :: VERIFICAR NODE.JS
 :: ========================================
-echo [1/6] Verificando Node.js...
+echo [1/4] Verificando Node.js...
 where node >nul 2>&1
 if %errorlevel%==0 (
     echo OK Node.js instalado
@@ -36,7 +36,7 @@ echo.
 :: ========================================
 :: VERIFICAR CLOUDFLARED
 :: ========================================
-echo [2/6] Verificando Cloudflared...
+echo [2/4] Verificando Cloudflared...
 where cloudflared >nul 2>&1
 if %errorlevel%==0 (
     echo OK Cloudflared instalado
@@ -53,7 +53,7 @@ echo.
 :: ========================================
 :: INICIAR SERVIDOR API + DASHBOARD (puerto 5501)
 :: ========================================
-echo [4/6] Iniciando servidor API + WebSocket...
+echo [3/4] Iniciando servidor API + Dashboard + WebSocket...
 start "API Server" cmd /k "node server-api.js"
 timeout /t 3 /nobreak >nul
 echo OK Sistema en http://localhost:5501
@@ -62,7 +62,7 @@ echo.
 :: ========================================
 :: INICIAR TRACKER
 :: ========================================
-echo [5/6] Iniciando tracker...
+echo [4/4] Iniciando tracker...
 start "Tracker" cmd /k "npm run tracker"
 timeout /t 3 /nobreak >nul
 echo OK Tracker iniciado
@@ -72,7 +72,7 @@ echo.
 :: ========================================
 :: INICIAR TUNEL CLOUDFLARE
 :: ========================================
-echo [6/6] Iniciando túnel Cloudflare...
+echo Iniciando túnel Cloudflare...
 start "Cloudflare Tunnel" cmd /k "cloudflared tunnel --url http://localhost:5501"
 timeout /t 5 /nobreak >nul
 echo ========================================

@@ -458,7 +458,7 @@ server.listen(PORT, () => {
 
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   🏐 VOLEYINSIGHT v2.5 - SERVIDOR API + WEBSOCKET           ║
+║   🏐 VOLEYINSIGHT v2.9 - SERVIDOR API + WEBSOCKET           ║
 ║                                                              ║
 ║   📡 API REST: http://localhost:${PORT}/api/status           ║
 ║   🔌 WebSocket: ws://localhost:${PORT}                       ║
