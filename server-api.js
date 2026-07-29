@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
+const { version: APP_VERSION } = require('./package.json');
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
@@ -410,7 +411,7 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({ success: true, status: 'online', version: '2.5.0', timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status'] });
+    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status'] });
 });
 
 app.get('/api/config', async (req, res) => {
@@ -458,7 +459,7 @@ server.listen(PORT, () => {
 
 ╔══════════════════════════════════════════════════════════════╗
 ║                                                              ║
-║   🏐 VOLEYINSIGHT v2.9 - SERVIDOR API + WEBSOCKET           ║
+║   🏐 VOLEYINSIGHT v${APP_VERSION} - SERVIDOR API + WEBSOCKET         ║
 ║                                                              ║
 ║   📡 API REST: http://localhost:${PORT}/api/status           ║
 ║   🔌 WebSocket: ws://localhost:${PORT}                       ║

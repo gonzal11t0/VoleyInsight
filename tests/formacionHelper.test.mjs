@@ -43,4 +43,28 @@ assert.deepEqual(
     [[2, 3, 4], [1, 6, 5]]
 );
 
+const dashboardHtml = await readFile(new URL('../dashboard/index.html', import.meta.url), 'utf8');
+const contar = patron => dashboardHtml.match(patron)?.length || 0;
+
+assert.equal(contar(/id="formacionStatus"/g), 1);
+assert.equal(contar(/id="formacionSyncTime"/g), 1);
+assert.equal(contar(/id="servingDisplay"/g), 1);
+assert.match(dashboardHtml, /class="posicion-court">P\$\{j\.posicion\}/);
+assert.match(dashboardHtml, /fullData\.liveState\?\.serving/);
+assert.match(dashboardHtml, /logo-horizontal\.png/);
+assert.match(dashboardHtml, /logo-icon-192\.png/);
+assert.match(dashboardHtml, /site\.webmanifest/);
+
+for (const asset of [
+    '../dashboard/logo-horizontal.png',
+    '../dashboard/logo-icon-192.png',
+    '../dashboard/logo-icon-512.png',
+    '../dashboard/favicon.ico',
+    '../dashboard/og-image.png',
+    '../dashboard/site.webmanifest'
+]) {
+    const contenido = await readFile(new URL(asset, import.meta.url));
+    assert.ok(contenido.length > 0, `${asset} debe existir y tener contenido`);
+}
+
 console.log('formacionHelper: tests OK');

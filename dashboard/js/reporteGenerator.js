@@ -12,7 +12,8 @@ export class ReporteGenerator {
             eficienciaPorSet = [],
             localPorSet = {},
             visitantePorSet = {},
-            rotacionesHtml = ''
+            rotacionesHtml = '',
+            logoDataUrl = ''
 
         } = d;
 
@@ -31,6 +32,7 @@ export class ReporteGenerator {
     .container{max-width:1400px;margin:0 auto;background:#1a1f2e;border-radius:32px;overflow:visible;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);}
     .header{background:linear-gradient(135deg,#1a1f2e 0%,#0f1119 100%);padding:30px 20px;text-align:center;border-bottom:1px solid rgba(102,126,234,0.2);position:relative;}
     .header::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#667eea,#764ba2,#f43f5e);}
+    .report-logo{display:block;width:min(360px,80%);height:auto;margin:0 auto 18px;}
     .header h1{font-size:28px;font-weight:800;background:linear-gradient(135deg,#667eea,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;}
     .score-container{display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap;}
     .team-score{text-align:center;padding:12px 20px;background:rgba(255,255,255,0.03);border-radius:20px;}
@@ -128,7 +130,9 @@ export class ReporteGenerator {
             <button id="btnDescargarPDF" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:60px;padding:12px 24px;font-size:16px;font-weight:bold;cursor:pointer;">📄 DESCARGAR REPORTE EN PDF</button>
         </div>
         <div class="header">
-            <h1>🏐 VoleyInsight</h1>
+            ${logoDataUrl
+                ? `<img class="report-logo" src="${logoDataUrl}" alt="VoleyInsight">`
+                : '<h1>🏐 VoleyInsight</h1>'}
             <div class="score-container">
                 <div class="team-score"><div class="team-name">${homeTeam}</div><div class="score-number" style="color:#3b82f6;">${homeScore}</div></div>
                 <div class="vs-badge">VS</div>

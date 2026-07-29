@@ -1311,8 +1311,6 @@ export class VolleyballDashboard {
     }
 
     reasignarEventosMenuMovil() {
-        console.log('🔄 Reasignando eventos del menú móvil...');
-        
         const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
         if (saveHTMLBtnMobile) {
             const newBtn = saveHTMLBtnMobile.cloneNode(true);
@@ -1325,7 +1323,6 @@ export class VolleyballDashboard {
                     menuDesplegable.style.display = 'none';
                 }
             });
-            console.log('✅ Evento Guardar reasignado');
         }
 
         const soundToggleBtnMobile = document.getElementById('soundToggleBtnMobile');
@@ -1339,7 +1336,6 @@ export class VolleyballDashboard {
                 const btnDesktop = document.getElementById('soundToggleBtn');
                 if (btnDesktop) btnDesktop.innerHTML = enabled ? '🔊 Sonidos ON' : '🔇 Sonidos OFF';
             });
-            console.log('✅ Evento Sonidos reasignado');
         }
 
         const refreshSelectorMobile = document.getElementById('refreshIntervalSelectorMobile');
@@ -1354,7 +1350,6 @@ export class VolleyballDashboard {
                 this.refreshInterval = setInterval(() => this.loadData(), ms);
                 this.mostrarFeedbackPartido(`⏱️ Refresco cada ${ms / 1000} segundos`);
             });
-            console.log('✅ Selector de refresco reasignado');
         }
     }
 
@@ -2345,6 +2340,21 @@ export class VolleyballDashboard {
             if (runsCanvas) { try { runsChartImage = runsCanvas.toDataURL('image/png'); } catch (e) {} }
             const phaseCanvas = document.getElementById('phaseEfficiencyChart');
             if (phaseCanvas) { try { phaseChartImage = phaseCanvas.toDataURL('image/png'); } catch (e) {} }
+            let logoDataUrl = '';
+            try {
+                const logoResponse = await fetch('/dashboard/logo-horizontal.png');
+                if (logoResponse.ok) {
+                    const logoBlob = await logoResponse.blob();
+                    logoDataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(logoBlob);
+                    });
+                }
+            } catch (e) {
+                console.warn('No se pudo incrustar el logo en el reporte:', e.message);
+            }
             const last = this.data ? this.data[this.data.length - 1] : null;
             const homeTeam = this.homeTeamName;
             const awayTeam = this.awayTeamName;
@@ -2730,7 +2740,8 @@ export class VolleyballDashboard {
                 puntosPorSet: puntosPorSet,
                 localPorSet: localPorSet,
                 visitantePorSet: visitantePorSet,
-                rotacionesHtml: this.generarRotacionesHTML()
+                rotacionesHtml: this.generarRotacionesHTML(),
+                logoDataUrl
             };
             const reportHtml = ReporteGenerator.generarHTML(datosReporte);
             const blob = new Blob([reportHtml], { type: 'text/html' });

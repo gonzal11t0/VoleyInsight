@@ -1,4 +1,6 @@
-# 🏐 VoleyInsight
+<p align="center">
+  <img src="dashboard/logo-horizontal.png" alt="VoleyInsight" width="520">
+</p>
 
 Sistema de análisis de partidos de voleibol en tiempo real.
 

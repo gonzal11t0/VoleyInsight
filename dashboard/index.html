@@ -15,14 +15,14 @@
     <meta property="og:title" content="VoleyInsight | Dashboard Profesional de Voleibol">
     <meta property="og:description" content="Sistema de análisis de partidos de voleibol en tiempo real. Estadísticas, reportes y seguimiento profesional.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://voleyinsight.com/og-image.jpg">
-    <meta property="og:url" content="https://voleyinsight.com/dashboard/index.html">
+    <meta property="og:image" content="/dashboard/og-image.png">
     <meta property="og:site_name" content="VoleyInsight - Análisis Profesional de Voleibol">
     <meta property="og:locale" content="es_AR">
     
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="VoleyInsight - Dashboard de Voleibol">
     <meta name="twitter:description" content="Análisis profesional de voleibol en tiempo real.">
+    <meta name="twitter:image" content="/dashboard/og-image.png">
     
     <meta name="geo.region" content="AR">
     <meta name="geo.country" content="Argentina">
@@ -31,9 +31,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <link rel="icon" type="image/x-icon" href="/dashboard/logo.png">
-    <link rel="shortcut icon" href="/dashboard/logo.png">
-
+    <link rel="icon" type="image/x-icon" href="/dashboard/favicon.ico">
+    <link rel="icon" type="image/png" sizes="64x64" href="/dashboard/favicon-64.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/dashboard/apple-touch-icon.png">
+    <link rel="manifest" href="/dashboard/site.webmanifest">
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -168,6 +169,21 @@
             -webkit-text-fill-color: transparent;
             margin-bottom: 4px;
         }
+        .anotador-brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-bottom: 4px;
+        }
+        .anotador-brand img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .anotador-brand h1 {
+            margin-bottom: 0;
+        }
         .marcador {
             display: flex;
             justify-content: center;
@@ -206,6 +222,40 @@
             background: rgba(255,255,255,0.03);
             padding: 2px 8px;
             border-radius: 20px;
+        }
+        #formacionStatus[data-estado="api"] {
+            color: #86efac;
+            background: rgba(22, 101, 52, 0.28);
+        }
+        #formacionStatus[data-estado="cache"] {
+            color: #fde68a;
+            background: rgba(146, 64, 14, 0.28);
+        }
+        #formacionStatus[data-estado="waiting"] {
+            color: #93c5fd;
+            background: rgba(30, 64, 175, 0.24);
+        }
+        #formacionStatus[data-estado="error"] {
+            color: #fca5a5;
+            background: rgba(153, 27, 27, 0.28);
+        }
+        #formacionSyncTime {
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+        #servingDisplay {
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+        #servingDisplay[data-equipo="LOCAL"] {
+            color: #93c5fd;
+            background: rgba(30, 58, 138, 0.3);
+            border-color: rgba(59, 130, 246, 0.35);
+        }
+        #servingDisplay[data-equipo="VISITANTE"] {
+            color: #fca5a5;
+            background: rgba(153, 27, 27, 0.3);
+            border-color: rgba(239, 68, 68, 0.35);
         }
 
         .cancha-wrapper {
@@ -280,6 +330,7 @@
         .jugador {
             width: 50px;
             height: 50px;
+            position: relative;
             border-radius: 50%;
             display: flex;
             flex-direction: column;
@@ -304,6 +355,29 @@
             line-height: 1;
             margin-top: 2px;
             color: #1a1a2e;
+            max-width: 42px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .jugador .posicion-court {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 20px;
+            height: 18px;
+            padding: 0 4px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111827;
+            border: 1px solid rgba(255,255,255,0.55);
+            color: white;
+            font-size: 7px;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
         /* LOCAL - azul */
@@ -376,6 +450,25 @@
             z-index: 4;
             letter-spacing: 0.3px;
             backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.22);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.22);
+        }
+        .formacion-vacia {
+            grid-column: 1 / -1;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            padding: 12px 4px;
+            color: #6b7280;
+            font-size: 9px;
+            text-align: center;
+        }
+        .formacion-vacia .icono {
+            font-size: 18px;
+            opacity: 0.75;
         }
 
         .acciones {
@@ -494,9 +587,16 @@
         .feedback.visible { opacity: 1; }
 
         @media (max-width: 480px) {
-            .jugador { width: 40px; height: 40px; }
+            .jugador { width: 42px; height: 42px; }
             .jugador .numero { font-size: 13px; }
-            .jugador .nombre-corto { font-size: 7px; }
+            .jugador .nombre-corto { font-size: 7px; max-width: 34px; }
+            .jugador .posicion-court {
+                top: -5px;
+                right: -5px;
+                min-width: 18px;
+                height: 16px;
+                font-size: 6px;
+            }
             .jugadores .columna { gap: 6px; }
             .cancha { padding: 8px 4px; }
             .btn-accion { font-size: 8px; padding: 6px 2px; min-height: 44px; }
@@ -507,7 +607,9 @@
             .header h1 { font-size: 14px; }
             .cancha-wrapper { padding: 8px; }
             .info-partido { font-size: 7px; gap: 6px; }
-            .serving-badge { font-size: 6px; padding: 2px 6px; }
+            .info-partido > span { padding: 3px 7px; }
+            .serving-badge { font-size: 7px; padding: 3px 7px; }
+            .formacion-vacia { min-height: 95px; font-size: 8px; }
         }
 
         @media (min-width: 768px) {
@@ -553,12 +655,9 @@
         <!-- HEADER PRINCIPAL -->
         <div class="bg-gradient-to-r from-[#1a1f2e] to-[#0f1119] rounded-2xl p-3 md:p-6 mb-4 md:mb-6 border border-white/10">
             <div class="text-center md:text-left">
-                <div class="flex items-center justify-center md:justify-start gap-2">
-                    <img src="/dashboard/logo.png" alt="VoleyInsight" class="h-8 md:h-10 w-auto">
-                    <div>
-                        <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">VoleyInsight</h1>
-                        <p class="text-xs text-gray-400 hidden md:block">Análisis Técnico Profesional</p>
-                    </div>
+                <div class="flex flex-col items-center md:items-start">
+                    <img src="/dashboard/logo-horizontal.png" alt="VoleyInsight" class="h-9 md:h-12 w-auto max-w-[260px] md:max-w-[360px]">
+                    <p class="text-xs text-gray-400 hidden md:block mt-1">Análisis Técnico Profesional</p>
                 </div>              
             </div>
             <div class="flex justify-center items-center gap-3 md:gap-8 mt-3 md:mt-4">
@@ -926,7 +1025,10 @@
         <div id="vistaAnotador" class="hidden">
             <div class="max-w-2xl mx-auto">
                 <div class="header">
-                    <h1>🏐 Cancha en Vivo</h1>
+                    <div class="anotador-brand">
+                        <img src="/dashboard/logo-icon-192.png" alt="" aria-hidden="true">
+                        <h1>Cancha en Vivo</h1>
+                    </div>
                     <div class="marcador">
                         <span class="equipo local" id="localLabel">LOCAL</span>
                         <span class="score" id="localScore">0</span>
@@ -947,8 +1049,9 @@
                         </span>
                         <span>🎯 Punto <span id="puntoActual">0</span></span>
                         <span id="rotacionDisplay">🔄 LOCAL: 1 | VISITANTE: 1</span>
-                        <span id="servingDisplay">🏐 SACA LOCAL</span>
-                        <span id="formacionStatus" title="Estado de la formación">⚪ Formación sin cargar</span>
+                        <span id="servingDisplay" data-equipo="LOCAL">🏐 SAQUE: LOCAL</span>
+                        <span id="formacionStatus" data-estado="loading" title="Estado de la formación">⚪ Consultando formación</span>
+                        <span id="formacionSyncTime" title="Última respuesta válida recibida desde Metro">🕒 Sin sincronizar</span>
                     </div>
                 </div>
 
@@ -1139,7 +1242,6 @@
                     } else {
                         menuDesplegable.classList.add('hidden');
                         menuDesplegable.style.display = 'none';
-                        console.log('📂 Menú cerrado');
                     }
                 };
                 menuBtn.addEventListener('click', toggleMenu);
@@ -1152,8 +1254,6 @@
                 };
                 document.addEventListener('click', closeMenu);
                 document.addEventListener('touchstart', closeMenu);
-            } else {
-                console.log('❌ Menú no encontrado');
             }
 
             const tabPartido = document.getElementById('tabPartido');
@@ -1218,8 +1318,6 @@
                 if (canchaInicializada) return;
                 canchaInicializada = true;
 
-                console.log('🏐 Inicializando Cancha en Vivo...');
-
                 // --- ESTADO ---
                 const estado = {
                     local: { score: 0 },
@@ -1260,11 +1358,26 @@
                     const iconos = {
                         api: '🟢',
                         cache: '🟡',
+                        waiting: '🔵',
                         error: '🔴',
                         loading: '⚪'
                     };
                     status.textContent = `${iconos[tipo] || '⚪'} ${mensaje}`;
                     status.dataset.estado = tipo;
+                    status.title = mensaje;
+                }
+
+                function actualizarHoraSincronizacion(fecha, prefijo = 'Sincronizado') {
+                    const syncTime = document.getElementById('formacionSyncTime');
+                    if (!syncTime || !fecha) return;
+                    const valor = new Date(fecha);
+                    if (Number.isNaN(valor.getTime())) return;
+                    syncTime.textContent = `🕒 ${prefijo} ${valor.toLocaleTimeString('es-AR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })}`;
+                    syncTime.title = valor.toLocaleString('es-AR');
                 }
 
                 function guardarFormacionEnCache() {
@@ -1284,6 +1397,7 @@
                         jugadores.visitante = cache.visitante;
                         firmaFormacion = obtenerFirmaFormacion(jugadores);
                         actualizarEstadoFormacion('cache', 'Usando última formación guardada');
+                        actualizarHoraSincronizacion(cache.timestamp, 'Guardado');
                         return true;
                     } catch (error) {
                         console.warn('No se pudo leer la formación guardada:', error);
@@ -1291,21 +1405,27 @@
                     }
                 }
 
-                async function cargarJugadoresDesdeAPI({ silencioso = false } = {}) {
+                async function cargarJugadoresDesdeAPI() {
                     try {
                         const response = await fetch(`/data/full_${estado.matchId}.json?_t=${Date.now()}`);
                         if (!response.ok) {
-                            if (!silencioso && jugadores.local.length === 0) {
-                                actualizarEstadoFormacion('error', 'API sin formación');
-                            }
+                            actualizarEstadoFormacion(
+                                jugadores.local.length === 6 ? 'cache' : 'waiting',
+                                jugadores.local.length === 6
+                                    ? 'Sin actualización · mostrando última formación'
+                                    : 'Partido sin datos disponibles'
+                            );
                             return false;
                         }
                         const fullData = await response.json();
                         const court = findCourt(fullData);
                         if (!court) {
-                            if (!silencioso && jugadores.local.length === 0) {
-                                actualizarEstadoFormacion('error', 'El partido todavía no tiene court');
-                            }
+                            actualizarEstadoFormacion(
+                                jugadores.local.length === 6 ? 'cache' : 'waiting',
+                                jugadores.local.length === 6
+                                    ? 'Esperando actualización de Metro'
+                                    : 'Metro todavía no publicó la formación'
+                            );
                             return false;
                         }
 
@@ -1314,21 +1434,32 @@
                             visitante: normalizarPosiciones(court.away)
                         };
                         if (nuevaFormacion.local.length !== 6 || nuevaFormacion.visitante.length !== 6) {
-                            if (!silencioso && jugadores.local.length === 0) {
-                                actualizarEstadoFormacion('error', 'Formación incompleta en la API');
-                            }
+                            actualizarEstadoFormacion('waiting', 'Metro publicó una formación incompleta');
                             return false;
                         }
 
                         const nuevaFirma = obtenerFirmaFormacion(nuevaFormacion);
                         const cambio = nuevaFirma !== firmaFormacion;
+                        const saqueApi = fullData.liveState?.serving;
+                        const nuevoEquipoSaca = saqueApi === 'home'
+                            ? 'LOCAL'
+                            : saqueApi === 'away'
+                                ? 'VISITANTE'
+                                : null;
+                        const cambioSaque = nuevoEquipoSaca && nuevoEquipoSaca !== estado.equipoQueSacaba;
+                        if (nuevoEquipoSaca) {
+                            estado.equipoQueSacaba = nuevoEquipoSaca;
+                        }
                         jugadores = nuevaFormacion;
                         firmaFormacion = nuevaFirma;
                         guardarFormacionEnCache();
                         actualizarEstadoFormacion('api', 'Formación sincronizada');
+                        actualizarHoraSincronizacion(new Date());
 
-                        if (cambio) {
+                        if (cambio || cambioSaque) {
                             renderizarCancha();
+                        }
+                        if (cambio) {
                             console.log('✅ Formación actualizada desde court.positions:', {
                                 local: jugadores.local.map(j => `P${j.posicion}: #${j.numero}`),
                                 visitante: jugadores.visitante.map(j => `P${j.posicion}: #${j.numero}`)
@@ -1336,10 +1467,13 @@
                         }
                         return true;
                     } catch (e) {
-                        console.log('Error cargando formación:', e);
-                        if (!silencioso && jugadores.local.length === 0) {
-                            actualizarEstadoFormacion('error', 'No se pudo consultar la formación');
-                        }
+                        console.warn('No se pudo consultar la formación:', e.message);
+                        actualizarEstadoFormacion(
+                            jugadores.local.length === 6 ? 'cache' : 'error',
+                            jugadores.local.length === 6
+                                ? 'Sin conexión · mostrando última formación'
+                                : 'No se pudo consultar la formación'
+                        );
                         return false;
                     }
                 }
@@ -1416,8 +1550,14 @@
                     if (!containerLocal || !containerVisitante) return;
 
                     if (jugadores.local.length !== 6 || jugadores.visitante.length !== 6) {
-                        containerLocal.innerHTML = '<div style="color:#9ca3af;font-size:10px;padding:12px;">Sin formación</div>';
-                        containerVisitante.innerHTML = '<div style="color:#9ca3af;font-size:10px;padding:12px;">Sin formación</div>';
+                        const mensajeVacio = `
+                            <div class="formacion-vacia">
+                                <span class="icono">🏐</span>
+                                <span>Esperando formación</span>
+                            </div>
+                        `;
+                        containerLocal.innerHTML = mensajeVacio;
+                        containerVisitante.innerHTML = mensajeVacio;
                         return;
                     }
 
@@ -1434,6 +1574,7 @@
                             btn.dataset.posicion = j.posicion;
                             btn.title = `Posición ${j.posicion} · #${j.numero} ${j.nombre}`;
                             btn.innerHTML = `
+                                <span class="posicion-court">P${j.posicion}</span>
                                 <span class="numero">${j.numero}</span>
                                 <span class="nombre-corto">${j.nombreCorto}</span>
                             `;
@@ -1459,6 +1600,7 @@
                             btn.dataset.posicion = j.posicion;
                             btn.title = `Posición ${j.posicion} · #${j.numero} ${j.nombre}`;
                             btn.innerHTML = `
+                                <span class="posicion-court">P${j.posicion}</span>
                                 <span class="numero">${j.numero}</span>
                                 <span class="nombre-corto">${j.nombreCorto}</span>
                             `;
@@ -1474,7 +1616,7 @@
                     const badge = document.getElementById('servingBadge');
                     const servingText = estado.equipoQueSacaba === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName;
                     if (badge) {
-                        badge.textContent = `🏐 SACA ${servingText}`;
+                        badge.textContent = `🏐 SAQUE: ${servingText}`;
                         badge.style.background = estado.equipoQueSacaba === 'LOCAL' ? 'rgba(30,58,95,0.9)' : 'rgba(95,30,58,0.9)';
                     }
 
@@ -1484,7 +1626,8 @@
                     }
                     const servingDisplay = document.getElementById('servingDisplay');
                     if (servingDisplay) {
-                        servingDisplay.textContent = `🏐 SACA ${servingText}`;
+                        servingDisplay.textContent = `🏐 SAQUE: ${servingText}`;
+                        servingDisplay.dataset.equipo = estado.equipoQueSacaba;
                     }
                 }
 
@@ -1846,13 +1989,12 @@
                 // ============================================================
                 // INICIALIZAR
                 // ============================================================
-                console.log('🏐 Inicializando Cancha en Vivo con API...');
                 actualizarEstadoFormacion('loading', 'Consultando formación...');
                 await cargarConfiguracion();
                 
                 if (jugadores.local.length === 0) {
                     if (!cargarFormacionDesdeCache()) {
-                        actualizarEstadoFormacion('error', 'No hay formación disponible');
+                        actualizarEstadoFormacion('waiting', 'Metro todavía no publicó la formación');
                     }
                 }
                 
@@ -1863,13 +2005,8 @@
                 renderizarPuntosApi();
 
                 sincronizacionFormacionInterval = setInterval(() => {
-                    cargarJugadoresDesdeAPI({ silencioso: true });
+                    cargarJugadoresDesdeAPI();
                 }, 3000);
-                
-                console.log('🏐 CANCHA EN VIVO: Inicializada correctamente');
-                console.log('🎮 ATAJOS: 1=ATAQUE 2=BLOQUEO 3=SAQUE 4=SAQUE MALO');
-                console.log('  5=REC+ 6=REC- 7=DEF+ 8=DEF- 9=ERROR');
-                console.log('  ENTER=Confirmar  Z=Deshacer  B=Break  T=Timeout');
             }
 
             window.inicializarCancha = inicializarCancha;
