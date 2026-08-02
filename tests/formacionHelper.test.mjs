@@ -44,6 +44,7 @@ assert.deepEqual(
 );
 
 const dashboardHtml = await readFile(new URL('../dashboard/index.html', import.meta.url), 'utf8');
+const dashboardJs = await readFile(new URL('../dashboard/js/dashboard.js', import.meta.url), 'utf8');
 const contar = patron => dashboardHtml.match(patron)?.length || 0;
 
 assert.equal(contar(/id="formacionStatus"/g), 1);
@@ -54,6 +55,13 @@ assert.match(dashboardHtml, /fullData\.liveState\?\.serving/);
 assert.match(dashboardHtml, /logo-horizontal\.png/);
 assert.match(dashboardHtml, /logo-icon-192\.png/);
 assert.match(dashboardHtml, /site\.webmanifest/);
+assert.match(dashboardHtml, /formacion_inicial_\$\{estado\.matchId\}_set_\$\{estado\.set\}/);
+assert.doesNotMatch(dashboardJs, /Pucheta|Lazarte|Suarez|Goggi/);
+assert.doesNotMatch(
+    dashboardJs,
+    /const fullData = await fullResponse\.json\(\);\s*this\.jugadoresLocal = \{\};/,
+    'una respuesta final sin court no debe borrar los nombres guardados'
+);
 
 for (const asset of [
     '../dashboard/logo-horizontal.png',

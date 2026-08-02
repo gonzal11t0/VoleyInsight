@@ -1,20 +1,26 @@
 {
-  "matchId": 246446,
-  "homeTeam": "VELEZ",
-  "awayTeam": "RIVER",
-  "categoria": "sub_11",
+  "matchId": 258880,
+  "homeTeam": "ACQUA",
+  "awayTeam": "CAIT",
+  "categoria": "sub_13",
   "partidos": [
     {
-      "id": 246446,
-      "homeTeam": "VELEZ",
-      "awayTeam": "RIVER",
-      "categoria": "sub_12"
+      "id": 258880,
+      "homeTeam": "ACQUA",
+      "awayTeam": "CAIT",
+      "categoria": "sub_13"
     },
     {
-      "id": 246578,
-      "homeTeam": "VELEZ",
-      "awayTeam": "RIVER",
+      "id": 246436,
+      "homeTeam": "EP",
+      "awayTeam": "GLORIAS",
       "categoria": "sub_13"
+    },
+    {
+      "id":247090,
+      "homeTeam": "EP",
+      "awayTeam": "GLORIAS",
+      "categoria": "sub_18"
     }
   ]
 }

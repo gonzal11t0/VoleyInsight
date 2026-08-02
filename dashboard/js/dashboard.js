@@ -6,6 +6,11 @@ import {
     renderizarTop5ConNombres, renderizarGraficoPuntos, calcularEstadisticasServicio,
     generarTablaHTMLSimple
 } from './StatsHelper.js';
+import {
+    calcularRotacionesPorEquipo,
+    obtenerStatsRotacion as obtenerStatsRotacionHelper,
+    rotarFormacion
+} from './rotacionHelper.js';
 
 export class VolleyballDashboard {
     constructor() {
@@ -27,6 +32,7 @@ export class VolleyballDashboard {
         this.chartPuntosJugadores = null;
         this.jugadoresLocal = {};
         this.jugadoresVisitante = {};
+        this.formacionInicialPorSet = {};
         this.reportesCargados = [];
         this.chartEvolucion = null;
         this.refreshInterval = null;
@@ -1006,6 +1012,41 @@ export class VolleyballDashboard {
         return null;
     }
 
+    leerCacheJSON(clave, valorPorDefecto = null) {
+        try {
+            const valor = localStorage.getItem(clave);
+            return valor ? JSON.parse(valor) : valorPorDefecto;
+        } catch (error) {
+            console.warn(`No se pudo leer ${clave}:`, error);
+            return valorPorDefecto;
+        }
+    }
+
+    cargarDatosGuardadosDelPartido() {
+        const nombresLocal = this.leerCacheJSON(`jugadores_${this.matchId}_local`, {});
+        const nombresVisitante = this.leerCacheJSON(`jugadores_${this.matchId}_visitante`, {});
+        this.jugadoresLocal = { ...nombresLocal, ...this.jugadoresLocal };
+        this.jugadoresVisitante = { ...nombresVisitante, ...this.jugadoresVisitante };
+
+        const formacionActual = this.leerCacheJSON(`formacion_${this.matchId}`);
+        for (const jugador of formacionActual?.local || []) {
+            if (jugador?.numero && jugador?.nombre && !this.jugadoresLocal[jugador.numero]) {
+                this.jugadoresLocal[jugador.numero] = jugador.nombre;
+            }
+        }
+        for (const jugador of formacionActual?.visitante || []) {
+            if (jugador?.numero && jugador?.nombre && !this.jugadoresVisitante[jugador.numero]) {
+                this.jugadoresVisitante[jugador.numero] = jugador.nombre;
+            }
+        }
+
+        this.formacionInicialPorSet = {};
+        for (let set = 1; set <= 5; set++) {
+            const formacion = this.leerCacheJSON(`formacion_inicial_${this.matchId}_set_${set}`);
+            if (formacion) this.formacionInicialPorSet[set] = formacion;
+        }
+    }
+
     async loadData() {
         const offlineManager = new OfflineManager();
         if (this.offlineMode) {
@@ -1017,11 +1058,8 @@ export class VolleyballDashboard {
                 return;
             }
         }
-        const jugadoresLocalGuardados = localStorage.getItem(`jugadores_${this.matchId}_local`);
-        const jugadoresVisitanteGuardados = localStorage.getItem(`jugadores_${this.matchId}_visitante`);
-        if (jugadoresLocalGuardados) this.jugadoresLocal = JSON.parse(jugadoresLocalGuardados);
-        if (jugadoresVisitanteGuardados) { this.jugadoresVisitante = JSON.parse(jugadoresVisitanteGuardados);
-            this.actualizarVistaIndividuales(); }
+        this.cargarDatosGuardadosDelPartido();
+        this.actualizarVistaIndividuales();
         try {
             const response = await fetch(`/data/match_${this.matchId}.json`);
             if (response.ok) {
@@ -1034,8 +1072,6 @@ export class VolleyballDashboard {
             const fullResponse = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
             if (fullResponse.ok) {
                 const fullData = await fullResponse.json();
-                this.jugadoresLocal = {};
-                this.jugadoresVisitante = {};
                 const findCourt = (obj) => {
                     if (!obj) return null;
                     if (obj.court) return obj.court;
@@ -1427,38 +1463,17 @@ export class VolleyballDashboard {
         if (!this.puntosJugadores || this.puntosJugadores.length === 0) {
             return null;
         }
-        const rotaciones = {};
-        for (let i = 1; i <= 6; i++) {
-            rotaciones[i] = { puntosAFavor: 0, puntosEnContra: 0, totalPuntos: 0 };
-        }
-        for (const punto of this.puntosJugadores) {
-            let rotacion = null;
-            if (punto.equipo === 'LOCAL' && punto.rotacionLocal) {
-                rotacion = punto.rotacionLocal;
-            } else if (punto.equipo === 'VISITANTE' && punto.rotacionVisitante) {
-                rotacion = punto.rotacionVisitante;
-            }
-            if (!rotacion) {
-                const jugador = punto.jugador;
-                rotacion = ((jugador - 1) % 6) + 1;
-            }
-            if (!rotaciones[rotacion]) continue;
-            const r = rotaciones[rotacion];
-            if (punto.equipoAnota === 'LOCAL') {
-                r.puntosAFavor++;
-                r.totalPuntos++;
-            } else if (punto.equipoAnota === 'VISITANTE') {
-                r.puntosEnContra++;
-                r.totalPuntos++;
-            }
-        }
-        for (const i in rotaciones) {
-            const r = rotaciones[i];
-            const total = r.puntosAFavor + r.puntosEnContra;
-            r.eficiencia = total > 0 ? ((r.puntosAFavor / total) * 100).toFixed(1) : 0;
-            r.diferencia = r.puntosAFavor - r.puntosEnContra;
-        }
-        return rotaciones;
+        return calcularRotacionesPorEquipo(this.puntosJugadores, this.obtenerEquipoRotaciones());
+    }
+
+    obtenerEquipoRotaciones() {
+        return this.obtenerEquipoAnalisis().equipo === 'AWAY' ? 'VISITANTE' : 'LOCAL';
+    }
+
+    obtenerNombreEquipoRotaciones() {
+        return this.obtenerEquipoRotaciones() === 'LOCAL'
+            ? this.homeTeamName
+            : this.awayTeamName;
     }
 
     generarRotacionesHTML() {
@@ -1467,54 +1482,20 @@ export class VolleyballDashboard {
             return '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>';
         }
 
-        const obtenerJugadoresEnRotacion = (equipo, rotacionNum) => {
-            const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
-            
-            if (Object.keys(jugadoresMap).length === 0) {
-                const predefinidos = equipo === 'LOCAL' 
-                    ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
-                    : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
-                const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
-                    numero: parseInt(num),
-                    nombre: nombre,
-                    nombreCorto: nombre?.split(' ')[0] || `J${num}`
-                }));
-                const offset = (rotacionNum - 1) % lista.length;
-                const rotados = [];
-                for (let i = 0; i < lista.length; i++) {
-                    rotados.push(lista[(i + offset) % lista.length]);
-                }
-                return rotados.slice(0, 6);
-            }
-            
-            const jugadoresLista = Object.entries(jugadoresMap)
-                .filter(([num]) => !isNaN(parseInt(num)))
-                .map(([num, nombre]) => ({
-                    numero: parseInt(num),
-                    nombre: nombre,
-                    nombreCorto: nombre?.split(' ')[0] || `J${num}`
-                }));
-            jugadoresLista.sort((a, b) => a.numero - b.numero);
-            const offset = (rotacionNum - 1) % jugadoresLista.length;
-            const rotados = [];
-            for (let i = 0; i < jugadoresLista.length; i++) {
-                rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
-            }
-            return rotados.slice(0, 6);
-        };
+        const equipoRotaciones = this.obtenerEquipoRotaciones();
+        const nombreEquipoRotaciones = this.obtenerNombreEquipoRotaciones();
 
         let html = `
             <div class="section">
-                <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div>
-                <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+                <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipoRotaciones}</div>
+                <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Los puntos se agrupan siempre por la rotación de ${nombreEquipoRotaciones}, sin mezclar la rotación rival.</p>
                 
                 <div style="overflow-x:auto; margin-bottom: 20px;">
                     <table style="width:100%;border-collapse:collapse;min-width:900px;background:#1a1f2e;border-radius:12px;overflow:hidden;">
                         <thead>
                             <tr style="background:#0f1119;border-bottom:2px solid #2d3748;">
                                 <th style="text-align:left; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Rotación</th>
-                                <th style="text-align:center; padding:12px 10px; color:#93c5fd; font-weight:600; font-size:11px; text-transform:uppercase;">Formación LOCAL</th>
-                                <th style="text-align:center; padding:12px 10px; color:#fca5a5; font-weight:600; font-size:11px; text-transform:uppercase;">Formación VISITANTE</th>
+                                <th style="text-align:center; padding:12px 10px; color:#93c5fd; font-weight:600; font-size:11px; text-transform:uppercase;">Formación ${nombreEquipoRotaciones}</th>
                                 <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts F</th>
                                 <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Pts C</th>
                                 <th style="text-align:center; padding:12px 10px; color:#9ca3af; font-weight:600; font-size:11px; text-transform:uppercase;">Eficiencia</th>
@@ -1527,26 +1508,21 @@ export class VolleyballDashboard {
             const r = datos[i];
             const tieneDatos = r && r.totalPuntos > 0;
             
-            let localNombres = 'Sin datos';
-            let visitanteNombres = 'Sin datos';
+            let formacionNombres = 'Formación histórica no registrada';
             
             if (tieneDatos) {
-                const jugadoresLocal = obtenerJugadoresEnRotacion('LOCAL', i);
-                const jugadoresVisitante = obtenerJugadoresEnRotacion('VISITANTE', i);
-                
-                localNombres = jugadoresLocal.map(j => 
+                const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i);
+                if (formacion.length === 6) {
+                    formacionNombres = formacion.map(j =>
                     `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
-                ).join(' • ');
-                
-                visitanteNombres = jugadoresVisitante.map(j => 
-                    `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
-                ).join(' • ');
+                    ).join(' • ');
+                }
             }
 
             if (!tieneDatos) {
                 html += `<tr style="border-bottom:1px solid #2d3748;">
                     <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
-                    <td colspan="6" style="text-align:center; color:#6b7280; padding:12px 10px; font-style:italic;">⚠️ Sin datos - Esta rotación no se jugó</td>
+                    <td colspan="5" style="text-align:center; color:#6b7280; padding:12px 10px; font-style:italic;">⚠️ Sin datos - Esta rotación no se jugó</td>
                 </tr>`;
                 continue;
             }
@@ -1569,10 +1545,7 @@ export class VolleyballDashboard {
             html += `<tr style="border-bottom:1px solid #2d3748;">
                 <td style="padding:12px 10px; font-weight:bold; color:#667eea;">🔄 Rotación ${i}</td>
                 <td style="text-align:center; color:#93c5fd; font-size:11px; padding:12px 10px; background:rgba(59,130,246,0.05); border-radius:4px;">
-                    ${localNombres}
-                </td>
-                <td style="text-align:center; color:#fca5a5; font-size:11px; padding:12px 10px; background:rgba(239,68,68,0.05); border-radius:4px;">
-                    ${visitanteNombres}
+                    ${formacionNombres}
                 </td>
                 <td style="text-align:center; color:#3b82f6; font-weight:bold; padding:12px 10px;">${r.puntosAFavor}</td>
                 <td style="text-align:center; color:#ef4444; font-weight:bold; padding:12px 10px;">${r.puntosEnContra}</td>
@@ -1620,6 +1593,11 @@ export class VolleyballDashboard {
         const tabla = document.getElementById('tablaRotaciones');
         const chartCanvas = document.getElementById('rotacionesChart');
         const insights = document.getElementById('rotacionesInsights');
+        const nombreEquipo = this.obtenerNombreEquipoRotaciones();
+        const titulo = document.getElementById('rotacionesTitulo');
+        const descripcion = document.getElementById('rotacionesDescripcion');
+        if (titulo) titulo.textContent = `🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipo}`;
+        if (descripcion) descripcion.textContent = `Puntos a favor y en contra agrupados por la rotación de ${nombreEquipo}.`;
         if (!tabla) return;
         const datos = this.calcularRotaciones();
         if (!datos) {
@@ -1760,17 +1738,18 @@ export class VolleyballDashboard {
     }
 
     mostrarDetalleRotacion(rotacionNum) {
-        const jugadoresLocal = this.obtenerJugadoresEnRotacion('LOCAL', rotacionNum);
-        const jugadoresVisitante = this.obtenerJugadoresEnRotacion('VISITANTE', rotacionNum);
+        const equipoRotaciones = this.obtenerEquipoRotaciones();
+        const nombreEquipoRotaciones = this.obtenerNombreEquipoRotaciones();
+        const jugadores = this.obtenerJugadoresEnRotacion(equipoRotaciones, rotacionNum);
         const stats = this.obtenerStatsRotacion(rotacionNum);
         const modal = document.getElementById('modalRotacion');
         const titulo = document.getElementById('modalRotacionTitulo');
         const contenido = document.getElementById('modalRotacionContenido');
         if (!modal || !titulo || !contenido) return;
-        titulo.textContent = `🔄 Rotación ${rotacionNum} - ${this.homeTeamName} vs ${this.awayTeamName}`;
+        titulo.textContent = `🔄 Rotación ${rotacionNum} - ${nombreEquipoRotaciones}`;
         const renderizarEquipo = (jugadores, equipoNombre, colorClass) => {
             if (!jugadores || jugadores.length === 0) {
-                return `<div class="text-center text-gray-500 text-sm py-4">Sin datos de jugadores para ${equipoNombre}</div>`;
+                return `<div class="text-center text-gray-500 text-sm py-4">La formación histórica de esta rotación no fue registrada. Las estadísticas de puntos sí son válidas.</div>`;
             }
             const delanteros = jugadores.slice(0, 3);
             const zagueros = jugadores.slice(3, 6);
@@ -1802,9 +1781,8 @@ export class VolleyballDashboard {
         };
         contenido.innerHTML = `
             <div class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>${renderizarEquipo(jugadoresLocal, this.homeTeamName, 'blue')}</div>
-                    <div>${renderizarEquipo(jugadoresVisitante, this.awayTeamName, 'red')}</div>
+                <div class="grid grid-cols-1 gap-4">
+                    <div>${renderizarEquipo(jugadores, nombreEquipoRotaciones, equipoRotaciones === 'LOCAL' ? 'blue' : 'red')}</div>
                 </div>
                 ${stats ? `
                     <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-4 border border-primary/20">
@@ -1818,7 +1796,7 @@ export class VolleyballDashboard {
                 ` : `
                     <div class="text-center text-gray-500 text-sm py-6 bg-dark/30 rounded-xl">📊 No hay suficientes datos para esta rotación</div>
                 `}
-                <div class="text-center text-[10px] text-gray-500 border-t border-gray-700/50 pt-3">💡 Los números son los dorsales de los jugadores en esa rotación</div>
+                <div class="text-center text-[10px] text-gray-500 border-t border-gray-700/50 pt-3">💡 Las estadísticas corresponden exclusivamente a la rotación de ${nombreEquipoRotaciones}</div>
             </div>
         `;
         modal.classList.remove('hidden');
@@ -1827,53 +1805,35 @@ export class VolleyballDashboard {
     }
 
     obtenerJugadoresEnRotacion(equipo, rotacionNum) {
-        const jugadoresMap = equipo === 'LOCAL' ? this.jugadoresLocal : this.jugadoresVisitante;
-        if (Object.keys(jugadoresMap).length === 0) {
-            const predefinidos = equipo === 'LOCAL' 
-                ? { 10: 'Lazarte', 3: 'Rios', 11: 'Montez', 21: 'Benitez', 2: 'Pucheta', 18: 'Lezcano' }
-                : { 1: 'Suarez', 7: 'Goggi', 9: 'Pagano', 13: 'Maier', 16: 'Stark', 23: 'Calvano' };
-            const lista = Object.entries(predefinidos).map(([num, nombre]) => ({
-                numero: parseInt(num),
-                nombre: nombre,
-                nombreCorto: nombre?.split(' ')[0] || `J${num}`
-            }));
-            const offset = (rotacionNum - 1) % lista.length;
-            const rotados = [];
-            for (let i = 0; i < lista.length; i++) {
-                rotados.push(lista[(i + offset) % lista.length]);
-            }
-            return rotados;
-        }
-        const jugadoresLista = Object.entries(jugadoresMap)
-            .filter(([num]) => !isNaN(parseInt(num)))
-            .map(([num, nombre]) => ({
-                numero: parseInt(num),
-                nombre: nombre,
-                nombreCorto: nombre?.split(' ')[0] || `J${num}`
-            }));
-        jugadoresLista.sort((a, b) => a.numero - b.numero);
-        const offset = (rotacionNum - 1) % jugadoresLista.length;
-        const rotados = [];
-        for (let i = 0; i < jugadoresLista.length; i++) {
-            rotados.push(jugadoresLista[(i + offset) % jugadoresLista.length]);
-        }
-        return rotados.slice(0, 6);
+        const setsConPuntos = [...new Set((this.puntosJugadores || [])
+            .map(punto => Number(punto.set))
+            .filter(Number.isInteger))]
+            .sort((a, b) => a - b);
+        const setSeleccionado = this.filtroSet !== 'all'
+            ? Number(this.filtroSet)
+            : (setsConPuntos[0] || 1);
+        const claveEquipo = equipo === 'VISITANTE' ? 'visitante' : 'local';
+        const formacionInicial = this.formacionInicialPorSet?.[setSeleccionado]?.[claveEquipo];
+        const jugadoresMap = equipo === 'VISITANTE'
+            ? this.jugadoresVisitante
+            : this.jugadoresLocal;
+
+        return rotarFormacion(formacionInicial, rotacionNum).map(jugador => {
+            const nombre = jugadoresMap[jugador.numero] || jugador.nombre || `Jugador ${jugador.numero}`;
+            return {
+                ...jugador,
+                nombre,
+                nombreCorto: jugador.nombreCorto || nombre.split(' ')[0]
+            };
+        });
     }
 
     obtenerStatsRotacion(rotacionNum) {
-        if (!this.puntosJugadores || this.puntosJugadores.length === 0) return null;
-        const puntosRotacion = this.puntosJugadores.filter(p => 
-            p.rotacionLocal === rotacionNum || p.rotacionVisitante === rotacionNum
+        return obtenerStatsRotacionHelper(
+            this.puntosJugadores,
+            this.obtenerEquipoRotaciones(),
+            rotacionNum
         );
-        if (puntosRotacion.length === 0) return null;
-        const puntosAFavor = puntosRotacion.filter(p => p.equipoAnota === 'LOCAL' || p.equipoAnota === 'VISITANTE').length;
-        const puntosEnContra = puntosRotacion.length - puntosAFavor;
-        const total = puntosAFavor + puntosEnContra;
-        const eficiencia = total > 0 ? ((puntosAFavor / total) * 100).toFixed(1) : 0;
-        let estado = '⚖️ NEUTRA';
-        if (eficiencia > 60) estado = '✅ FUERTE';
-        else if (eficiencia < 40) estado = '❌ DÉBIL';
-        return { puntosAFavor, puntosEnContra, eficiencia: parseFloat(eficiencia), estado };
     }
 
     updateCharts() {

@@ -845,8 +845,8 @@
         <!-- ============================================================ -->
         <div id="vistaRotaciones" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
-                <p class="text-xs text-gray-400 mb-4">Análisis del rendimiento del equipo en cada rotación (1-6). Identifica las rotaciones más fuertes y las que necesitan ajustes.</p>
+                <h3 id="rotacionesTitulo" class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
+                <p id="rotacionesDescripcion" class="text-xs text-gray-400 mb-4">Análisis del rendimiento del equipo en cada rotación (1-6).</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs md:text-sm">
                         <thead class="text-gray-400 border-b border-gray-700">
@@ -1170,7 +1170,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.9 - Estadísticas de servicio por jugador</p>
+            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.9.1 - Estadísticas de servicio por jugador</p>
         </div>
     </div>
 
@@ -1222,6 +1222,7 @@
             obtenerFirmaFormacion,
             ordenarJugadoresParaCancha
         } from '/dashboard/js/formacionHelper.js';
+        import { reconstruirFormacionInicial } from '/dashboard/js/rotacionHelper.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             window.dashboard = new VolleyballDashboard();
@@ -1337,6 +1338,7 @@
                     jugadoresListaVisitante: [],
                     rotacionLocal: 1,
                     rotacionVisitante: 1,
+                    puntosCargados: false,
                 };
                 window.estadoCancha = estado;
 
@@ -1380,13 +1382,38 @@
                     syncTime.title = valor.toLocaleString('es-AR');
                 }
 
-                function guardarFormacionEnCache() {
+                function guardarFormacionEnCache(setApi = null) {
                     if (!estado.matchId || jugadores.local.length !== 6 || jugadores.visitante.length !== 6) return;
-                    localStorage.setItem(`formacion_${estado.matchId}`, JSON.stringify({
+                    const snapshot = {
                         timestamp: new Date().toISOString(),
+                        set: estado.set,
+                        rotacionLocal: estado.rotacionLocal,
+                        rotacionVisitante: estado.rotacionVisitante,
                         local: jugadores.local,
                         visitante: jugadores.visitante
-                    }));
+                    };
+                    localStorage.setItem(`formacion_${estado.matchId}`, JSON.stringify(snapshot));
+
+                    if (!estado.puntosCargados || (setApi && Number(setApi) !== Number(estado.set))) return;
+
+                    const claveInicial = `formacion_inicial_${estado.matchId}_set_${estado.set}`;
+                    let inicial = null;
+                    try {
+                        inicial = JSON.parse(localStorage.getItem(claveInicial) || 'null');
+                    } catch (error) {
+                        console.warn('No se pudo leer la formación inicial guardada:', error);
+                    }
+                    inicial = inicial || { timestamp: snapshot.timestamp, set: estado.set };
+
+                    if (!inicial.local) {
+                        inicial.local = reconstruirFormacionInicial(jugadores.local, estado.rotacionLocal);
+                    }
+                    if (!inicial.visitante) {
+                        inicial.visitante = reconstruirFormacionInicial(jugadores.visitante, estado.rotacionVisitante);
+                    }
+                    if (inicial.local || inicial.visitante) {
+                        localStorage.setItem(claveInicial, JSON.stringify(inicial));
+                    }
                 }
 
                 function cargarFormacionDesdeCache() {
@@ -1452,7 +1479,7 @@
                         }
                         jugadores = nuevaFormacion;
                         firmaFormacion = nuevaFirma;
-                        guardarFormacionEnCache();
+                        guardarFormacionEnCache(fullData.match?.currentSet);
                         actualizarEstadoFormacion('api', 'Formación sincronizada');
                         actualizarHoraSincronizacion(new Date());
 
@@ -1521,6 +1548,7 @@
                             renderizarCancha();
                             renderizarHistorial();
                             renderizarPuntosApi();
+                            estado.puntosCargados = true;
                         }
                     } catch (e) {
                         console.log('Error cargando puntos:', e);
@@ -1952,6 +1980,7 @@
                         estado.rotacionLocal = 1;
                         estado.rotacionVisitante = 1;
                         estado.equipoQueSacaba = 'LOCAL';
+                        estado.puntosCargados = false;
                         jugadores = { local: [], visitante: [] };
                         firmaFormacion = '';
                         actualizarEstadoFormacion('loading', 'Consultando formación...');

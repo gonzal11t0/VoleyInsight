@@ -1,10 +1,11 @@
 // Service Worker para recursos estáticos y funcionamiento offline.
-const CACHE_NAME = 'voleyinsight-v2.9.0-brand';
+const CACHE_NAME = 'voleyinsight-v2.9.1-rotaciones';
 const STATIC_ASSETS = [
     '/dashboard/index.html',
     '/dashboard/css/styles.css',
     '/dashboard/js/dashboard.js',
     '/dashboard/js/formacionHelper.js',
+    '/dashboard/js/rotacionHelper.js',
     '/dashboard/js/reporteGenerator.js',
     '/dashboard/js/StatsHelper.js',
     '/dashboard/js/utils.js',
