@@ -1,26 +1,14 @@
 {
-  "matchId": 258880,
-  "homeTeam": "ACQUA",
-  "awayTeam": "CAIT",
-  "categoria": "sub_13",
+  "matchId": 275440,
+  "homeTeam": "CEDEN",
+  "awayTeam": "AIP",
+  "categoria": "superiores",
   "partidos": [
     {
-      "id": 258880,
-      "homeTeam": "ACQUA",
-      "awayTeam": "CAIT",
-      "categoria": "sub_13"
-    },
-    {
-      "id": 246436,
-      "homeTeam": "EP",
-      "awayTeam": "GLORIAS",
-      "categoria": "sub_13"
-    },
-    {
-      "id":247090,
-      "homeTeam": "EP",
-      "awayTeam": "GLORIAS",
-      "categoria": "sub_18"
+      "id": 275440,
+      "homeTeam": "CEDEN",
+      "awayTeam": "AIP",
+      "categoria": "superiores"
     }
   ]
 }

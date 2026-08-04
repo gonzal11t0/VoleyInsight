@@ -97,6 +97,7 @@ class MatchTracker {
         this.matchId = nuevoMatchId;
         this.api = new MetroVoleyAPI(this.matchId);
         this.repository = new DataRepository(this.matchId);
+        this.processor.reset();
         await this.crearArchivoPartidoVacio(this.matchId);
         this.repository.snapshots = [];
         if (this.socket && this.socket.connected) {

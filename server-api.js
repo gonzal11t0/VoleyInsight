@@ -6,6 +6,10 @@ const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
 const { version: APP_VERSION } = require('./package.json');
+const {
+    enriquecerPuntosManuales,
+    enriquecerSnapshotsOficiales
+} = require('./src/core/rotationHistory');
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
@@ -91,6 +95,25 @@ async function leerPuntosManuales(matchId) {
     }
 }
 
+async function leerPuntosOficiales(matchId) {
+    try {
+        const filePath = path.join(__dirname, 'data', `match_${matchId}.json`);
+        const data = await fs.readFile(filePath, 'utf-8');
+        return JSON.parse(data);
+    } catch (e) {
+        return [];
+    }
+}
+
+async function reconciliarPuntosManuales(matchId, puntos) {
+    const oficiales = await leerPuntosOficiales(matchId);
+    const resultado = enriquecerPuntosManuales(puntos, oficiales);
+    if (resultado.cambios > 0) {
+        await guardarPuntosManuales(matchId, resultado.puntos);
+    }
+    return resultado;
+}
+
 function emitPuntoManual(matchId, punto) {
     if (connectedClients.has(matchId)) {
         const clients = connectedClients.get(matchId);
@@ -111,11 +134,22 @@ app.post('/api/puntos', async (req, res) => {
 
         const puntos = await leerPuntosManuales(matchId);
         puntos.push(punto);
-        await guardarPuntosManuales(matchId, puntos);
+        const resultado = await reconciliarPuntosManuales(matchId, puntos);
+        const puntoGuardado = resultado.puntos[resultado.puntos.length - 1];
+        if (resultado.cambios === 0) {
+            await guardarPuntosManuales(matchId, resultado.puntos);
+        }
 
-        emitPuntoManual(matchId, punto);
+        emitPuntoManual(matchId, puntoGuardado);
 
-        res.json({ success: true, message: 'Punto guardado correctamente' });
+        res.json({
+            success: true,
+            message: puntoGuardado?.sincronizacionOficial === 'confirmada'
+                ? 'Punto guardado y sincronizado con Metro'
+                : 'Punto guardado; esperando sincronización oficial',
+            reconciliado: puntoGuardado?.sincronizacionOficial === 'confirmada',
+            data: puntoGuardado
+        });
     } catch (e) {
         console.error('Error en POST /api/puntos:', e);
         res.status(500).json({ success: false, error: e.message });
@@ -126,7 +160,16 @@ app.get('/api/puntos/:matchId', async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId);
         const puntos = await leerPuntosManuales(matchId);
-        res.json({ success: true, count: puntos.length, data: puntos });
+        const resultado = await reconciliarPuntosManuales(matchId, puntos);
+        res.json({
+            success: true,
+            count: resultado.puntos.length,
+            data: resultado.puntos,
+            sincronizacion: {
+                pendientes: resultado.pendientes,
+                conflictos: resultado.conflictos
+            }
+        });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
@@ -307,6 +350,7 @@ app.get('/api/matches/:id/points', async (req, res) => {
         const limit = req.query.limit ? parseInt(req.query.limit) : null;
         
         let data = JSON.parse(await fs.readFile(`./data/match_${id}.json`, 'utf-8'));
+        data = enriquecerSnapshotsOficiales(data);
         if (set) data = data.filter(p => p.set === set);
         if (limit && limit > 0) data = data.slice(-limit);
         
@@ -320,7 +364,9 @@ app.get('/api/matches/:id/points/last', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const n = req.query.n ? parseInt(req.query.n) : 10;
-        const data = JSON.parse(await fs.readFile(`./data/match_${id}.json`, 'utf-8'));
+        const data = enriquecerSnapshotsOficiales(
+            JSON.parse(await fs.readFile(`./data/match_${id}.json`, 'utf-8'))
+        );
         const lastPoints = data.slice(-n).reverse();
         res.json({ success: true, count: lastPoints.length, data: lastPoints });
     } catch(e) {
@@ -331,7 +377,9 @@ app.get('/api/matches/:id/points/last', async (req, res) => {
 app.get('/api/matches/:id/stats', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
-        const data = JSON.parse(await fs.readFile(`./data/match_${id}.json`, 'utf-8'));
+        const data = enriquecerSnapshotsOficiales(
+            JSON.parse(await fs.readFile(`./data/match_${id}.json`, 'utf-8'))
+        );
         
         const points = data.filter(p => p.scorer);
         const homePoints = points.filter(p => p.scorer === 'HOME').length;

@@ -6,6 +6,8 @@ class StateProcessor {
         this.homeRun = 0;
         this.awayRun = 0;
         this.breakPoints = new Map();
+        this.rotations = { home: 1, away: 1 };
+        this.currentSet = null;
     }
 
     extractMatchState(apiData) {
@@ -17,7 +19,11 @@ class StateProcessor {
             awayTeam: apiData.match.awayTeam?.name || 'VISITANTE',
             homeScore: setData.homeTeamScore,
             awayScore: setData.awayTeamScore,
-            serving: apiData.liveState?.serving === 'home' ? 'home' : 'away',
+            serving: apiData.liveState?.serving === 'home'
+                ? 'home'
+                : apiData.liveState?.serving === 'away'
+                    ? 'away'
+                    : null,
             totalPoints: setData.homeTeamScore + setData.awayTeamScore
         };
     }
@@ -26,7 +32,8 @@ class StateProcessor {
         return !this.lastState ||
             this.lastState.homeScore !== currentState.homeScore ||
             this.lastState.awayScore !== currentState.awayScore ||
-            this.lastState.set !== currentState.set;
+            this.lastState.set !== currentState.set ||
+            this.lastState.serving !== currentState.serving;
     }
 
     determineScorer(currentState) {
@@ -43,7 +50,7 @@ class StateProcessor {
     }
 
     updateBreakPoints(scorer, serving) {
-        const isBreak = scorer && ((scorer === 'home' && serving !== 'home') || (scorer === 'away' && serving !== 'away'));
+        const isBreak = scorer && serving && ((scorer === 'home' && serving !== 'home') || (scorer === 'away' && serving !== 'away'));
         if (isBreak) {
             const key = scorer === 'home' ? 'home' : 'away';
             this.breakPoints.set(key, (this.breakPoints.get(key) || 0) + 1);
@@ -57,7 +64,7 @@ class StateProcessor {
     }
 
     determineEvent(scorer, serving) {
-        if (!scorer) return 'POINT';
+        if (!scorer || !serving) return 'POINT';
         const isHomeServing = serving === 'home';
         const isHomeScorer = scorer === 'home';
         if (isHomeServing && isHomeScorer) return 'SIDEOUT_HOME';
@@ -66,9 +73,23 @@ class StateProcessor {
         return 'BREAK_HOME';
     }
 
-    createSnapshot(currentState, scorer) {
+    rotateTeam(team) {
+        if (team !== 'home' && team !== 'away') return;
+        this.rotations[team] = (this.rotations[team] % 6) + 1;
+    }
+
+    createSnapshot(currentState, scorer, servingBefore) {
         this.updateRuns(scorer);
-        this.updateBreakPoints(scorer, currentState.serving);
+        this.updateBreakPoints(scorer, servingBefore);
+
+        const rotationHomeBefore = this.rotations.home;
+        const rotationAwayBefore = this.rotations.away;
+        const isSideChange = scorer && servingBefore && scorer !== servingBefore;
+        if (isSideChange) this.rotateTeam(scorer);
+
+        const servingAfter = scorer || currentState.serving || servingBefore;
+        const servingBeforeUpper = servingBefore ? servingBefore.toUpperCase() : null;
+        const servingAfterUpper = servingAfter ? servingAfter.toUpperCase() : null;
         return {
             timestamp: new Date().toISOString(),
             set: currentState.set,
@@ -77,19 +98,48 @@ class StateProcessor {
             homeScore: currentState.homeScore,
             awayScore: currentState.awayScore,
             scorer: scorer ? (scorer === 'home' ? 'HOME' : 'AWAY') : null,
-            serving: currentState.serving === 'home' ? 'HOME' : 'AWAY',
+            // `serving` conserva compatibilidad, pero ahora representa el saque
+            // ANTES del rally. Metro devuelve el saque posterior al punto.
+            serving: servingBeforeUpper,
+            servingBefore: servingBeforeUpper,
+            servingAfter: servingAfterUpper,
             homeRun: this.homeRun,
             awayRun: this.awayRun,
             lead: currentState.homeScore - currentState.awayScore,
             phase: this.calculatePhase(currentState.totalPoints),
-            event: this.determineEvent(scorer, currentState.serving)
+            event: this.determineEvent(scorer, servingBefore),
+            rotacionLocal: rotationHomeBefore,
+            rotacionVisitante: rotationAwayBefore,
+            equipoSacaba: servingBeforeUpper === 'HOME'
+                ? 'LOCAL'
+                : servingBeforeUpper === 'AWAY'
+                    ? 'VISITANTE'
+                    : null,
+            rotacionLocalDespues: this.rotations.home,
+            rotacionVisitanteDespues: this.rotations.away,
+            equipoSacaDespues: servingAfterUpper === 'HOME'
+                ? 'LOCAL'
+                : servingAfterUpper === 'AWAY'
+                    ? 'VISITANTE'
+                    : null
         };
     }
 
     processUpdate(apiData) {
         const currentState = this.extractMatchState(apiData);
         if (!this.hasChanged(currentState)) return null;
-        const snapshot = this.createSnapshot(currentState, this.determineScorer(currentState));
+
+        const setChanged = this.currentSet !== null && this.currentSet !== currentState.set;
+        if (this.currentSet === null || setChanged) {
+            this.rotations = { home: 1, away: 1 };
+            this.currentSet = currentState.set;
+        }
+
+        const scorer = setChanged ? null : this.determineScorer(currentState);
+        const servingBefore = setChanged
+            ? currentState.serving
+            : this.lastState?.serving || currentState.serving;
+        const snapshot = this.createSnapshot(currentState, scorer, servingBefore);
         logger.debug('State updated', { set: snapshot.set, score: `${snapshot.homeScore}-${snapshot.awayScore}`, scorer: snapshot.scorer });
         this.lastState = currentState;
         return snapshot;
@@ -108,6 +158,8 @@ class StateProcessor {
         this.homeRun = 0;
         this.awayRun = 0;
         this.breakPoints.clear();
+        this.rotations = { home: 1, away: 1 };
+        this.currentSet = null;
     }
 }
 

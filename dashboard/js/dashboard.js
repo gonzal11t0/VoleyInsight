@@ -1061,9 +1061,16 @@ export class VolleyballDashboard {
         this.cargarDatosGuardadosDelPartido();
         this.actualizarVistaIndividuales();
         try {
-            const response = await fetch(`/data/match_${this.matchId}.json`);
+            let response = await fetch(`/api/matches/${this.matchId}/points?_t=${Date.now()}`);
+            let newData = null;
             if (response.ok) {
-                const newData = await response.json();
+                const payload = await response.json();
+                newData = payload.data || [];
+            } else {
+                response = await fetch(`/data/match_${this.matchId}.json?_t=${Date.now()}`);
+                if (response.ok) newData = await response.json();
+            }
+            if (newData) {
                 this.data = newData;
                 await offlineManager.saveMatchData(this.matchId, newData);
                 this.updateDashboard();
@@ -2239,7 +2246,9 @@ export class VolleyballDashboard {
             if (hb) hb.style.width = `${hw}%`;
             if (ab) ab.style.width = `${100 - hw}%`;
         }
-        if (last?.serving) this.actualizarBadgeSaque(last.serving);
+        if (last?.servingAfter || last?.serving) {
+            this.actualizarBadgeSaque(last.servingAfter || last.serving);
+        }
         this.updateCharts();
         this.updateSetDominance();
         this.updateBreakPointsList();

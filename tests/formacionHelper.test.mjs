@@ -55,7 +55,7 @@ assert.match(dashboardHtml, /fullData\.liveState\?\.serving/);
 assert.match(dashboardHtml, /logo-horizontal\.png/);
 assert.match(dashboardHtml, /logo-icon-192\.png/);
 assert.match(dashboardHtml, /site\.webmanifest/);
-assert.match(dashboardHtml, /formacion_inicial_\$\{estado\.matchId\}_set_\$\{estado\.set\}/);
+assert.match(dashboardHtml, /formacion_inicial_\$\{estado\.matchId\}_set_\$\{setNumero\}/);
 assert.doesNotMatch(dashboardJs, /Pucheta|Lazarte|Suarez|Goggi/);
 assert.doesNotMatch(
     dashboardJs,

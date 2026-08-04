@@ -9,8 +9,8 @@ class VolleyballMetrics {
         const breaks = this.snapshots.filter(s => s.event?.includes('BREAK') && s.scorer);
         const homeBreaks = breaks.filter(b => b.event === 'BREAK_HOME').length;
         const awayBreaks = breaks.filter(b => b.event === 'BREAK_AWAY').length;
-        const homeOpp = this.snapshots.filter(s => s.serving === 'AWAY' && s.scorer === 'HOME').length + homeBreaks;
-        const awayOpp = this.snapshots.filter(s => s.serving === 'HOME' && s.scorer === 'AWAY').length + awayBreaks;
+        const homeOpp = this.snapshots.filter(s => s.scorer && s.serving === 'AWAY').length;
+        const awayOpp = this.snapshots.filter(s => s.scorer && s.serving === 'HOME').length;
         const homeEff = homeOpp > 0 ? (homeBreaks / homeOpp * 100).toFixed(1) : 0;
         const awayEff = awayOpp > 0 ? (awayBreaks / awayOpp * 100).toFixed(1) : 0;
         let interp = "📊 Eficiencia en breaks equilibrada.";
@@ -30,8 +30,8 @@ class VolleyballMetrics {
         const sideouts = this.snapshots.filter(s => s.event?.includes('SIDEOUT') && s.scorer);
         const homeSide = sideouts.filter(s => s.event === 'SIDEOUT_HOME').length;
         const awaySide = sideouts.filter(s => s.event === 'SIDEOUT_AWAY').length;
-        const homeServes = this.snapshots.filter(s => s.serving === 'HOME').length;
-        const awayServes = this.snapshots.filter(s => s.serving === 'AWAY').length;
+        const homeServes = this.snapshots.filter(s => s.scorer && s.serving === 'HOME').length;
+        const awayServes = this.snapshots.filter(s => s.scorer && s.serving === 'AWAY').length;
         const homePct = homeServes > 0 ? (homeSide / homeServes * 100).toFixed(1) : 0;
         const awayPct = awayServes > 0 ? (awaySide / awayServes * 100).toFixed(1) : 0;
         let interp = "📊 Sideout equilibrado.";

@@ -610,6 +610,51 @@
             .info-partido > span { padding: 3px 7px; }
             .serving-badge { font-size: 7px; padding: 3px 7px; }
             .formacion-vacia { min-height: 95px; font-size: 8px; }
+
+            /* Anotador móvil: blancos táctiles más cómodos y confirmar prioritario. */
+            .seccion-punto-ganado > .grid,
+            .seccion-fundamentos > .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 10px !important;
+            }
+            .seccion-punto-ganado .btn-accion {
+                min-height: 58px !important;
+                padding: 10px 6px !important;
+                font-size: 11px !important;
+            }
+            .seccion-fundamentos .btn-accion {
+                min-height: 52px !important;
+                padding: 9px 6px !important;
+                font-size: 10px !important;
+            }
+            .seccion-error {
+                margin-top: 12px !important;
+            }
+            .acciones-principales > .grid {
+                display: flex !important;
+                flex-direction: column;
+                gap: 10px !important;
+            }
+            .acciones-principales .btn-confirmar {
+                order: 1;
+                width: 100%;
+                min-height: 72px;
+                padding: 14px 8px !important;
+                font-size: 16px !important;
+                box-shadow: 0 6px 18px rgba(5, 150, 105, 0.28);
+            }
+            .acciones-principales .btn-deshacer {
+                order: 2;
+                width: 100%;
+                min-height: 48px;
+                padding: 9px 8px !important;
+            }
+            .acciones-secundarias > .grid {
+                gap: 10px !important;
+            }
+            .acciones-secundarias button {
+                min-height: 52px;
+            }
         }
 
         @media (min-width: 768px) {
@@ -1170,7 +1215,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.9.1 - Estadísticas de servicio por jugador</p>
+            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.9.3 - Estadísticas de servicio por jugador</p>
         </div>
     </div>
 
@@ -1382,34 +1427,37 @@
                     syncTime.title = valor.toLocaleString('es-AR');
                 }
 
-                function guardarFormacionEnCache(setApi = null) {
+                function guardarFormacionEnCache(setApi = null, estadoOficial = null) {
                     if (!estado.matchId || jugadores.local.length !== 6 || jugadores.visitante.length !== 6) return;
+                    const setNumero = Number(setApi) || Number(estado.set) || 1;
+                    const rotacionLocal = Number(estadoOficial?.rotacionLocalDespues) || estado.rotacionLocal;
+                    const rotacionVisitante = Number(estadoOficial?.rotacionVisitanteDespues) || estado.rotacionVisitante;
                     const snapshot = {
                         timestamp: new Date().toISOString(),
-                        set: estado.set,
-                        rotacionLocal: estado.rotacionLocal,
-                        rotacionVisitante: estado.rotacionVisitante,
+                        set: setNumero,
+                        rotacionLocal,
+                        rotacionVisitante,
                         local: jugadores.local,
                         visitante: jugadores.visitante
                     };
                     localStorage.setItem(`formacion_${estado.matchId}`, JSON.stringify(snapshot));
 
-                    if (!estado.puntosCargados || (setApi && Number(setApi) !== Number(estado.set))) return;
+                    if (!estadoOficial && !estado.puntosCargados) return;
 
-                    const claveInicial = `formacion_inicial_${estado.matchId}_set_${estado.set}`;
+                    const claveInicial = `formacion_inicial_${estado.matchId}_set_${setNumero}`;
                     let inicial = null;
                     try {
                         inicial = JSON.parse(localStorage.getItem(claveInicial) || 'null');
                     } catch (error) {
                         console.warn('No se pudo leer la formación inicial guardada:', error);
                     }
-                    inicial = inicial || { timestamp: snapshot.timestamp, set: estado.set };
+                    inicial = inicial || { timestamp: snapshot.timestamp, set: setNumero };
 
                     if (!inicial.local) {
-                        inicial.local = reconstruirFormacionInicial(jugadores.local, estado.rotacionLocal);
+                        inicial.local = reconstruirFormacionInicial(jugadores.local, rotacionLocal);
                     }
                     if (!inicial.visitante) {
-                        inicial.visitante = reconstruirFormacionInicial(jugadores.visitante, estado.rotacionVisitante);
+                        inicial.visitante = reconstruirFormacionInicial(jugadores.visitante, rotacionVisitante);
                     }
                     if (inicial.local || inicial.visitante) {
                         localStorage.setItem(claveInicial, JSON.stringify(inicial));
@@ -1429,6 +1477,32 @@
                     } catch (error) {
                         console.warn('No se pudo leer la formación guardada:', error);
                         return false;
+                    }
+                }
+
+                async function obtenerEstadoRotacionOficial(setApi) {
+                    const setBuscado = Number(setApi) || 1;
+                    let snapshots = Array.isArray(window.dashboard?.data) ? window.dashboard.data : [];
+                    let ultimo = [...snapshots].reverse().find(punto =>
+                        Number(punto?.set) === setBuscado &&
+                        Number(punto?.rotacionLocalDespues) >= 1 &&
+                        Number(punto?.rotacionVisitanteDespues) >= 1
+                    );
+                    if (ultimo) return ultimo;
+
+                    try {
+                        const response = await fetch(`/api/matches/${estado.matchId}/points?_t=${Date.now()}`);
+                        if (!response.ok) return null;
+                        const payload = await response.json();
+                        snapshots = payload.data || [];
+                        ultimo = [...snapshots].reverse().find(punto =>
+                            Number(punto?.set) === setBuscado &&
+                            Number(punto?.rotacionLocalDespues) >= 1 &&
+                            Number(punto?.rotacionVisitanteDespues) >= 1
+                        );
+                        return ultimo || null;
+                    } catch (error) {
+                        return null;
                     }
                 }
 
@@ -1467,6 +1541,8 @@
 
                         const nuevaFirma = obtenerFirmaFormacion(nuevaFormacion);
                         const cambio = nuevaFirma !== firmaFormacion;
+                        const setApi = Number(fullData.match?.currentSet) || estado.set;
+                        const estadoOficial = await obtenerEstadoRotacionOficial(setApi);
                         const saqueApi = fullData.liveState?.serving;
                         const nuevoEquipoSaca = saqueApi === 'home'
                             ? 'LOCAL'
@@ -1477,9 +1553,13 @@
                         if (nuevoEquipoSaca) {
                             estado.equipoQueSacaba = nuevoEquipoSaca;
                         }
+                        if (estadoOficial) {
+                            estado.rotacionLocal = Number(estadoOficial.rotacionLocalDespues);
+                            estado.rotacionVisitante = Number(estadoOficial.rotacionVisitanteDespues);
+                        }
                         jugadores = nuevaFormacion;
                         firmaFormacion = nuevaFirma;
-                        guardarFormacionEnCache(fullData.match?.currentSet);
+                        guardarFormacionEnCache(setApi, estadoOficial);
                         actualizarEstadoFormacion('api', 'Formación sincronizada');
                         actualizarHoraSincronizacion(new Date());
 
@@ -1564,11 +1644,12 @@
                             body: JSON.stringify({ matchId: estado.matchId, punto: punto })
                         });
                         if (!response.ok) throw new Error('Error al guardar el punto');
-                        return true;
+                        const resultado = await response.json();
+                        return resultado;
                     } catch (e) {
                         console.error('Error guardando punto:', e);
                         mostrarFeedback('❌ Error al guardar el punto', true);
-                        return false;
+                        return null;
                     }
                 }
 
@@ -1778,19 +1859,6 @@
 
                         const marcadorDespues = `${estado.local.score}-${estado.visitante.score}`;
 
-                        const rotacionLocalAntes = estado.rotacionLocal;
-                        const rotacionVisitanteAntes = estado.rotacionVisitante;
-                        const equipoSacabaAntes = estado.equipoQueSacaba;
-
-                        if (equipoAnota && equipoAnota !== equipoSacabaAntes) {
-                            if (equipoAnota === 'LOCAL') {
-                                estado.rotacionLocal = (estado.rotacionLocal % 6) + 1;
-                            } else {
-                                estado.rotacionVisitante = (estado.rotacionVisitante % 6) + 1;
-                            }
-                            estado.equipoQueSacaba = equipoAnota;
-                        }
-
                         const punto = {
                             timestamp: new Date().toISOString(),
                             set: estado.set,
@@ -1801,27 +1869,28 @@
                             accion: estado.accion,
                             asistencia: null,
                             marcadorAntes: marcadorAntes,
-                            marcadorDespues: marcadorDespues,
-                            rotacionLocal: rotacionLocalAntes,
-                            rotacionVisitante: rotacionVisitanteAntes,
-                            equipoSacaba: equipoSacabaAntes,
-                            rotacionLocalDespues: estado.rotacionLocal,
-                            rotacionVisitanteDespues: estado.rotacionVisitante,
-                            equipoSacaDespues: estado.equipoQueSacaba
+                            marcadorDespues: marcadorDespues
                         };
 
-                        const guardado = await guardarPuntoEnAPI(punto);
-                        if (!guardado) {
-                            estado.rotacionLocal = rotacionLocalAntes;
-                            estado.rotacionVisitante = rotacionVisitanteAntes;
-                            estado.equipoQueSacaba = equipoSacabaAntes;
+                        const resultadoGuardado = await guardarPuntoEnAPI(punto);
+                        if (!resultadoGuardado) {
                             if (equipoAnota === 'LOCAL') estado.local.score--;
                             if (equipoAnota === 'VISITANTE') estado.visitante.score--;
                             return;
                         }
 
-                        estado.puntosApi.push(punto);
-                        estado.historial.push(punto);
+                        const puntoGuardado = resultadoGuardado.data || punto;
+                        if (puntoGuardado.sincronizacionOficial === 'confirmada') {
+                            estado.rotacionLocal = puntoGuardado.rotacionLocalDespues;
+                            estado.rotacionVisitante = puntoGuardado.rotacionVisitanteDespues;
+                            estado.equipoQueSacaba = puntoGuardado.equipoSacaDespues;
+                            mostrarFeedback('✅ Punto sincronizado con Metro');
+                        } else if (equipoAnota) {
+                            mostrarFeedback('🕒 Punto guardado · esperando a Metro');
+                        }
+
+                        estado.puntosApi.push(puntoGuardado);
+                        estado.historial.push(puntoGuardado);
 
                         // ✅ Solo incrementar estado.punto si la acción suma punto
                         if (equipoAnota !== null) {
