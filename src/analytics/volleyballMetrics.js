@@ -1,3 +1,5 @@
+const { calcularMetricasRally } = require('./rallyMetrics');
+
 class VolleyballMetrics {
     constructor(snapshots) {
         this.snapshots = snapshots;
@@ -6,18 +8,18 @@ class VolleyballMetrics {
     }
 
     calculateBreakPointEfficiency() {
-        const breaks = this.snapshots.filter(s => s.event?.includes('BREAK') && s.scorer);
-        const homeBreaks = breaks.filter(b => b.event === 'BREAK_HOME').length;
-        const awayBreaks = breaks.filter(b => b.event === 'BREAK_AWAY').length;
-        const homeOpp = this.snapshots.filter(s => s.scorer && s.serving === 'AWAY').length;
-        const awayOpp = this.snapshots.filter(s => s.scorer && s.serving === 'HOME').length;
-        const homeEff = homeOpp > 0 ? (homeBreaks / homeOpp * 100).toFixed(1) : 0;
-        const awayEff = awayOpp > 0 ? (awayBreaks / awayOpp * 100).toFixed(1) : 0;
+        const metricas = calcularMetricasRally(this.snapshots).equipos;
+        const homeBreaks = metricas.HOME.breakpoint.exitos;
+        const awayBreaks = metricas.AWAY.breakpoint.exitos;
+        const homeOpp = metricas.HOME.breakpoint.oportunidades;
+        const awayOpp = metricas.AWAY.breakpoint.oportunidades;
+        const homeEff = metricas.HOME.breakpoint.porcentaje.toFixed(1);
+        const awayEff = metricas.AWAY.breakpoint.porcentaje.toFixed(1);
         let interp = "📊 Eficiencia en breaks equilibrada.";
-        if (homeEff > 45 && awayEff > 45) interp = "⚡ Ambos equipos son muy efectivos rompiendo el saque rival.";
-        else if (homeEff > 45) interp = `⚡ ${this.homeTeam} es letal en breaks (${homeEff}%).`;
-        else if (awayEff > 45) interp = `⚡ ${this.awayTeam} es letal en breaks (${awayEff}%).`;
-        else if (homeEff < 25 && awayEff < 25) interp = "⚠️ Ambos equipos tienen dificultades para romper el saque rival.";
+        if (homeEff > 40 && awayEff > 40) interp = "⚡ Ambos equipos convierten muy bien con saque propio.";
+        else if (homeEff > 40) interp = `⚡ ${this.homeTeam} genera muchos breakpoints con su saque (${homeEff}%).`;
+        else if (awayEff > 40) interp = `⚡ ${this.awayTeam} genera muchos breakpoints con su saque (${awayEff}%).`;
+        else if (homeEff < 25 && awayEff < 25) interp = "⚠️ Ambos equipos generan poca presión con el saque.";
         return {
             breaks: { home: homeBreaks, away: awayBreaks },
             opportunities: { home: homeOpp, away: awayOpp },
@@ -27,21 +29,23 @@ class VolleyballMetrics {
     }
 
     calculateSideoutPercentage() {
-        const sideouts = this.snapshots.filter(s => s.event?.includes('SIDEOUT') && s.scorer);
-        const homeSide = sideouts.filter(s => s.event === 'SIDEOUT_HOME').length;
-        const awaySide = sideouts.filter(s => s.event === 'SIDEOUT_AWAY').length;
-        const homeServes = this.snapshots.filter(s => s.scorer && s.serving === 'HOME').length;
-        const awayServes = this.snapshots.filter(s => s.scorer && s.serving === 'AWAY').length;
-        const homePct = homeServes > 0 ? (homeSide / homeServes * 100).toFixed(1) : 0;
-        const awayPct = awayServes > 0 ? (awaySide / awayServes * 100).toFixed(1) : 0;
+        const metricas = calcularMetricasRally(this.snapshots).equipos;
+        const homeSide = metricas.HOME.sideout.exitos;
+        const awaySide = metricas.AWAY.sideout.exitos;
+        const homeRecepciones = metricas.HOME.sideout.oportunidades;
+        const awayRecepciones = metricas.AWAY.sideout.oportunidades;
+        const homePct = metricas.HOME.sideout.porcentaje.toFixed(1);
+        const awayPct = metricas.AWAY.sideout.porcentaje.toFixed(1);
         let interp = "📊 Sideout equilibrado.";
-        if (homePct > 65 && awayPct > 65) interp = "🏐 Excelente consistencia en servicio.";
+        if (homePct > 65 && awayPct > 65) interp = "🏐 Ambos equipos son muy sólidos en recepción y primer ataque.";
         else if (homePct > 65) interp = `🏐 ${this.homeTeam} es sólido en sideout (${homePct}%).`;
         else if (awayPct > 65) interp = `🏐 ${this.awayTeam} es sólido en sideout (${awayPct}%).`;
-        else if (homePct < 50 && awayPct < 50) interp = "⚠️ Problemas en el servicio: ambos equipos pierden muchos puntos cuando sacan.";
+        else if (homePct < 50 && awayPct < 50) interp = "⚠️ Ambos equipos tienen problemas para recuperar el saque desde la recepción.";
         return {
             sideouts: { home: homeSide, away: awaySide },
-            totalServingPoints: { home: homeServes, away: awayServes },
+            opportunities: { home: homeRecepciones, away: awayRecepciones },
+            // Alias conservado para no romper consumidores anteriores.
+            totalServingPoints: { home: homeRecepciones, away: awayRecepciones },
             percentage: { home: homePct, away: awayPct },
             interpretation: interp
         };
@@ -218,8 +222,8 @@ class VolleyballMetrics {
             recommendations = [];
         const hb = parseFloat(breaks.efficiency.home),
             ab = parseFloat(breaks.efficiency.away);
-        if (hb > 45) insights.push(`⚡ ${this.homeTeam} es letal en breaks: ${hb}%`);
-        if (ab > 45) insights.push(`⚡ ${this.awayTeam} es letal en breaks: ${ab}%`);
+        if (hb > 40) insights.push(`⚡ ${this.homeTeam} genera breakpoints con el saque: ${hb}%`);
+        if (ab > 40) insights.push(`⚡ ${this.awayTeam} genera breakpoints con el saque: ${ab}%`);
         const hc = parseFloat(clutch.efficiency.home),
             ac = parseFloat(clutch.efficiency.away);
         if (hc > 60) insights.push(`🏆 ${this.homeTeam} rinde bajo presión: ${hc}%`);
@@ -235,7 +239,7 @@ class VolleyballMetrics {
         if (last) {
             const winner = last.homeScore > last.awayScore ? this.homeTeam : this.awayTeam;
             const loser = last.homeScore > last.awayScore ? this.awayTeam : this.homeTeam;
-            const reason = (winner === this.homeTeam ? parseFloat(hc) : parseFloat(ac)) > 60 ? `Clave: fortaleza en momentos críticos` : (winner === this.homeTeam ? hb : ab) > 45 ? `Clave: efectividad en breaks` : "Partido parejo, detalles marcaron la diferencia.";
+            const reason = (winner === this.homeTeam ? parseFloat(hc) : parseFloat(ac)) > 60 ? `Clave: fortaleza en momentos críticos` : (winner === this.homeTeam ? hb : ab) > 40 ? `Clave: presión efectiva desde el saque` : "Partido parejo, detalles marcaron la diferencia.";
             winnerMsg = `🏆 **${winner}** derrotó a ${loser} por ${last.homeScore}-${last.awayScore}. ${reason}`;
         }
         return { executiveSummary: winnerMsg, insights, recommendations, keyTakeaways: this.generateKeyTakeaways(breaks, sideout, clutch, phase) };
@@ -247,8 +251,8 @@ class VolleyballMetrics {
             hs = parseFloat(sideout.percentage.home);
         const ab = parseFloat(breaks.efficiency.away),
             aso = parseFloat(sideout.percentage.away);
-        if (hb > hs) takeaways.push(`${this.homeTeam} es más peligroso cuando NO saca (${hb}% en breaks) que cuando saca (${hs}% en sideout).`);
-        if (ab > aso) takeaways.push(`${this.awayTeam} es más peligroso cuando NO saca (${ab}% en breaks) que cuando saca (${aso}% en sideout).`);
+        if (hb > hs) takeaways.push(`${this.homeTeam} rindió mejor con saque propio (${hb}% en breakpoint) que en recepción (${hs}% en sideout).`);
+        if (ab > aso) takeaways.push(`${this.awayTeam} rindió mejor con saque propio (${ab}% en breakpoint) que en recepción (${aso}% en sideout).`);
         const bestHome = this.getBestPhase(phase.efficiency, 'home');
         const bestAway = this.getBestPhase(phase.efficiency, 'away');
         if (bestHome) takeaways.push(`${this.homeTeam} domina en ${bestHome.phase}: ${bestHome.percentage}% de eficiencia.`);

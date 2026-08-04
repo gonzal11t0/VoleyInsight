@@ -46,10 +46,18 @@ assert.deepEqual(
 const dashboardHtml = await readFile(new URL('../dashboard/index.html', import.meta.url), 'utf8');
 const dashboardJs = await readFile(new URL('../dashboard/js/dashboard.js', import.meta.url), 'utf8');
 const contar = patron => dashboardHtml.match(patron)?.length || 0;
+const ids = [...dashboardHtml.matchAll(/id="([^"]+)"/g)].map(match => match[1]);
 
 assert.equal(contar(/id="formacionStatus"/g), 1);
 assert.equal(contar(/id="formacionSyncTime"/g), 1);
 assert.equal(contar(/id="servingDisplay"/g), 1);
+assert.equal(new Set(ids).size, ids.length, 'el dashboard no debe contener IDs duplicados');
+assert.equal(contar(/id="filtrosSetsIndividuales"/g), 1);
+assert.equal(contar(/id="filtrosSetsRotaciones"/g), 1);
+assert.equal(contar(/id="tarjetasLocalMovil"/g), 1);
+assert.equal(contar(/id="tarjetasVisitanteMovil"/g), 1);
+assert.match(dashboardHtml, /MARCAR CLAVE/);
+assert.match(dashboardJs, /metricasVoleyHelper\.js/);
 assert.match(dashboardHtml, /class="posicion-court">P\$\{j\.posicion\}/);
 assert.match(dashboardHtml, /fullData\.liveState\?\.serving/);
 assert.match(dashboardHtml, /logo-horizontal\.png/);

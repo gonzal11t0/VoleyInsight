@@ -4,13 +4,15 @@ import { ReporteGenerator } from './reporteGenerator.js';
 import {
     calcularStatsPorJugador, actualizarTablaConStats, renderizarSoloNombres,
     renderizarTop5ConNombres, renderizarGraficoPuntos, calcularEstadisticasServicio,
-    generarTablaHTMLSimple
+    generarTablaHTMLSimple, resumirPuntosEquipo, renderizarTarjetasMoviles
 } from './StatsHelper.js';
 import {
     calcularRotacionesPorEquipo,
     obtenerStatsRotacion as obtenerStatsRotacionHelper,
-    rotarFormacion
+    rotarFormacion,
+    filtrarPuntosPorSet
 } from './rotacionHelper.js';
+import { calcularMetricasRally } from './metricasVoleyHelper.js';
 
 export class VolleyballDashboard {
     constructor() {
@@ -28,6 +30,7 @@ export class VolleyballDashboard {
         this.partidoTerminado = false;
         this.vistaActual = 'partido';
         this.filtroSet = 'all';
+        this.filtroRotaciones = 'all';
         this.puntosJugadores = [];
         this.chartPuntosJugadores = null;
         this.jugadoresLocal = {};
@@ -50,6 +53,7 @@ export class VolleyballDashboard {
 
         this.setupEventListeners();
         this.setupModalEvents();
+        this.setupPwaInstall();
 
         this.mostrarSkeleton(true);
         setTimeout(() => this.mostrarSkeleton(false), 5000);
@@ -75,6 +79,7 @@ export class VolleyballDashboard {
                 this.cargarPuntosJugadores();
                 this.setupTabs();
                 this.setupFiltrosSets();
+                this.setupFiltrosRotaciones();
                 this.setupEvolucionTab();
                 this.setupReportUpload();
                 this.startAutoRefreshPuntos();
@@ -286,17 +291,20 @@ export class VolleyballDashboard {
         const toggleBtn = document.getElementById('togglePanelBtn');
         const panelHeader = document.getElementById('panelHeader');
         if (!panelContent || !toggleBtn) return;
-        const estaMinimizado = localStorage.getItem('panelMinimizado') === 'true';
-        if (estaMinimizado) { panelContent.style.display = 'none';
-            toggleBtn.innerHTML = '+'; }
+        const preferenciaGuardada = localStorage.getItem('panelMinimizado');
+        const estaMinimizado = preferenciaGuardada === 'true' || (preferenciaGuardada === null && window.innerWidth <= 480);
+        const aplicarEstado = (minimizado) => {
+            panelContent.style.display = minimizado ? 'none' : 'block';
+            toggleBtn.innerHTML = minimizado ? '+' : '−';
+            document.getElementById('coachPanel')?.classList.toggle('panel-minimizado', minimizado);
+        };
+        aplicarEstado(estaMinimizado);
         const toggle = () => {
             if (panelContent.style.display === 'none') {
-                panelContent.style.display = 'block';
-                toggleBtn.innerHTML = '−';
+                aplicarEstado(false);
                 localStorage.setItem('panelMinimizado', 'false');
             } else {
-                panelContent.style.display = 'none';
-                toggleBtn.innerHTML = '+';
+                aplicarEstado(true);
                 localStorage.setItem('panelMinimizado', 'true');
             }
         };
@@ -322,7 +330,7 @@ export class VolleyballDashboard {
             }
             const idAnterior = this.matchId;
             if (this.data && this.data.length > 0) await this.saveAsHTML();
-            ['puntos', 'timeouts', 'breaks', 'jugadores'].forEach(prefix => {
+            ['puntos', 'timeouts', 'breaks', 'marcas', 'jugadores'].forEach(prefix => {
                 localStorage.removeItem(`${prefix}_${this.matchId}`);
             });
             if (window.anotador) {
@@ -458,7 +466,7 @@ export class VolleyballDashboard {
                             <span class="text-sm">${datos.nombrePartido || file.name}</span>
                             <span class="text-xs text-gray-500">${datos.fecha || ''}</span>
                         </div>
-                        <span class="text-xs text-green-400">✓</span>
+                        <span class="text-xs ${datos.metricasCompatibles ? 'text-green-400' : 'text-amber-400'}">${datos.metricasCompatibles ? '✓ v3' : '⚠ formato anterior'}</span>
                     `;
                     reportList.appendChild(item);
                 }
@@ -470,7 +478,7 @@ export class VolleyballDashboard {
                 reportList.appendChild(item);
             }
         }
-        if (this.reportesCargados.length >= 1) {
+        if (this.reportesCargados.some(reporte => reporte.metricasCompatibles)) {
             analizarBtn.disabled = false;
             analizarBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         } else {
@@ -495,8 +503,19 @@ export class VolleyballDashboard {
                 eficienciaServicioVisitante: 0,
                 eficienciaLocal: 0,
                 eficienciaVisitante: 0,
-                resultado: ''
+                resultado: '',
+                metricasCompatibles: false
             };
+            const contenedorReporte = doc.querySelector('.container');
+            if (contenedorReporte?.dataset.metricSchema === 'standard-v1') {
+                datos.metricasCompatibles = true;
+                datos.sideoutLocal = Number(contenedorReporte.dataset.sideoutHome) || 0;
+                datos.sideoutVisitante = Number(contenedorReporte.dataset.sideoutAway) || 0;
+                datos.breakpointLocal = Number(contenedorReporte.dataset.breakpointHome) || 0;
+                datos.breakpointVisitante = Number(contenedorReporte.dataset.breakpointAway) || 0;
+                datos.eficienciaServicioLocal = Number(contenedorReporte.dataset.serviceHome) || 0;
+                datos.eficienciaServicioVisitante = Number(contenedorReporte.dataset.serviceAway) || 0;
+            }
             const teamScores = doc.querySelectorAll('.team-score');
             if (teamScores.length >= 2) {
                 const homeNameElem = teamScores[0].querySelector('.team-name');
@@ -543,24 +562,6 @@ export class VolleyballDashboard {
                     });
                 }
             });
-            const serviceRows = doc.querySelectorAll('tr');
-            let totalAces = 0,
-                totalErrores = 0,
-                totalSaques = 0;
-            serviceRows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 11) {
-                    totalAces += parseInt(cells[8]?.textContent) || 0;
-                    totalErrores += parseInt(cells[9]?.textContent) || 0;
-                    totalSaques += parseInt(cells[11]?.textContent) || 0;
-                }
-            });
-            if (totalSaques > 0) datos.eficienciaServicioLocal = ((totalAces - totalErrores) / totalSaques * 100).toFixed(1);
-            datos.sideoutLocal = datos.sideoutLocal || 50;
-            datos.breakpointLocal = datos.breakpointLocal || 30;
-            datos.clutchLocal = datos.clutchLocal || 50;
-            datos.eficienciaServicioLocal = datos.eficienciaServicioLocal || 0;
-            datos.eficienciaLocal = datos.eficienciaLocal || 50;
             return datos;
         } catch (e) {
             console.error('Error extrayendo datos:', e);
@@ -576,7 +577,15 @@ export class VolleyballDashboard {
         const tablaBody = document.getElementById('evolucionTablaBody');
         if (!resultados || this.reportesCargados.length === 0) return;
         resultados.classList.remove('hidden');
-        const reportesOrdenados = [...this.reportesCargados].sort((a, b) => {
+        const compatibles = this.reportesCargados.filter(reporte => reporte.metricasCompatibles);
+        if (!compatibles.length) {
+            resumenElem.textContent = 'Los informes anteriores a v3.0 usaban otra definición de Sideout/Breakpoint y no se mezclan con los nuevos para evitar conclusiones incorrectas.';
+            fortalezasElem.innerHTML = '';
+            debilidadesElem.innerHTML = '';
+            tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-amber-400">Generá informes v3.0 para iniciar una serie comparable.</td></tr>';
+            return;
+        }
+        const reportesOrdenados = [...compatibles].sort((a, b) => {
             if (a.fecha && b.fecha) return new Date(a.fecha) - new Date(b.fecha);
             return 0;
         });
@@ -597,10 +606,10 @@ export class VolleyballDashboard {
         resumenElem.textContent = resumenTexto;
         let fortalezas = [],
             debilidades = [];
-        if (ultimo.sideoutLocal > 60) fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Excelente eficiencia cuando el equipo tiene el saque.`);
-        else if (ultimo.sideoutLocal < 45) debilidades.push(`⚠️ Sideout% bajo (${ultimo.sideoutLocal}%) - Dificultad para anotar con saque propio.`);
-        if (ultimo.breakpointLocal > 40) fortalezas.push(`⚡ Breakpoint% del ${ultimo.breakpointLocal}% - Buena capacidad para romper el saque rival.`);
-        else if (ultimo.breakpointLocal < 25) debilidades.push(`🔻 Breakpoint% bajo (${ultimo.breakpointLocal}%) - Problemas en recepción y contraataque.`);
+        if (ultimo.sideoutLocal > 60) fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Buena recepción y primer ataque.`);
+        else if (ultimo.sideoutLocal < 45) debilidades.push(`⚠️ Sideout% bajo (${ultimo.sideoutLocal}%) - Dificultad para anotar al recibir.`);
+        if (ultimo.breakpointLocal > 40) fortalezas.push(`⚡ Breakpoint% del ${ultimo.breakpointLocal}% - Buena presión con saque propio.`);
+        else if (ultimo.breakpointLocal < 25) debilidades.push(`🔻 Breakpoint% bajo (${ultimo.breakpointLocal}%) - Poca producción mientras el equipo saca.`);
         if (ultimo.clutchLocal > 60) fortalezas.push(`🧠 Clutch% del ${ultimo.clutchLocal}% - El equipo rinde bien bajo presión.`);
         else if (ultimo.clutchLocal < 40) debilidades.push(`😰 Clutch% bajo (${ultimo.clutchLocal}%) - Dificultad en momentos clave del set.`);
         if (ultimo.eficienciaServicioLocal > 10) fortalezas.push(`🏐 Eficiencia de servicio del ${ultimo.eficienciaServicioLocal}% - Saque efectivo y con pocos errores.`);
@@ -1191,62 +1200,78 @@ export class VolleyballDashboard {
     }
 
     setupFiltrosSets() {
-        setTimeout(() => {
-            const btns = document.querySelectorAll('.filtro-set-btn');
-            if (!btns.length) return;
-            btns.forEach(btn => {
-                btn.removeEventListener('click', this.filtroSetHandler);
-                this.filtroSetHandler = (e) => {
-                    const target = e.currentTarget;
-                    btns.forEach(b => {
-                        b.classList.remove('bg-primary', 'text-white');
-                        b.classList.add('bg-gray-700', 'text-gray-300');
-                    });
-                    target.classList.add('bg-primary', 'text-white');
-                    target.classList.remove('bg-gray-700', 'text-gray-300');
-                    this.filtroSet = target.dataset.set;
-                    this.actualizarVistaIndividuales();
-                };
-                btn.addEventListener('click', this.filtroSetHandler);
-            });
-        }, 100);
+        const contenedor = document.getElementById('filtrosSetsIndividuales');
+        if (!contenedor || contenedor.dataset.inicializado === 'true') return;
+        contenedor.dataset.inicializado = 'true';
+        contenedor.addEventListener('click', (evento) => {
+            const target = evento.target.closest('.filtro-set-btn');
+            if (!target) return;
+            this.actualizarEstiloFiltro(contenedor, target);
+            this.filtroSet = target.dataset.set;
+            this.actualizarVistaIndividuales();
+        });
+    }
+
+    setupFiltrosRotaciones() {
+        const contenedor = document.getElementById('filtrosSetsRotaciones');
+        if (!contenedor || contenedor.dataset.inicializado === 'true') return;
+        contenedor.dataset.inicializado = 'true';
+        contenedor.addEventListener('click', (evento) => {
+            const target = evento.target.closest('.filtro-rotacion-set-btn');
+            if (!target) return;
+            this.actualizarEstiloFiltro(contenedor, target);
+            this.filtroRotaciones = target.dataset.set;
+            this.mostrarRotaciones();
+        });
+    }
+
+    actualizarEstiloFiltro(contenedor, activo) {
+        contenedor.querySelectorAll('button[data-set]').forEach(boton => {
+            boton.classList.remove('bg-primary', 'text-white');
+            boton.classList.add('bg-gray-700', 'text-gray-300');
+            boton.setAttribute('aria-pressed', 'false');
+        });
+        activo.classList.add('bg-primary', 'text-white');
+        activo.classList.remove('bg-gray-700', 'text-gray-300');
+        activo.setAttribute('aria-pressed', 'true');
     }
 
     actualizarVistaIndividuales() {
         renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
         renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
         if (this.puntosJugadores && this.puntosJugadores.length > 0) {
-            let datosFiltrados = this.puntosJugadores;
-            if (this.filtroSet !== 'all') {
-                datosFiltrados = this.puntosJugadores.filter(p => p.set == this.filtroSet);
-            }
+            const datosFiltrados = filtrarPuntosPorSet(this.puntosJugadores, this.filtroSet);
             const statsLocal = calcularStatsPorJugador(datosFiltrados, 'LOCAL');
             const statsVisitante = calcularStatsPorJugador(datosFiltrados, 'VISITANTE');
             actualizarTablaConStats('tablaLocalBody', statsLocal, this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
             actualizarTablaConStats('tablaVisitanteBody', statsVisitante, this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
-            const totalLocal = Object.values(statsLocal).reduce((sum, s) => sum + s.puntos, 0);
-            const totalVisitante = Object.values(statsVisitante).reduce((sum, s) => sum + s.puntos, 0);
+            const resumenLocal = resumirPuntosEquipo(datosFiltrados, 'LOCAL', statsLocal);
+            const resumenVisitante = resumirPuntosEquipo(datosFiltrados, 'VISITANTE', statsVisitante);
             const totalAcesLocal = Object.values(statsLocal).reduce((sum, s) => sum + (s.acesServicio || 0), 0);
             const totalAcesVisitante = Object.values(statsVisitante).reduce((sum, s) => sum + (s.acesServicio || 0), 0);
             const totalErroresServLocal = Object.values(statsLocal).reduce((sum, s) => sum + (s.erroresServicio || 0), 0);
             const totalErroresServVisitante = Object.values(statsVisitante).reduce((sum, s) => sum + (s.erroresServicio || 0), 0);
-            document.getElementById('localTotalPts').innerHTML = `Total: ${totalLocal} pts`;
-            document.getElementById('visitanteTotalPts').innerHTML = `Total: ${totalVisitante} pts`;
+            document.getElementById('localTotalPts').innerHTML = `Atribuidos: ${resumenLocal.puntosAtribuidos} · Sin atribuir: ${resumenLocal.sinAtribuir} · Equipo: ${resumenLocal.puntosEquipo}`;
+            document.getElementById('visitanteTotalPts').innerHTML = `Atribuidos: ${resumenVisitante.puntosAtribuidos} · Sin atribuir: ${resumenVisitante.sinAtribuir} · Equipo: ${resumenVisitante.puntosEquipo}`;
             document.getElementById('localTotalAces').innerHTML = `🎯 Aces: ${totalAcesLocal}`;
             document.getElementById('visitanteTotalAces').innerHTML = `🎯 Aces: ${totalAcesVisitante}`;
             document.getElementById('localTotalServErrors').innerHTML = `❌ Err Serv: ${totalErroresServLocal}`;
             document.getElementById('visitanteTotalServErrors').innerHTML = `❌ Err Serv: ${totalErroresServVisitante}`;
             renderizarTop5ConNombres(statsLocal, statsVisitante, this.jugadoresLocal, this.jugadoresVisitante);
+            renderizarTarjetasMoviles('tarjetasLocalMovil', statsLocal, this.jugadoresLocal);
+            renderizarTarjetasMoviles('tarjetasVisitanteMovil', statsVisitante, this.jugadoresVisitante);
             if (this.chartPuntosJugadores) this.chartPuntosJugadores.destroy();
             this.chartPuntosJugadores = renderizarGraficoPuntos(statsLocal, 'LOCAL', this.jugadoresLocal, this.jugadoresVisitante, this.chartPuntosJugadores);
         } else {
-            document.getElementById('localTotalPts').innerHTML = 'Total: 0 pts';
-            document.getElementById('visitanteTotalPts').innerHTML = 'Total: 0 pts';
+            document.getElementById('localTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
+            document.getElementById('visitanteTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
             document.getElementById('localTotalAces').innerHTML = '🎯 Aces: 0';
             document.getElementById('visitanteTotalAces').innerHTML = '🎯 Aces: 0';
             document.getElementById('localTotalServErrors').innerHTML = '❌ Err Serv: 0';
             document.getElementById('visitanteTotalServErrors').innerHTML = '❌ Err Serv: 0';
             document.getElementById('top5List').innerHTML = '<div class="text-center text-gray-500">Sin datos de puntos</div>';
+            renderizarTarjetasMoviles('tarjetasLocalMovil', {}, this.jugadoresLocal);
+            renderizarTarjetasMoviles('tarjetasVisitanteMovil', {}, this.jugadoresVisitante);
         }
     }
 
@@ -1270,8 +1295,8 @@ export class VolleyballDashboard {
             cm.style.color = col; }
         if (cr) cr.innerHTML = `🔥 Racha: ${this.homeTeamName} ${last.homeRun} - ${last.awayRun} ${this.awayTeamName}`;
         if (cb) {
-            const br = this.data.filter(s => s.event?.includes('BREAK'));
-            cb.innerHTML = `💪 Rompes: ${br.filter(b => b.event === 'BREAK_HOME').length} - ${br.filter(b => b.event === 'BREAK_AWAY').length}`;
+            const metricas = calcularMetricasRally(this.data);
+            cb.innerHTML = `💪 Breakpoints: ${metricas.equipos.HOME.breakpoint.exitos} - ${metricas.equipos.AWAY.breakpoint.exitos}`;
         }
         if (cs) cs.innerHTML = `📊 ${last.homeScore} - ${last.awayScore} | ${Math.round((homePoints / total) * 100)}% eficiencia`;
     }
@@ -1353,6 +1378,33 @@ export class VolleyballDashboard {
         }
     }
 
+    setupPwaInstall() {
+        const boton = document.getElementById('installAppBtnMobile');
+        if (!boton) return;
+
+        const actualizarVisibilidad = () => {
+            boton.classList.toggle('hidden', !window.deferredInstallPrompt);
+        };
+
+        window.addEventListener('voleyinsight-install-ready', actualizarVisibilidad);
+        window.addEventListener('appinstalled', () => {
+            window.deferredInstallPrompt = null;
+            actualizarVisibilidad();
+            this.mostrarFeedbackPartido('✅ VoleyInsight instalado');
+        });
+
+        boton.addEventListener('click', async () => {
+            const prompt = window.deferredInstallPrompt;
+            if (!prompt) return;
+            prompt.prompt();
+            await prompt.userChoice;
+            window.deferredInstallPrompt = null;
+            actualizarVisibilidad();
+        });
+
+        actualizarVisibilidad();
+    }
+
     reasignarEventosMenuMovil() {
         const saveHTMLBtnMobile = document.getElementById('saveHTMLBtnMobile');
         if (saveHTMLBtnMobile) {
@@ -1425,16 +1477,28 @@ export class VolleyballDashboard {
     updateBreakPointsList() {
         const c = document.getElementById('breakPointsList');
         if (!c) return;
-        const bg = localStorage.getItem(`breaks_${this.matchId}`);
-        let breaks = bg ? JSON.parse(bg) : [];
-        if (!breaks.length) { c.innerHTML = '<div class="text-center text-gray-400 py-4">No se detectaron quiebres</div>'; return; }
-        c.innerHTML = breaks.slice(-12).reverse().map(b =>
-            `<div class="flex justify-between items-center p-2 rounded-lg ${b.equipo === 'LOCAL' ? 'bg-primary/10' : 'bg-rose-500/10'} mb-1">
-                <span class="text-xs font-bold text-primary">${b.tipo?.toUpperCase() || 'BREAK'}</span>
-                <span class="text-sm font-semibold ${b.equipo === 'LOCAL' ? 'text-primary' : 'text-rose-400'}">⚡ ${b.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}</span>
-                <span class="text-xs bg-dark px-2 py-0.5 rounded-full">${b.marcador}</span>
-            </div>`
-        ).join('');
+        const automaticos = calcularMetricasRally(this.data).breakpoints;
+        const leerLista = (clave) => {
+            try { return JSON.parse(localStorage.getItem(clave) || '[]'); }
+            catch { return []; }
+        };
+        const marcas = [...leerLista(`breaks_${this.matchId}`), ...leerLista(`marcas_${this.matchId}`)];
+        const automaticosHtml = automaticos.slice(-12).reverse().map(punto => {
+            const esLocal = punto.equipoBreakpoint === 'HOME';
+            const marcador = `${punto.homeScore ?? '?'}-${punto.awayScore ?? '?'}`;
+            return `<div class="flex justify-between items-center p-2 rounded-lg ${esLocal ? 'bg-primary/10' : 'bg-rose-500/10'} mb-1">
+                <span class="text-xs text-gray-400">Set ${punto.set || '-'}</span>
+                <span class="text-sm font-semibold ${esLocal ? 'text-primary' : 'text-rose-400'}">🏐 ${esLocal ? this.homeTeamName : this.awayTeamName}</span>
+                <span class="text-xs bg-dark px-2 py-0.5 rounded-full">${marcador}</span>
+            </div>`;
+        }).join('');
+        const marcasHtml = marcas.length ? `<div class="mt-3 pt-2 border-t border-gray-700">
+            <div class="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Marcas manuales del analista</div>
+            ${marcas.slice(-6).reverse().map(marca => `<div class="flex justify-between items-center p-2 rounded-lg bg-purple-500/10 mb-1"><span class="text-xs">⭐ Momento clave</span><span class="text-xs text-gray-300">${marca.equipo || '-'}</span><span class="text-xs bg-dark px-2 py-0.5 rounded-full">${marca.marcador || '-'}</span></div>`).join('')}
+        </div>` : '';
+        c.innerHTML = automaticosHtml || marcasHtml
+            ? `${automaticosHtml}${marcasHtml}`
+            : '<div class="text-center text-gray-400 py-4">Todavía no hubo breakpoints con saque propio</div>';
     }
 
     updateInsightsList(homeEfficiency, homeBreaks) {
@@ -1449,16 +1513,16 @@ export class VolleyballDashboard {
         else if (eficiencia > 55) i.push(`✅ CONTROL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
         else if (eficiencia > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${nombreEquipo} ganó ${eficiencia}% vs rival.`);
         else if (eficiencia < 45 && eficiencia > 0) i.push(`⚠️ SUPERADO: ${nombreEquipo} solo ganó ${eficiencia}% de los puntos.`);
-        if (breaks > 12) i.push(`⚡ EFECTIVO EN QUIEBRES: ${breaks} veces quebró el saque rival.`);
-        else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS QUIEBRES: Solo ${breaks} veces quebró el saque. Mejorar recepción.`);
+        if (breaks > 12) i.push(`⚡ EFECTIVO CON SAQUE PROPIO: ganó ${breaks} breakpoints.`);
+        else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS BREAKPOINTS: ganó ${breaks} puntos con saque propio. Revisar presión de saque y bloqueo-defensa.`);
         const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
         const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
         const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
         const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
-        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%) cuando tiene el saque.`);
-        else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Problemas con saque propio.`);
-        if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). Buena recepción y contraataque.`);
-        else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Dificultad para romper saque rival.`);
+        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%). Buena recepción y primer ataque.`);
+        else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Revisar recepción y salida de ataque.`);
+        if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). El saque propio genera puntos.`);
+        else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Falta presión con saque propio.`);
         const clutch = parseFloat(document.getElementById('clutchHome')?.textContent) || 0;
         if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${clutch}% bajo presión.`);
         else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: Solo ${clutch}% en momentos críticos.`);
@@ -1466,11 +1530,12 @@ export class VolleyballDashboard {
         c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
     }
 
-    calcularRotaciones() {
-        if (!this.puntosJugadores || this.puntosJugadores.length === 0) {
+    calcularRotaciones(setSeleccionado = this.filtroRotaciones) {
+        const puntos = filtrarPuntosPorSet(this.puntosJugadores, setSeleccionado);
+        if (!puntos.length) {
             return null;
         }
-        return calcularRotacionesPorEquipo(this.puntosJugadores, this.obtenerEquipoRotaciones());
+        return calcularRotacionesPorEquipo(puntos, this.obtenerEquipoRotaciones());
     }
 
     obtenerEquipoRotaciones() {
@@ -1483,8 +1548,8 @@ export class VolleyballDashboard {
             : this.awayTeamName;
     }
 
-    generarRotacionesHTML() {
-        const datos = this.calcularRotaciones();
+    generarRotacionesHTML(setSeleccionado = 'all') {
+        const datos = this.calcularRotaciones(setSeleccionado);
         if (!datos) {
             return '<div class="section"><div class="section-title">🔄 EFICIENCIA POR ROTACIÓN</div><div class="text-center text-gray-400 py-4">No hay suficientes datos para calcular rotaciones</div></div>';
         }
@@ -1495,7 +1560,7 @@ export class VolleyballDashboard {
         let html = `
             <div class="section">
                 <div class="section-title">🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipoRotaciones}</div>
-                <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Los puntos se agrupan siempre por la rotación de ${nombreEquipoRotaciones}, sin mezclar la rotación rival.</p>
+                <p class="text-gray-400 text-sm mb-4" style="color:#9ca3af;font-size:13px;margin-bottom:15px;">Los puntos se agrupan siempre por la rotación de ${nombreEquipoRotaciones}, sin mezclar la rotación rival. En el acumulado, la formación mostrada corresponde al primer set disponible; los valores estadísticos suman todo el partido.</p>
                 
                 <div style="overflow-x:auto; margin-bottom: 20px;">
                     <table style="width:100%;border-collapse:collapse;min-width:900px;background:#1a1f2e;border-radius:12px;overflow:hidden;">
@@ -1518,7 +1583,7 @@ export class VolleyballDashboard {
             let formacionNombres = 'Formación histórica no registrada';
             
             if (tieneDatos) {
-                const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i);
+                const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i, setSeleccionado);
                 if (formacion.length === 6) {
                     formacionNombres = formacion.map(j =>
                     `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
@@ -1603,8 +1668,9 @@ export class VolleyballDashboard {
         const nombreEquipo = this.obtenerNombreEquipoRotaciones();
         const titulo = document.getElementById('rotacionesTitulo');
         const descripcion = document.getElementById('rotacionesDescripcion');
-        if (titulo) titulo.textContent = `🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipo}`;
-        if (descripcion) descripcion.textContent = `Puntos a favor y en contra agrupados por la rotación de ${nombreEquipo}.`;
+        const alcance = this.filtroRotaciones === 'all' ? 'Acumulado del partido' : `Set ${this.filtroRotaciones}`;
+        if (titulo) titulo.textContent = `🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipo} · ${alcance}`;
+        if (descripcion) descripcion.textContent = `Puntos a favor y en contra de ${nombreEquipo}. ${alcance}.`;
         if (!tabla) return;
         const datos = this.calcularRotaciones();
         if (!datos) {
@@ -1747,7 +1813,8 @@ export class VolleyballDashboard {
     mostrarDetalleRotacion(rotacionNum) {
         const equipoRotaciones = this.obtenerEquipoRotaciones();
         const nombreEquipoRotaciones = this.obtenerNombreEquipoRotaciones();
-        const jugadores = this.obtenerJugadoresEnRotacion(equipoRotaciones, rotacionNum);
+        const setFormacion = this.resolverSetFormacion(this.filtroRotaciones);
+        const jugadores = this.obtenerJugadoresEnRotacion(equipoRotaciones, rotacionNum, this.filtroRotaciones);
         const stats = this.obtenerStatsRotacion(rotacionNum);
         const modal = document.getElementById('modalRotacion');
         const titulo = document.getElementById('modalRotacionTitulo');
@@ -1803,7 +1870,7 @@ export class VolleyballDashboard {
                 ` : `
                     <div class="text-center text-gray-500 text-sm py-6 bg-dark/30 rounded-xl">📊 No hay suficientes datos para esta rotación</div>
                 `}
-                <div class="text-center text-[10px] text-gray-500 border-t border-gray-700/50 pt-3">💡 Las estadísticas corresponden exclusivamente a la rotación de ${nombreEquipoRotaciones}</div>
+                <div class="text-center text-[10px] text-gray-500 border-t border-gray-700/50 pt-3">💡 Estadísticas: ${this.filtroRotaciones === 'all' ? 'acumulado del partido' : `Set ${this.filtroRotaciones}`} · Formación mostrada: Set ${setFormacion}</div>
             </div>
         `;
         modal.classList.remove('hidden');
@@ -1811,16 +1878,20 @@ export class VolleyballDashboard {
         document.body.style.overflow = 'hidden';
     }
 
-    obtenerJugadoresEnRotacion(equipo, rotacionNum) {
+    resolverSetFormacion(setSeleccionado = this.filtroRotaciones) {
         const setsConPuntos = [...new Set((this.puntosJugadores || [])
             .map(punto => Number(punto.set))
             .filter(Number.isInteger))]
             .sort((a, b) => a - b);
-        const setSeleccionado = this.filtroSet !== 'all'
-            ? Number(this.filtroSet)
-            : (setsConPuntos[0] || 1);
+        return setSeleccionado !== 'all'
+            ? Number(setSeleccionado)
+            : (setsConPuntos.find(set => this.formacionInicialPorSet?.[set]) || setsConPuntos[0] || 1);
+    }
+
+    obtenerJugadoresEnRotacion(equipo, rotacionNum, setSeleccionado = this.filtroRotaciones) {
+        const setFormacion = this.resolverSetFormacion(setSeleccionado);
         const claveEquipo = equipo === 'VISITANTE' ? 'visitante' : 'local';
-        const formacionInicial = this.formacionInicialPorSet?.[setSeleccionado]?.[claveEquipo];
+        const formacionInicial = this.formacionInicialPorSet?.[setFormacion]?.[claveEquipo];
         const jugadoresMap = equipo === 'VISITANTE'
             ? this.jugadoresVisitante
             : this.jugadoresLocal;
@@ -1837,7 +1908,7 @@ export class VolleyballDashboard {
 
     obtenerStatsRotacion(rotacionNum) {
         return obtenerStatsRotacionHelper(
-            this.puntosJugadores,
+            filtrarPuntosPorSet(this.puntosJugadores, this.filtroRotaciones),
             this.obtenerEquipoRotaciones(),
             rotacionNum
         );
@@ -1986,11 +2057,11 @@ export class VolleyballDashboard {
             interpretaciones.push({ titulo: '⚡ RACHAS MOMENTÁNEAS', descripcion: `Ambos equipos tuvieron rachas (${this.homeTeamName}: ${maxHR}, ${this.awayTeamName}: ${maxAR}). El partido fue de altibajos.`, accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.' });
         }
         if (brH > brA + 4) {
-            interpretaciones.push({ titulo: '💪 EXCELENTE RECEPCIÓN Y CONTRAATAQUE', descripcion: `${this.homeTeamName} rompió el saque ${brH} veces, ${brH - brA} más que el rival.`, accion: 'La recepción funcionó bien. Mantener la agresividad en el segundo toque y la definición.' });
+            interpretaciones.push({ titulo: '💪 PRESIÓN EFECTIVA CON SAQUE PROPIO', descripcion: `${this.homeTeamName} ganó ${brH} breakpoints, ${brH - brA} más que el rival.`, accion: 'Mantener la combinación de saque, bloqueo y defensa que produjo esos puntos.' });
         } else if (brA > brH + 4) {
-            interpretaciones.push({ titulo: '⚠️ PROBLEMAS EN RECEPCIÓN DE SAQUE', descripcion: `${this.awayTeamName} rompió el saque ${brA} veces. ${this.homeTeamName} solo lo logró ${brH}.`, accion: 'Trabajar: recepción de saque, sistema de cobertura, saque más agresivo para evitar que el rival construya.' });
+            interpretaciones.push({ titulo: '⚠️ POCA PRODUCCIÓN CON SAQUE PROPIO', descripcion: `${this.awayTeamName} ganó ${brA} breakpoints y ${this.homeTeamName} ${brH}.`, accion: 'Trabajar presión de saque, organización de bloqueo y transición defensiva.' });
         } else if (brH + brA > 15) {
-            interpretaciones.push({ titulo: '⚡ PARTIDO DE MUCHOS SAQUES', descripcion: `Hubo ${brH + brA} rompes en total. El saque no fue determinante, dominó el que mejor recibió.`, accion: 'El equipo que mejor pase y contraataque tiene ventaja. Fortalecer esas habilidades.' });
+            interpretaciones.push({ titulo: '⚡ MUCHOS BREAKPOINTS', descripcion: `Hubo ${brH + brA} puntos ganados por el equipo que sacaba.`, accion: 'Revisar qué zonas de saque y sistemas de bloqueo generaron mayor ventaja.' });
         }
         if (clutch > 65) {
             interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });
@@ -2001,14 +2072,14 @@ export class VolleyballDashboard {
             interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
         }
         if (sideout > 65) {
-            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamName} convirtió ${sideout}% de los puntos cuando tenía el saque.`, accion: 'El ataque y el juego desde la zona de saque es muy eficiente. Mantener la estrategia ofensiva.' });
+            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamName} convirtió ${sideout}% de las recepciones en punto.`, accion: 'La recepción y el primer ataque funcionan bien. Mantener calidad de pase y distribución.' });
         } else if (sideout < 45 && sideout > 0) {
-            interpretaciones.push({ titulo: '⚠️ PROBLEMAS CON SAQUE PROPIO', descripcion: `${this.homeTeamName} solo convirtió ${sideout}% de los puntos cuando sacaba.`, accion: 'Revisar: efectividad del ataque, definición en contraataque, errores en momentos de ventaja.' });
+            interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${this.homeTeamName} solo ganó ${sideout}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
         }
         if (breakpoint > 45) {
-            interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${this.homeTeamName} convirtió ${breakpoint}% de los puntos cuando el rival sacaba.`, accion: 'La recepción y el contraataque son armas muy poderosas del equipo. Seguir desarrollándolas.' });
+            interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${this.homeTeamName} ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'El saque propio y el sistema de bloqueo-defensa están generando ventaja.' });
         } else if (breakpoint < 25 && breakpoint > 0) {
-            interpretaciones.push({ titulo: '🔻 DIFICULTAD PARA ROMPER EL SAQUE', descripcion: `${this.homeTeamName} solo convirtió ${breakpoint}% de los puntos cuando el rival sacaba.`, accion: 'Trabajar: recepción de saque, transición ofensiva rápida, definición en contraataque.' });
+            interpretaciones.push({ titulo: '🔻 BAJA PRODUCCIÓN CON SAQUE', descripcion: `${this.homeTeamName} solo ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
         }
         if (serviceEff > 15) {
             interpretaciones.push({ titulo: '🏐 SAQUE MUY EFECTIVO', descripcion: `Eficiencia de servicio del ${serviceEff}% (Aces - Errores). El saque es un arma ofensiva.`, accion: 'Mantener la agresividad controlada. Seguir variando zonas y velocidades.' });
@@ -2064,13 +2135,13 @@ export class VolleyballDashboard {
             recomendaciones.push({ prioridad: 'ALTA', area: 'MANEJO DE LA PRESIÓN', texto: `Solo convertiste ${clutch}% de los puntos en momentos críticos.`, detalle: 'El equipo se achica cuando el partido está parejo o hay set point en contra.', tarea: 'Ejercicios específicos: definir sets con marcador 20-20, 23-23, set point en contra.' });
         }
         if (breakpoint < 28 && breakpoint > 0) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'RECEPCIÓN Y CONTRAATAQUE', texto: `Breakpoint% del ${breakpoint}% (muy bajo).`, detalle: 'El equipo tiene dificultades para anotar cuando el rival saca.', tarea: 'Trabajar: recepción de saque, pase perfecto, transición ofensiva rápida.' });
+            recomendaciones.push({ prioridad: 'ALTA', area: 'SAQUE Y BLOQUEO-DEFENSA', texto: `Breakpoint% del ${breakpoint}% (muy bajo).`, detalle: 'El equipo produce pocos puntos mientras tiene el saque.', tarea: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
         }
         if (sideout < 48 && sideout > 0) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'ATAQUE CON SAQUE PROPIO', texto: `Sideout% del ${sideout}% (por debajo del ideal 55%).`, detalle: 'Cuando el equipo tiene el saque, no logra convertir suficiente puntos.', tarea: 'Ajustar: definición en ataque, evitar errores en momentos de ventaja.' });
+            recomendaciones.push({ prioridad: 'MEDIA', area: 'RECEPCIÓN Y PRIMER ATAQUE', texto: `Sideout% del ${sideout}% (por debajo del ideal 55%).`, detalle: 'Cuando recibe el saque rival, el equipo no recupera el servicio con suficiente frecuencia.', tarea: 'Ajustar recepción, distribución y definición del primer ataque.' });
         }
         if (brA > brH + 4) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'SISTEMA DE BLOQUEO/DEFENSA', texto: `El rival rompió el saque ${brA} veces vs ${brH} veces propias.`, detalle: 'El rival construyó mejor sus puntos sin saque. El bloqueo y la defensa no fueron suficientes.', tarea: 'Revisar el posicionamiento defensivo, cobertura de bloqueo, saque más agresivo.' });
+            recomendaciones.push({ prioridad: 'MEDIA', area: 'SISTEMA DE SAQUE/BLOQUEO', texto: `El rival ganó ${brA} breakpoints y el equipo ${brH}.`, detalle: 'El rival produjo más puntos mientras sacaba.', tarea: 'Revisar posicionamiento defensivo, relación saque-bloqueo y agresividad controlada.' });
         }
         if (lateEff < 45 && lateEff > 0 && effH > 0) {
             recomendaciones.push({ prioridad: 'MEDIA', area: 'CIERRE DE SETS', texto: `Solo ${lateEff}% de efectividad en puntos 21+ (fase Late).`, detalle: 'El equipo baja su rendimiento en la parte final de los sets.', tarea: 'Entrenar la definición: concentración en los últimos puntos, saque agresivo, manejo de tiempos.' });
@@ -2166,7 +2237,15 @@ export class VolleyballDashboard {
     }
 
     updateDashboard() {
-        if (!this.data?.length) return;
+        if (!this.data?.length) {
+            const clutchInsight = document.getElementById('clutchInsight');
+            const breakPointsList = document.getElementById('breakPointsList');
+            const setDominance = document.getElementById('setDominance');
+            if (clutchInsight) clutchInsight.textContent = 'Todavía no hay puntos suficientes para analizar presión.';
+            if (breakPointsList) breakPointsList.innerHTML = '<div class="text-center text-gray-400 py-4">Esperando puntos del partido...</div>';
+            if (setDominance) setDominance.innerHTML = '<div class="text-center text-gray-400 py-6 text-sm">Esperando el inicio del partido...</div>';
+            return;
+        }
         const last = this.data[this.data.length - 1];
         document.getElementById('homeTeamName').textContent = this.homeTeamName;
         document.getElementById('awayTeamName').textContent = this.awayTeamName;
@@ -2178,9 +2257,9 @@ export class VolleyballDashboard {
         const total = points.length;
         const maxHomeRun = Math.max(...this.data.map(s => s.homeRun), 0);
         const maxAwayRun = Math.max(...this.data.map(s => s.awayRun), 0);
-        const breaks = this.data.filter(s => s.event && (s.event === 'BREAK_HOME' || s.event === 'BREAK_AWAY'));
-        const homeBreaks = breaks.filter(b => b.event === 'BREAK_HOME').length;
-        const awayBreaks = breaks.filter(b => b.event === 'BREAK_AWAY').length;
+        const metricasRally = calcularMetricasRally(this.data);
+        const homeBreaks = metricasRally.equipos.HOME.breakpoint.exitos;
+        const awayBreaks = metricasRally.equipos.AWAY.breakpoint.exitos;
         const homeEfficiency = total ? ((homePoints / total) * 100).toFixed(1) : 0;
         const awayEfficiency = total ? ((awayPoints / total) * 100).toFixed(1) : 0;
         const phases = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
@@ -2198,23 +2277,12 @@ export class VolleyballDashboard {
         const homeClutch = clutchPoints.filter(c => c.scorer === 'HOME').length;
         const totalClutch = clutchPoints.length;
         const homeClutchPct = totalClutch ? ((homeClutch / totalClutch) * 100).toFixed(1) : 0;
-        let sl = 0,
-            sv = 0,
-            sol = 0,
-            sov = 0,
-            bpl = 0,
-            bpv = 0;
-        for (const p of this.data) {
-            if (p.scorer && p.serving) {
-                if (p.serving === 'HOME') { sl++; if (p.scorer === 'HOME') sol++;
-                    else bpv++; } else if (p.serving === 'AWAY') { sv++; if (p.scorer === 'AWAY') sov++;
-                    else bpl++; }
-            }
-        }
-        const solPct = sl ? (sol / sl * 100).toFixed(1) : 0;
-        const sovPct = sv ? (sov / sv * 100).toFixed(1) : 0;
-        const bplPct = sv ? (bpl / sv * 100).toFixed(1) : 0;
-        const bpvPct = sl ? (bpv / sl * 100).toFixed(1) : 0;
+        const solPct = metricasRally.equipos.HOME.sideout.porcentaje;
+        const sovPct = metricasRally.equipos.AWAY.sideout.porcentaje;
+        const bplPct = metricasRally.equipos.HOME.breakpoint.porcentaje;
+        const bpvPct = metricasRally.equipos.AWAY.breakpoint.porcentaje;
+        this.awayEfficiency = awayEfficiency;
+        this.awayBreaks = awayBreaks;
         document.getElementById('maxRunHome').textContent = maxHomeRun;
         document.getElementById('maxRunAway').textContent = maxAwayRun;
         document.getElementById('breaksHome').textContent = homeBreaks;
@@ -2243,8 +2311,14 @@ export class VolleyballDashboard {
             const hw = (homeClutch / totalClutch) * 100;
             const hb = document.getElementById('clutchBarHome');
             const ab = document.getElementById('clutchBarAway');
-            if (hb) hb.style.width = `${hw}%`;
-            if (ab) ab.style.width = `${100 - hw}%`;
+            if (hb) { hb.style.width = `${hw}%`; hb.textContent = `${hw.toFixed(1)}%`; }
+            if (ab) { ab.style.width = `${100 - hw}%`; ab.textContent = `${(100 - hw).toFixed(1)}%`; }
+        }
+        const clutchInsight = document.getElementById('clutchInsight');
+        if (clutchInsight) {
+            clutchInsight.textContent = totalClutch
+                ? `${this.homeTeamName} ${homeClutchPct}% · ${this.awayTeamName} ${(100 - Number(homeClutchPct)).toFixed(1)}% sobre ${totalClutch} puntos críticos.`
+                : 'Todavía no hubo suficientes puntos críticos para comparar.';
         }
         if (last?.servingAfter || last?.serving) {
             this.actualizarBadgeSaque(last.servingAfter || last.serving);
@@ -2337,9 +2411,13 @@ export class VolleyballDashboard {
             const awayEfficiency = total ? ((awayPoints / total) * 100).toFixed(1) : 0;
             const maxHomeRun = this.data ? Math.max(...this.data.map(s => s.homeRun), 0) : 0;
             const maxAwayRun = this.data ? Math.max(...this.data.map(s => s.awayRun), 0) : 0;
-            const breaks = this.data ? this.data.filter(s => s.event && s.event.includes('BREAK')) : [];
-            const homeBreaks = breaks.filter(b => b.event === 'BREAK_HOME').length;
-            const awayBreaks = breaks.filter(b => b.event === 'BREAK_AWAY').length;
+            const metricasRally = calcularMetricasRally(this.data || []);
+            const homeBreaks = metricasRally.equipos.HOME.breakpoint.exitos;
+            const awayBreaks = metricasRally.equipos.AWAY.breakpoint.exitos;
+            const sideoutHome = metricasRally.equipos.HOME.sideout.porcentaje;
+            const sideoutAway = metricasRally.equipos.AWAY.sideout.porcentaje;
+            const breakpointHome = metricasRally.equipos.HOME.breakpoint.porcentaje;
+            const breakpointAway = metricasRally.equipos.AWAY.breakpoint.porcentaje;
             const clutchPoints = this.data ? this.data.filter(s => {
                 const isSetPoint = (s.homeScore >= 24 && s.homeScore > s.awayScore) || (s.awayScore >= 24 && s.awayScore > s.homeScore);
                 const isCloseGame = Math.abs(s.lead) <= 2;
@@ -2362,6 +2440,11 @@ export class VolleyballDashboard {
                 mid: phases.MID.total ? (phases.MID.home / phases.MID.total * 100).toFixed(1) : 0,
                 late: phases.LATE.total ? (phases.LATE.home / phases.LATE.total * 100).toFixed(1) : 0
             };
+            const awayPhaseEff = {
+                early: phases.EARLY.total ? (phases.EARLY.away / phases.EARLY.total * 100).toFixed(1) : 0,
+                mid: phases.MID.total ? (phases.MID.away / phases.MID.total * 100).toFixed(1) : 0,
+                late: phases.LATE.total ? (phases.LATE.away / phases.LATE.total * 100).toFixed(1) : 0
+            };
             const sets = new Map();
             if (this.data) {
                 this.data.forEach(s => {
@@ -2373,13 +2456,15 @@ export class VolleyballDashboard {
             }
             let setsHtml = '';
             for (const [num, scores] of sets) {
-                const winner = scores.home > scores.away ? homeTeam : awayTeam;
                 const isFinished = (scores.home >= 25 || scores.away >= 25) && Math.abs(scores.home - scores.away) >= 2;
+                const winner = isFinished
+                    ? `🏆 ${scores.home > scores.away ? homeTeam : awayTeam}`
+                    : '🔴 En curso';
                 const bgColor = !isFinished ? 'background: linear-gradient(135deg, #1a1f2e, #0f1119); border: 2px solid #667eea;' : 'background: linear-gradient(135deg, #1a1f2e, #0f1119); border: 1px solid rgba(102,126,234,0.3);';
                 setsHtml += `<div style="${bgColor} border-radius: 12px; padding: 15px; text-align: center;">
                     <div style="font-size: 14px; font-weight: bold; color: #667eea; margin-bottom: 8px;">SET ${num}</div>
                     <div style="font-size: 28px; font-weight: bold; margin-bottom: 5px;"><span style="color: #3b82f6;">${scores.home}</span><span style="color: #6b7280;"> - </span><span style="color: #ef4444;">${scores.away}</span></div>
-                    <div style="font-size: 12px; color: #10b981;">🏆 ${winner}</div>
+                    <div style="font-size: 12px; color: #10b981;">${winner}</div>
                 </div>`;
             }
             let tablaLocal = '';
@@ -2398,203 +2483,24 @@ export class VolleyballDashboard {
                 puntosJugadoresRaw = this.puntosJugadores;
             }
             if (puntosJugadoresRaw && puntosJugadoresRaw.length > 0) {
-                const calcularStatsManual = (datos, equipo) => {
-                    const stats = {};
-                    for (const punto of datos) {
-                        if (punto.equipo !== equipo) continue;
-                        const jugador = punto.jugador;
-                        if (!stats[jugador]) {
-                            stats[jugador] = {
-                                puntos: 0,
-                                ataques: 0,
-                                ataquesConvertidos: 0,
-                                bloqueos: 0,
-                                aces: 0,
-                                erroresAtaque: 0,
-                                asistencias: 0,
-                                acesServicio: 0,
-                                erroresServicio: 0,
-                                totalSaques: 0,
-                                puntosPorErrorRival: 0,
-                                faltas: 0
-                            };
-                        }
-                        const s = stats[jugador];
-                        switch (punto.accion) {
-                            case 'ATAQUE':
-                                s.ataques++;
-                                s.ataquesConvertidos++;
-                                s.puntos++;
-                                break;
-                            case 'BLOQUEO':
-                                s.bloqueos++;
-                                s.puntos++;
-                                break;
-                            case 'ACE':
-                                s.aces++;
-                                s.acesServicio++;
-                                s.totalSaques++;
-                                s.puntos++;
-                                break;
-                            case 'ERROR_RIVAL':
-                                s.puntosPorErrorRival++;
-                                s.puntos++;
-                                break;
-                            case 'FALTA':
-                                s.faltas++;
-                                break;
-                            case 'ERROR':
-                                s.erroresAtaque++;
-                                s.erroresServicio++;
-                                s.totalSaques++;
-                                break;
-                        }
-                        if (punto.asistencia) {
-                            if (!stats[punto.asistencia]) {
-                                stats[punto.asistencia] = {
-                                    puntos: 0,
-                                    ataques: 0,
-                                    ataquesConvertidos: 0,
-                                    bloqueos: 0,
-                                    aces: 0,
-                                    erroresAtaque: 0,
-                                    asistencias: 0,
-                                    acesServicio: 0,
-                                    erroresServicio: 0,
-                                    totalSaques: 0,
-                                    puntosPorErrorRival: 0
-                                };
-                            }
-                            stats[punto.asistencia].asistencias++;
-                        }
-                    }
-                    for (const jugador in stats) {
-                        const s = stats[jugador];
-                        s.ataques = s.ataques || 0;
-                        s.ataquesConvertidos = s.ataquesConvertidos || 0;
-                        s.bloqueos = s.bloqueos || 0;
-                        s.aces = s.aces || 0;
-                        s.erroresAtaque = s.erroresAtaque || 0;
-                        s.asistencias = s.asistencias || 0;
-                        s.acesServicio = s.acesServicio || 0;
-                        s.erroresServicio = s.erroresServicio || 0;
-                        s.totalSaques = s.totalSaques || 0;
-                        s.puntosPorErrorRival = s.puntosPorErrorRival || 0;
-                        if (s.ataques > 0) {
-                            s.eficienciaAtaque = ((s.ataquesConvertidos / s.ataques) * 100).toFixed(1);
-                        } else {
-                            s.eficienciaAtaque = '0';
-                        }
-                        if (s.totalSaques > 0) {
-                            s.eficienciaServicio = ((s.acesServicio - s.erroresServicio) / s.totalSaques * 100).toFixed(1);
-                        } else {
-                            s.eficienciaServicio = '0';
-                        }
-                        s.puntos = (s.ataquesConvertidos || 0) + (s.bloqueos || 0) + (s.aces || 0) + (s.puntosPorErrorRival || 0);
-                    }
-                    return stats;
-                };
-                statsLocalCalculadas = calcularStatsManual(puntosJugadoresRaw, 'LOCAL');
-                statsVisitanteCalculadas = calcularStatsManual(puntosJugadoresRaw, 'VISITANTE');
-                const generarTablaHTML = (stats, jugadoresMap, nombreEquipo, esVisitante) => {
-                    if (!stats || Object.keys(stats).length === 0) {
-                        return `<tr><td colspan="16" style="text-align:center;padding:40px;">Sin datos para ${nombreEquipo}</td></tr>`;
-                    }
-                    let html = '';
-                    const ordenados = Object.entries(stats).sort((a, b) => b[1].puntos - a[1].puntos);
-                    for (const [numJugador, s] of ordenados) {
-                        const num = parseInt(numJugador);
-                        if (isNaN(num)) continue;
-                        let nombre = jugadoresMap[num];
-                        if (!nombre) {
-                            nombre = esVisitante ? `Visitante ${num}` : `Local ${num}`;
-                        }
-                        const puntos = s.puntos || 0;
-                        const ataquesTotales = s.ataques || 0;
-                        const ataquesConvertidos = s.ataquesConvertidos || 0;
-                        const bloqueos = s.bloqueos || 0;
-                        const aces = s.aces || 0;
-                        const erroresAtaque = s.erroresAtaque || 0;
-                        const asistencias = s.asistencias || 0;
-                        const acesServicio = s.acesServicio || 0;
-                        const erroresServicio = s.erroresServicio || 0;
-                        const totalSaques = s.totalSaques || 0;
-                        const recepcionesPositivas = s.recepcionesPositivas || 0;
-                        const recepcionesNegativas = s.recepcionesNegativas || 0;
-                        const totalRecepciones = s.totalRecepciones || 0;
-                        const defensasPositivas = s.defensasPositivas || 0;
-                        const defensasNegativas = s.defensasNegativas || 0;
-                        const totalDefensas = s.totalDefensas || 0;
-                        const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';
-                        let eficienciaAtaque = '0';
-                        if (ataquesTotales > 0) {
-                            eficienciaAtaque = ((ataquesConvertidos / ataquesTotales) * 100).toFixed(1);
-                        }
-                        let eficienciaServicio = '0';
-                        if (totalSaques > 0) {
-                            eficienciaServicio = ((acesServicio - erroresServicio) / totalSaques * 100).toFixed(1);
-                        }
-                        let eficienciaRecepcion = '0';
-                        if (totalRecepciones > 0) {
-                            eficienciaRecepcion = ((recepcionesPositivas / totalRecepciones) * 100).toFixed(1);
-                        }
-                        let eficienciaDefensa = '0';
-                        if (totalDefensas > 0) {
-                            eficienciaDefensa = ((defensasPositivas / totalDefensas) * 100).toFixed(1);
-                        }
-                        const efAtaqueNum = parseFloat(eficienciaAtaque);
-                        const efAtaqueColor = efAtaqueNum > 50 ? '#10b981' : (efAtaqueNum > 25 ? '#f59e0b' : '#ef4444');
-                        const efServNum = parseFloat(eficienciaServicio);
-                        const efServColor = efServNum > 10 ? '#10b981' : (efServNum < 0 ? '#ef4444' : '#f59e0b');
-                        const efRecNum = parseFloat(eficienciaRecepcion);
-                        const efRecColor = efRecNum > 60 ? '#10b981' : (efRecNum > 40 ? '#f59e0b' : '#ef4444');
-                        const efDefNum = parseFloat(eficienciaDefensa);
-                        const efDefColor = efDefNum > 60 ? '#10b981' : (efDefNum > 40 ? '#f59e0b' : '#ef4444');
-                        html += `<tr style="border-bottom:1px solid #374151;">
-                            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
-                            <td style="text-align:center;font-weight:bold;color:#667eea;">${puntos}</td>
-                            <td style="text-align:center;">${ataquesTexto}</td>
-                            <td style="text-align:center;">${bloqueos}</td>
-                            <td style="text-align:center;">${aces}</td>
-                            <td style="text-align:center;color:#ef4444;">${erroresAtaque}</td>
-                            <td style="text-align:center;">${asistencias}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efAtaqueColor};">${eficienciaAtaque}%</td>
-                            <td style="text-align:center;color:#3b82f6;">${recepcionesPositivas}/${totalRecepciones}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efRecColor};">${eficienciaRecepcion}%</td>
-                            <td style="text-align:center;color:#8b5cf6;">${defensasPositivas}/${totalDefensas}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efDefColor};">${eficienciaDefensa}%</td>
-                            <td style="text-align:center;color:#3b82f6;">${acesServicio}</td>
-                            <td style="text-align:center;color:#ef4444;">${erroresServicio}</td>
-                            <td style="text-align:center;font-weight:bold;color:${efServColor};">${eficienciaServicio}%</td>
-                            <td style="text-align:center;font-weight:bold;">${totalSaques}</td>
-                        </tr>`;
-                    }
-                    return html;
-                };
-                tablaLocal = generarTablaHTML(statsLocalCalculadas, this.jugadoresLocal, homeTeam, false);
-                tablaVisitante = generarTablaHTML(statsVisitanteCalculadas, this.jugadoresVisitante, awayTeam, true);
+                statsLocalCalculadas = calcularStatsPorJugador(puntosJugadoresRaw, 'LOCAL');
+                statsVisitanteCalculadas = calcularStatsPorJugador(puntosJugadoresRaw, 'VISITANTE');
+                tablaLocal = generarTablaHTMLSimple(statsLocalCalculadas, this.jugadoresLocal);
+                tablaVisitante = generarTablaHTMLSimple(statsVisitanteCalculadas, this.jugadoresVisitante);
             } else {
                 console.log('⚠️ No hay puntos para generar tablas individuales');
-                const noDataMsg = '<tr><td colspan="13" style="text-align:center;padding:40px;">No hay puntos registrados para este partido</td></tr>';
+                const noDataMsg = '<tr><td colspan="16" style="text-align:center;padding:40px;">No hay puntos registrados para este partido</td></tr>';
                 tablaLocal = noDataMsg;
                 tablaVisitante = noDataMsg;
             }
             let breakPointsHtml = '';
-            const breaksGuardados = localStorage.getItem(`breaks_${this.matchId}`);
-            if (breaksGuardados) {
-                const breaksList = JSON.parse(breaksGuardados);
-                if (breaksList.length > 0) {
-                    breakPointsHtml = '<div style="max-height: 300px; overflow-y: auto;">' + breaksList.slice(-12).reverse().map(b => {
-                        const isHome = b.equipo === 'LOCAL';
-                        return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: ${isHome ? 'rgba(102,126,234,0.1)' : 'rgba(244,63,94,0.1)'}; border-radius: 10px; margin-bottom: 8px;">
-                            <span style="font-size: 13px; font-weight: bold; color: #667eea;">${b.tipo?.toUpperCase() || 'BREAK'}</span>
-                            <span style="font-size: 14px; font-weight: bold; color: ${isHome ? '#667eea' : '#f43f5e'};">⚡ ${isHome ? homeTeam : awayTeam}</span>
-                            <span style="font-size: 13px; background: #1a1f2e; padding: 4px 12px; border-radius: 20px;">${b.marcador}</span>
-                        </div>`;
-                    }).join('') + '</div>';
-                }
+            if (metricasRally.breakpoints.length) {
+                breakPointsHtml = '<div style="max-height:300px;overflow-y:auto;">' + metricasRally.breakpoints.slice(-20).reverse().map(punto => {
+                    const isHome = punto.equipoBreakpoint === 'HOME';
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:${isHome ? 'rgba(102,126,234,0.1)' : 'rgba(244,63,94,0.1)'};border-radius:10px;margin-bottom:8px;"><span>Set ${punto.set || '-'}</span><strong style="color:${isHome ? '#667eea' : '#f43f5e'};">🏐 ${isHome ? homeTeam : awayTeam}</strong><span>${punto.homeScore ?? '?'}-${punto.awayScore ?? '?'}</span></div>`;
+                }).join('') + '</div>';
             }
-            if (!breakPointsHtml) breakPointsHtml = '<div style="text-align: center; padding: 30px; color: #6b7280;">No se detectaron rompes</div>';
+            if (!breakPointsHtml) breakPointsHtml = '<div style="text-align:center;padding:30px;color:#6b7280;">No hubo breakpoints ganados con saque propio</div>';
             let timelineHtml = '';
             const last10points = this.data ? this.data.slice(-10).filter(s => s.scorer) : [];
             if (last10points.length >= 5) {
@@ -2622,14 +2528,14 @@ export class VolleyballDashboard {
             else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${homeEfficiency}%) → Partido parejo.</div>`;
             if (maxAwayRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxAwayRun} pts) → ${awayTeam} tuvo una racha larga.</div>`;
             if (maxHomeRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxHomeRun} pts) → ${homeTeam} encadenó puntos.</div>`;
-            if (homeBreaks > awayBreaks + 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 ROMPS (${homeBreaks} vs ${awayBreaks}) → ${homeTeam} fue muy efectivo rompiendo el saque.</div>`;
-            else if (awayBreaks > homeBreaks + 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ ROMPS (${homeBreaks} vs ${awayBreaks}) → ${awayTeam} rompió el saque muchas veces.</div>`;
+            if (homeBreaks > awayBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${homeTeam} produjo más puntos con saque propio.</div>`;
+            else if (awayBreaks > homeBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${awayTeam} produjo más puntos con saque propio.</div>`;
             if (homeClutchPct > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeam} demostró temple.</div>`;
             else if (homeClutchPct < 35 && homeClutchPct > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeam} mostró debilidad.</div>`;
             let recommendationsHtml = '';
             if (homeEfficiency < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${homeTeam} solo ganó el ${homeEfficiency}% de los puntos</div>`;
             if (maxAwayRun > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${awayTeam} tuvo una racha de ${maxAwayRun} puntos. Ajustar bloqueo y recepción.</div>`;
-            if (awayBreaks > homeBreaks + 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${awayTeam} rompió el saque ${awayBreaks} veces. Variar zona de saque.</div>`;
+            if (awayBreaks > homeBreaks + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${awayTeam} ganó ${awayBreaks} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
             if (homeClutchPct < 40 && homeClutchPct > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${homeTeam} solo convirtió ${homeClutchPct}% en momentos críticos.</div>`;
             if (homePhaseEff.late < 40 && homePhaseEff.late > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Débil en el cierre (${homePhaseEff.late}% en Late Game). Trabajar definición.</div>`;
             if (!recommendationsHtml) recommendationsHtml = '<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido! Mantener la estrategia.</div>';
@@ -2668,16 +2574,27 @@ export class VolleyballDashboard {
                 localPorSet['todos'] = tablaLocal;
                 visitantePorSet['todos'] = tablaVisitante;
             }
-            if (this.puntosJugadores && this.puntosJugadores.length > 0) {
-                const setsUnicosPuntos = [...new Set(this.puntosJugadores.map(p => p.set))];
+            if (puntosJugadoresRaw && puntosJugadoresRaw.length > 0) {
+                const setsUnicosPuntos = [...new Set(puntosJugadoresRaw.map(p => Number(p.set || 1)))].sort((a, b) => a - b);
                 for (const setNum of setsUnicosPuntos) {
-                    const puntosSet = this.puntosJugadores.filter(p => p.set === setNum);
+                    const puntosSet = puntosJugadoresRaw.filter(p => Number(p.set || 1) === setNum);
                     const statsLocalSet = calcularStatsPorJugador(puntosSet, 'LOCAL');
                     const statsVisitanteSet = calcularStatsPorJugador(puntosSet, 'VISITANTE');
                     localPorSet[setNum] = generarTablaHTMLSimple(statsLocalSet, this.jugadoresLocal);
                     visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);
                 }
             }
+            const resumenLocal = resumirPuntosEquipo(puntosJugadoresRaw || [], 'LOCAL', statsLocalCalculadas || {});
+            const resumenVisitante = resumirPuntosEquipo(puntosJugadoresRaw || [], 'VISITANTE', statsVisitanteCalculadas || {});
+            const servicioReporte = calcularEstadisticasServicio(this.data, puntosJugadoresRaw || []);
+            const leerMarcas = (clave) => {
+                try { return JSON.parse(localStorage.getItem(clave) || '[]'); }
+                catch { return []; }
+            };
+            const marcas = [...leerMarcas(`breaks_${this.matchId}`), ...leerMarcas(`marcas_${this.matchId}`)];
+            const marcasManualHtml = marcas.length
+                ? marcas.map(marca => `<div style="display:flex;justify-content:space-between;padding:10px;background:rgba(124,58,237,.1);border-radius:8px;margin-bottom:6px;"><span>⭐ Momento clave · Set ${marca.set || '-'}</span><strong>${marca.equipo || '-'}</strong><span>${marca.marcador || '-'}</span></div>`).join('')
+                : '<div style="color:#6b7280;text-align:center;">Sin marcas manuales</div>';
             const datosReporte = {
                 homeTeam,
                 awayTeam,
@@ -2690,10 +2607,16 @@ export class VolleyballDashboard {
                 maxAwayRun,
                 homeBreaks,
                 awayBreaks,
+                sideoutHome,
+                sideoutAway,
+                breakpointHome,
+                breakpointAway,
+                serviceEfficiencyHome: servicioReporte.home.eficiencia,
+                serviceEfficiencyAway: servicioReporte.away.eficiencia,
                 totalPoints: total,
                 homeClutchPct,
                 homePhaseEff,
-                awayPhaseEff: { early: 0, mid: 0, late: 0 },
+                awayPhaseEff,
                 setsHtml,
                 scoreChartImage,
                 momentumChartImage,
@@ -2709,6 +2632,9 @@ export class VolleyballDashboard {
                 puntosPorSet: puntosPorSet,
                 localPorSet: localPorSet,
                 visitantePorSet: visitantePorSet,
+                resumenLocal,
+                resumenVisitante,
+                marcasManualHtml,
                 rotacionesHtml: this.generarRotacionesHTML(),
                 logoDataUrl
             };

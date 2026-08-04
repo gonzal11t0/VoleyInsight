@@ -2,126 +2,60 @@
   <img src="dashboard/logo-horizontal.png" alt="VoleyInsight" width="520">
 </p>
 
-Sistema de análisis de partidos de voleibol en tiempo real.
+# VoleyInsight
 
-## 📋 Características
+Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido o tira, acompaña la anotación durante el juego y genera un informe descargable al finalizar.
 
-### 📊 Dashboard en vivo
-- Marcador actualizado punto a punto
-- Rachas y momentum del partido
-- Eficiencia general (porcentaje de puntos ganados)
+## Funciones principales
 
-### 📥 Estadísticas avanzadas
-- **Recepción (REC+, REC-)**: calidad de recepción por jugador
-- **Defensa (DEF+, DEF-)**: calidad defensiva por jugador
-- **Sideout%**: eficiencia cuando el equipo tiene el saque
-- **Breakpoint%**: capacidad de romper el saque rival
-- **Clutch%**: rendimiento bajo presión (set point o diferencia ≤2)
-- **Eficiencia de servicio**: (Aces - Errores) / Total saques
+- Dashboard en vivo con marcador, rachas, momentum y evolución por set.
+- Anotador manual optimizado para notebook y celular.
+- Estadísticas individuales acumuladas y separadas por set.
+- Rotaciones 1 a 6, acumuladas o filtradas por set, con formación histórica.
+- Sideout%: puntos ganados cuando el equipo recibe el saque rival.
+- Breakpoint%: puntos ganados mientras el equipo tiene el saque.
+- Clutch%: rendimiento en puntos críticos.
+- Servicio: aces, errores y eficiencia real, sin confundir errores de ataque.
+- Reporte HTML/PDF con gráficos, tablas por set y acumulado, rotaciones y glosario.
+- Sincronización entre dispositivos y acceso remoto mediante Cloudflare.
+- Soporte offline para recursos ya cargados.
 
-### 👕 Estadísticas por jugador
-- Puntos, ataques, bloqueos, aces
-- Errores de ataque y servicio
-- Eficiencia de ataque y servicio
-- Recepciones y defensas
+## Uso operativo
 
-### ✍️ Anotador manual
-- Registro de puntos con un solo clic
-- Acciones: ATAQUE, BLOQUEO, SAQUE, SAQUE MALO, ERROR
-- Fundamentos: REC+, REC-, DEF+, DEF-
-- Atajos de teclado para anotación rápida
+La instalación, configuración de Node.js, puertos, Cloudflare y archivos técnicos forman parte de la preparación del sistema y pueden quedar a cargo del operador de VoleyInsight. El entrenador o club no necesita editar código para usar el servicio durante un partido.
 
-### 📈 Análisis evolutivo
-- Subí reportes HTML de partidos anteriores
-- Compara Sideout%, Breakpoint%, Clutch% a lo largo del tiempo
-- Detecta tendencias de mejora o empeoramiento
+El dashboard puede abrirse desde notebook o celular. La vista para espectadores es opcional; el foco principal es la captura y el análisis técnico.
 
-### 📄 Reportes descargables
-- Reporte HTML con gráficos y estadísticas
-- Se abre en cualquier navegador (sin internet)
-- Se puede compartir por WhatsApp o mail
+## Inicio técnico
 
-### 📱 Acceso remoto
-- Vía túnel Cloudflare (URL fija)
-- Funciona en PC y celular
-
-### 🔄 Selector de partidos
-- Cambia entre partidos históricos sin recargar la página
-- Los datos se cargan automáticamente
-
-### 📡 Modo offline
-- Funciona sin conexión a internet
-- Los datos se sincronizan al reconectar
-
----
-
-## 🚀 Inicio rápido
+Requisitos: Node.js 18 o superior, Cloudflared y Windows 10/11.
 
 ```bash
-# Instalar dependencias
 npm install
+npm test
+```
 
-# Iniciar el sistema
-iniciar-partido.bat
-⚙️ Configuración
-Editar data/config.json:
+Luego se configura `data/config.json` y se ejecuta `iniciar-partido.bat`.
 
-json
-{
-  "matchId": 123456,
-  "homeTeam": "Equipo Local",
-  "awayTeam": "Equipo Visitante",
-  "categoria": "sub_21"
-}
-📱 Acceso remoto
-Ejecutar iniciar-partido.bat
+## Reportes
 
-Copiar la URL de Cloudflare (se muestra en la consola)
+Al finalizar, el botón **Guardar** genera un archivo independiente que conserva:
 
-Abrir desde el celular: https://xxxx.trycloudflare.com/dashboard/index.html
+- marcador y sets;
+- estadísticas del equipo e individuales;
+- acumulado y detalle por set;
+- Sideout, Breakpoint, Clutch y servicio;
+- rotaciones y formaciones disponibles;
+- gráficos e interpretación de métricas.
 
-📄 Reportes
-Al finalizar el partido, hacer clic en "💾 Guardar" para descargar el reporte HTML.
+## Pruebas
 
-El reporte incluye:
+```bash
+npm test
+```
 
-Marcador y estadísticas generales
+Las pruebas cubren formaciones, filtros por set, rotaciones, definiciones estándar de Sideout/Breakpoint y reconstrucción de un partido real.
 
-Gráficos de evolución, momentum y rachas
+## Contacto
 
-Estadísticas individuales con recepción y defensa
-
-Glosario de métricas con ejemplos prácticos
-
-⚙️ Requisitos técnicos
-Node.js 18.0.0 o superior
-
-Navegador moderno (Chrome, Firefox, Edge)
-
-Cloudflared (para acceso remoto)
-
-Windows 10/11 (cliente SSH incluido)
-
-📞 Contacto
-Gonzalo
-📱 1151364852
-
-text
-
----
-
-## 📝 **Resumen de cambios**
-
-| Cambio  | Tipo                    |
-| :---    | :---                    |
-| Agregar recepción y defensa       | ➕ Nueva sección |
-| Agregar Sideout/Breakpoint/Clutch | ➕ Nueva sección |
-| Agregar Anotador manual           | ➕ Nueva sección |
-| Agregar Quiebres                  | ➕ Nueva sección |
-| Agregar selector de partidos      | ➕ Nueva sección |
-| Agregar modo offline              | ➕ Nueva sección |
-| Agregar requisitos técnicos       | ➕ Nueva sección |
-| Mejorar descripción de reportes   | ✏️ Mejora         |
-| Mejorar estructura                | ✏️ Mejora         |
-
----
+Gonzalo · 11 5136-4852

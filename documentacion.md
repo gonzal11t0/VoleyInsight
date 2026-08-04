@@ -1,4 +1,4 @@
-📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v2.9
+📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.0
 
 1. DESCRIPCIÓN GENERAL
 VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real que:
@@ -33,7 +33,7 @@ Estadísticas de servicio por jugador (SAQUE, errores, eficiencia, total de saqu
 
 🆕 ESTADÍSTICAS DE DEFENSA: DEF+ (positiva), DEF- (negativa) y eficiencia defensiva
 
-🆕 QUIEBRES: Indicador de puntos ganados sin estar sacando
+🆕 BREAKPOINTS: puntos ganados mientras el equipo tiene el saque
 
 2. ARQUITECTURA DEL SISTEMA
 text
@@ -56,7 +56,7 @@ text
 │   ┌─────────────────────┐     ┌─────────────────────┐                      │
 │   │   match_XXXXX.json  │     │   timeouts_XXXXX    │                      │
 │   │   full_XXXXX.json   │     │   puntos_XXXXX      │                      │
-│   │                     │     │   quiebres_XXXXX    │                      │
+│   │                     │     │   marcas_XXXXX      │                      │
 │   └──────────┬──────────┘     └──────────┬──────────┘                      │
 │              │                           │                                  │
 │              └─────────────┬─────────────┘                                  │
@@ -110,7 +110,7 @@ voley/
 │   ├── full_*.json             # Datos completos de API
 │   ├── jugadores_*.json        # Puntos anotados manualmente
 │   ├── timeouts_*.json         # Tiempos muertos (localStorage)
-│   └── quiebres_*.json         # Quiebres (localStorage)
+│   └── marcas_*.json           # Observaciones manuales (localStorage)
 ├── src/
 │   ├── core/
 │   │   ├── tracker.js          # Lógica principal del tracker (con monitor de config.json)
@@ -129,7 +129,7 @@ Archivo	Función
 index.js	Punto de entrada, lee config.json, maneja errores globales
 src/core/tracker.js	Lógica principal: fetch cada 3s, procesa datos, guarda JSON, WebSocket
 src/services/api.js	Conexión con API de Metro Vóley con timeout y retry
-src/core/stateProcessor.js	Calcula rachas, quiebres, fases, eventos
+src/core/stateProcessor.js	Calcula rachas, breakpoints, fases y eventos
 🆕 Nuevas funcionalidades en tracker.js:
 
 Monitoreo de config.json cada 5 segundos (configMonitorInterval)
@@ -150,7 +150,7 @@ Sección	Contenido
 Header	Marcador en tiempo real, nombres de equipos, badge de saque
 Pestañas	PARTIDO / INDIVIDUALES / EVOLUCIÓN / ANOTADOR (4 vistas)
 🆕 Selector	Panel flotante con selector de partidos (cambia ID y nombres)
-Vista PARTIDO	Stats grid (8 métricas), gráficos (4), dominancia por set, puntos de quiebre, insights, timeline, servicio, Sideout%, Breakpoint%
+Vista PARTIDO	Stats grid (8 métricas), gráficos (4), dominancia por set, breakpoints automáticos, insights, timeline, servicio, Sideout% y Breakpoint%
 Vista INDIVIDUALES	Filtros por set, tablas de jugadores (con estadísticas de servicio, recepción y defensa), TOP 5, gráfico de puntos, análisis de tiempos muertos
 Vista EVOLUCIÓN	Subida de reportes HTML, análisis comparativo, tabla evolutiva, gráfico de tendencias
 Vista ANOTADOR	Anotación manual con acciones: ATAQUE, BLOQUEO, SAQUE, SAQUE MALO, ERROR, REC+, REC-, DEF+, DEF-
@@ -194,7 +194,7 @@ REC-	✅ Sí	Registra recepción negativa (NO suma punto)
 DEF+	✅ Sí	Registra defensa positiva (NO suma punto)
 DEF-	✅ Sí	Registra defensa negativa (NO suma punto)
 TIMEOUT	❌ No	Registra tiempo muerto
-QUIEBRE	❌ No	Registra quiebre (rompe saque rival)
+MARCAR CLAVE	❌ No	Guarda una observación manual sin alterar las métricas automáticas
 Atajos de teclado:
 
 Tecla	Acción	Tecla	Acción
@@ -203,7 +203,7 @@ Q	LOCAL	W	VISITANTE
 3	SAQUE	4	SAQUE MALO
 5	REC+	6	REC-
 7	DEF+	8	DEF-
-9	ERROR	B	QUIEBRE
+9	ERROR	B	MARCAR CLAVE
 T	TIMEOUT	Enter	Confirmar
 Z	Deshacer	0-9	Seleccionar jugador
 + / -	Navegar jugador		
@@ -276,7 +276,7 @@ text
 │                                                                             │
 │  1. TRACKER                                                                 │
 │     ├── Fetch a API Metro Vóley cada 3 segundos                             │
-│     ├── Procesa snapshot (rachas, quiebres, eventos)                        │
+│     ├── Procesa snapshot (rachas, breakpoints, eventos)                     │
 │     ├── Emite punto por WebSocket al servidor                               │
 │     ├── Guarda en data/match_XXXXX.json y full_XXXXX.json                   │
 │     └── 🆕 Monitorea data/config.json cada 5 segundos                       │
@@ -302,7 +302,7 @@ text
 │  5. APP DE ANOTACIÓN                                                        │
 │     ├── Configura equipos (números, líberos)                                │
 │     ├── Anota puntos (jugador, acción, asistencia)                          │
-│     ├── Registra tiempos muertos y quiebres                                 │
+│     ├── Registra tiempos muertos y marcas manuales                          │
 │     └── Guarda en localStorage y exporta a JSON                             │
 │                                                                             │
 │  6. ANÁLISIS EVOLUTIVO                                                      │
@@ -359,15 +359,15 @@ cloudflared tunnel --url http://localhost:5501
 7. MÉTRICAS CALCULADAS
 Métrica	Cálculo	Qué indica
 Racha	Puntos consecutivos del mismo equipo	Dominio momentáneo
-Quiebre (Break)	Punto anotado sin estar sacando	Eficiencia en recepción y contraataque
+Breakpoint ganado	Punto anotado mientras el equipo saca	Producción de saque, bloqueo y defensa
 Eficiencia	(Puntos propios / Puntos totales) × 100	Control general del partido
 Clutch	% de puntos ganados en momentos críticos (set point o diferencia ≤2)	Temple bajo presión
 Fase	EARLY (1-10), MID (11-20), LATE (21+)	Rendimiento por momento del set
 Momentum	Diferencia de puntos en últimos 5 puntos	Quién viene dominando
 Sets	Según reglamento por categoría (25/15 pts, diferencia 2)	Regla oficial de voleibol
 Eficiencia Servicio	(SAQUE - Errores) / Total saques × 100	Efectividad del saque
-Sideout%	(Puntos con saque propio / Total saques) × 100	Eficiencia ofensiva con saque
-Breakpoint%	(Puntos sin saque / Total recepciones) × 100	Capacidad de romper saque rival
+Sideout%	(Puntos ganados al recibir / Total recepciones) × 100	Recepción y primer ataque
+Breakpoint%	(Puntos ganados con saque propio / Total saques) × 100	Presión de saque y bloqueo-defensa
 Eficiencia Recepción	(REC+ / Total Recepciones) × 100	Calidad de recepción de saque
 Eficiencia Defensa	(DEF+ / Total Defensas) × 100	Calidad defensiva
 8. EVENTOS Y SONIDOS
@@ -472,13 +472,13 @@ json
   "mejora": 40,
   "efectividad": "positiva"
 }]
-11.4 quiebres_XXXXX (localStorage)
+11.4 marcas_XXXXX (localStorage)
 json
 [{
   "timestamp": "2026-04-23T20:35:00.000Z",
   "set": 2,
   "equipo": "LOCAL",
-  "tipo": "quiebre",
+  "tipo": "momento_clave",
   "marcador": "14-13"
 }]
 12. DEPENDENCIAS
@@ -550,10 +550,10 @@ Mejora promedio	Promedio de mejora en eficiencia
 Efectividad	Positiva (>20%), Neutra (±20%), Negativa (<-20%)
 17. SIDEOUT% Y BREAKPOINT%
 Métrica	Qué indica
-Sideout% > 60%	Excelente eficiencia ofensiva con saque propio
-Sideout% < 40%	Problemas cuando se tiene el saque
-Breakpoint% > 40%	Buena capacidad de romper saque rival
-Breakpoint% < 20%	Dificultad para anotar sin saque
+Sideout% > 60%	Buena recepción y eficacia del primer ataque
+Sideout% < 40%	Problemas para recuperar el saque al recibir
+Breakpoint% > 40%	Buena producción mientras el equipo saca
+Breakpoint% < 20%	Poca presión de saque o baja eficacia de bloqueo-defensa
 18. ANÁLISIS EVOLUTIVO - GUÍA DE USO
 18.1 ¿Para qué sirve?
 El análisis evolutivo permite a entrenadores y analistas:
@@ -668,9 +668,9 @@ Análisis evolutivo no muestra datos	Reportes HTML no válidos	Asegurar que sean
 22. TIPS PARA ENTRENADORES (Cómo aprovechar VoleyInsight)
 Usá la pestaña EVOLUCIÓN después de 3 o más partidos para ver tendencias reales
 
-Sideout% > 60% = estás dominando cuando sacás. <45% = problema con tu saque o ataque
+Sideout% > 60% = estás resolviendo bien cuando recibís. <45% = revisar recepción y primer ataque
 
-Breakpoint% > 40% = tu recepción y contraataque funcionan bien
+Breakpoint% > 40% = el saque propio y el sistema de bloqueo-defensa generan puntos
 
 Clutch% bajo (<40%) = entrená definición de sets y manejo de presión
 
@@ -698,7 +698,7 @@ API Docs	http://localhost:5501/api/status
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   🏐 VOLEYINSIGHT v2.9                                                       ║
+║   🏐 VOLEYINSIGHT v3.0                                                       ║
 ║                                                                              ║
 ║   ✅ 46 mejoras implementadas (92%)                                          ║
 ║   ✅ Dashboard 100% funcional (4 vistas + selector)                          ║
@@ -726,6 +726,6 @@ API Docs	http://localhost:5501/api/status
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 Documentación generada: Junio 2026
-Versión del sistema: VoleyInsight v2.9
+Versión del sistema: VoleyInsight v3.0
 Estado: Producción - 46/50 mejoras implementadas (92%)
 Novedades principales: Selector de partidos funcional en celular, túnel único de Cloudflare, resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.

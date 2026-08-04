@@ -50,7 +50,7 @@ class StateProcessor {
     }
 
     updateBreakPoints(scorer, serving) {
-        const isBreak = scorer && serving && ((scorer === 'home' && serving !== 'home') || (scorer === 'away' && serving !== 'away'));
+        const isBreak = scorer && serving && scorer === serving;
         if (isBreak) {
             const key = scorer === 'home' ? 'home' : 'away';
             this.breakPoints.set(key, (this.breakPoints.get(key) || 0) + 1);
@@ -67,10 +67,10 @@ class StateProcessor {
         if (!scorer || !serving) return 'POINT';
         const isHomeServing = serving === 'home';
         const isHomeScorer = scorer === 'home';
-        if (isHomeServing && isHomeScorer) return 'SIDEOUT_HOME';
-        if (!isHomeServing && !isHomeScorer) return 'SIDEOUT_AWAY';
-        if (isHomeServing && !isHomeScorer) return 'BREAK_AWAY';
-        return 'BREAK_HOME';
+        if (isHomeServing && isHomeScorer) return 'BREAK_HOME';
+        if (!isHomeServing && !isHomeScorer) return 'BREAK_AWAY';
+        if (isHomeServing && !isHomeScorer) return 'SIDEOUT_AWAY';
+        return 'SIDEOUT_HOME';
     }
 
     rotateTeam(team) {

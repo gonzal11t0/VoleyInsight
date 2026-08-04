@@ -5,6 +5,9 @@ export class ReporteGenerator {
             homeTeam, awayTeam, homeScore, awayScore, fechaHora,
             homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun,
             homeBreaks, awayBreaks, totalPoints, homeClutchPct,
+            sideoutHome = 0, sideoutAway = 0,
+            breakpointHome = 0, breakpointAway = 0,
+            serviceEfficiencyHome = 0, serviceEfficiencyAway = 0,
             homePhaseEff, awayPhaseEff, setsHtml,
             scoreChartImage, momentumChartImage, runsChartImage, phaseChartImage,
             breakPointsHtml, timelineHtml, interpretationsHtml, recommendationsHtml,
@@ -12,10 +15,27 @@ export class ReporteGenerator {
             eficienciaPorSet = [],
             localPorSet = {},
             visitantePorSet = {},
+            resumenLocal = {},
+            resumenVisitante = {},
+            marcasManualHtml = '',
             rotacionesHtml = '',
             logoDataUrl = ''
 
         } = d;
+
+        const encabezadoIndividuales = `<thead><tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>📥 REC</th><th>REC%</th><th>🛡️ DEF</th><th>DEF%</th><th>🏐 SAQUE</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr></thead>`;
+        const setsConIndividuales = [...new Set([
+            ...Object.keys(localPorSet),
+            ...Object.keys(visitantePorSet)
+        ])].filter(set => set !== 'todos').sort((a, b) => Number(a) - Number(b));
+        const individualesPorSetHtml = setsConIndividuales.map(set => `
+            <details style="margin-bottom:12px;background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:12px;">
+                <summary style="cursor:pointer;font-weight:700;color:#667eea;">Set ${set}</summary>
+                <h4 style="margin:14px 0 8px;color:#93c5fd;">🔵 ${homeTeam}</h4>
+                <div style="overflow-x:auto;"><table style="min-width:900px;">${encabezadoIndividuales}<tbody>${localPorSet[set] || '<tr><td colspan="16">Sin datos</td></tr>'}</tbody></table></div>
+                <h4 style="margin:14px 0 8px;color:#fca5a5;">🔴 ${awayTeam}</h4>
+                <div style="overflow-x:auto;"><table style="min-width:900px;">${encabezadoIndividuales}<tbody>${visitantePorSet[set] || '<tr><td colspan="16">Sin datos</td></tr>'}</tbody></table></div>
+            </details>`).join('');
 
         return `<!DOCTYPE html>
 <html lang="es">
@@ -125,7 +145,7 @@ export class ReporteGenerator {
 </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" data-version="3.0.0" data-metric-schema="standard-v1" data-sideout-home="${sideoutHome}" data-sideout-away="${sideoutAway}" data-breakpoint-home="${breakpointHome}" data-breakpoint-away="${breakpointAway}" data-service-home="${serviceEfficiencyHome}" data-service-away="${serviceEfficiencyAway}">
         <div style="text-align:center;margin:20px 0;">
             <button id="btnDescargarPDF" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:60px;padding:12px 24px;font-size:16px;font-weight:bold;cursor:pointer;">📄 DESCARGAR REPORTE EN PDF</button>
         </div>
@@ -149,12 +169,22 @@ export class ReporteGenerator {
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Quiebres ${homeTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Quiebres ${awayTeam}</div></div>
+            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Breakpoints ${homeTeam}</div></div>
+            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Breakpoints ${awayTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(5)</div><div class="stat-value">${homeEfficiency}%</div><div class="stat-label">Eficiencia ${homeTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(6)</div><div class="stat-value">${awayEfficiency}%</div><div class="stat-label">Eficiencia ${awayTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(7)</div><div class="stat-value">${homeClutchPct}%</div><div class="stat-label">Bajo presión</div></div>
             <div class="stat-card"><div class="stat-number">(8)</div><div class="stat-value">${totalPoints}</div><div class="stat-label">Puntos Totales</div></div>
+        </div>
+        <div class="section">
+            <div class="section-title">🏐 SIDEOUT Y BREAKPOINT</div>
+            <div class="stats-grid" style="padding:0;background:transparent;">
+                <div class="stat-card"><div class="stat-value">${sideoutHome}%</div><div class="stat-label">Sideout ${homeTeam}</div></div>
+                <div class="stat-card"><div class="stat-value">${sideoutAway}%</div><div class="stat-label">Sideout ${awayTeam}</div></div>
+                <div class="stat-card"><div class="stat-value">${breakpointHome}%</div><div class="stat-label">Breakpoint ${homeTeam}</div></div>
+                <div class="stat-card"><div class="stat-value">${breakpointAway}%</div><div class="stat-label">Breakpoint ${awayTeam}</div></div>
+            </div>
+            <p style="color:#9ca3af;font-size:12px;margin-top:12px;">Sideout: punto ganado al recibir. Breakpoint: punto ganado mientras el equipo saca.</p>
         </div>
         <div class="section"><div class="section-title">📊 SETS</div><div class="sets-container">${setsHtml}</div></div>
         <div class="section">
@@ -202,12 +232,14 @@ export class ReporteGenerator {
                 <div class="clutch-fill" style="width:${100-homeClutchPct}%;background:linear-gradient(90deg,#f43f5e,#e11d48);padding:12px 16px;text-align:center;color:white;font-weight:700;">${awayTeam} ${100-homeClutchPct}%</div>
             </div>
         </div>
-        <div class="section"><div class="section-title">🔍 Puntos de Quiebre</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron quiebres</div>'}</div></div>
+        <div class="section"><div class="section-title">🔍 Breakpoints ganados con saque propio</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron breakpoints</div>'}</div></div>
+        <div class="section"><div class="section-title">⭐ Marcas manuales del analista</div><div>${marcasManualHtml}</div></div>
         <div class="section"><div class="section-title">📖 Qué significan estos números</div><div>${interpretationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">🎯 Qué cambiar para el próximo partido</div><div>${recommendationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
         <div class="section">
-            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
+            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Acumulado)</div>
+            <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenLocal.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenLocal.puntosAtribuidos || 0} · Sin atribuir: ${resumenLocal.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
@@ -235,7 +267,8 @@ export class ReporteGenerator {
             </div>
         </div>
         <div class="section">
-            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (Todos los sets)</div>
+            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (Acumulado)</div>
+            <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenVisitante.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenVisitante.puntosAtribuidos || 0} · Sin atribuir: ${resumenVisitante.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
@@ -263,6 +296,11 @@ export class ReporteGenerator {
             </div>
         </div>
 
+        <div class="section">
+            <div class="section-title">🎯 ESTADÍSTICAS INDIVIDUALES POR SET</div>
+            ${individualesPorSetHtml || '<div style="text-align:center;color:#6b7280;">Sin datos separados por set</div>'}
+        </div>
+
         <!-- ============================================================ -->
         <!-- 🆕 ROTACIONES - SECCIÓN INDEPENDIENTE -->
         <!-- ============================================================ -->
@@ -285,14 +323,14 @@ export class ReporteGenerator {
                 </div>
             </div>
             
-            <!-- 2. QUIEBRES -->
+            <!-- 2. BREAKPOINTS -->
             <div class="glosario-item">
                 <div class="glosario-numero">⚡</div>
                 <div class="glosario-desc">
-                    <strong>QUIEBRES (BREAKS)</strong><br>
-                    Puntos que ganaste cuando el rival estaba sacando.<br>
-                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> Si es >8, tu recepción y contraataque funcionan bien.</span><br>
-                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar la recepción de saque y la definición en contraataque.</span>
+                    <strong>BREAKPOINTS GANADOS</strong><br>
+                    Puntos que ganaste mientras tu equipo estaba sacando.<br>
+                    <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> Mide cuánto daño genera el saque propio junto al bloqueo-defensa.</span><br>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar presión de saque, bloqueo y transición defensiva.</span>
                 </div>
             </div>
             
@@ -334,9 +372,9 @@ export class ReporteGenerator {
                 <div class="glosario-numero">🔄</div>
                 <div class="glosario-desc">
                     <strong>SIDEOUT%</strong><br>
-                    Puntos que convertís cuando tenés el saque.<br>
+                    Porcentaje de puntos que ganás cuando recibís el saque rival.<br>
                     <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >60% = excelente | 45-60% = normal | &lt;45% = problema.</span><br>
-                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar la definición en ataque y reducir errores cuando se tiene el saque.</span>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Mejorar recepción y eficacia del primer ataque.</span>
                 </div>
             </div>
             
@@ -345,9 +383,9 @@ export class ReporteGenerator {
                 <div class="glosario-numero">⚡</div>
                 <div class="glosario-desc">
                     <strong>BREAKPOINT%</strong><br>
-                    Puntos que convertís cuando el rival tiene el saque.<br>
+                    Porcentaje de puntos que ganás mientras tu equipo saca.<br>
                     <span style="color: #10b981;">✅ <strong>¿Qué significa?</strong> >40% = excelente | 25-40% = normal | &lt;25% = problema.</span><br>
-                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Reforzar la recepción de saque y la transición ofensiva.</span>
+                    <span style="color: #f59e0b;">💡 <strong>¿Qué hacer si es bajo?</strong> Reforzar saque, bloqueo-defensa y contraataque.</span>
                 </div>
             </div>
             
@@ -364,6 +402,7 @@ export class ReporteGenerator {
                 </div>
             </div>
         </div>
+        <div class="footer">VoleyInsight v3.0.0 · Esquema métrico estándar standard-v1 · Informe generado ${fechaHora}</div>
     </div>
     <script>
         const eficienciaData = ${JSON.stringify(eficienciaPorSet)};

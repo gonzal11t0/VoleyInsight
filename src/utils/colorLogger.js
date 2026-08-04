@@ -22,7 +22,7 @@ class ColorLogger {
         console.log(
             this.highlight('⚡ BREAK!', 'yellow'),
             this.highlight(team, 'bright'),
-            this.highlight(`rompe el saque!`, 'white'),
+            this.highlight(`gana con saque propio!`, 'white'),
             `[${snapshot.homeScore}-${snapshot.awayScore}]`
         );
     }

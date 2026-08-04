@@ -58,11 +58,11 @@ assert.equal(ultimo.homeScore, 24);
 assert.equal(ultimo.awayScore, 26);
 assert.equal(ultimo.rotacionLocalDespues, 3);
 assert.equal(ultimo.rotacionVisitanteDespues, 4);
-assert.equal(snapshots.filter(p => p?.event?.startsWith('BREAK_')).length, 17);
+assert.equal(snapshots.filter(p => p?.event?.startsWith('BREAK_')).length, 33);
 
 const metricas = new VolleyballMetrics(snapshots);
-assert.deepEqual(metricas.calculateSideoutPercentage().percentage, { home: '64.0', away: '68.0' });
-assert.deepEqual(metricas.calculateBreakPointEfficiency().efficiency, { home: '32.0', away: '36.0' });
+assert.deepEqual(metricas.calculateSideoutPercentage().percentage, { home: '32.0', away: '36.0' });
+assert.deepEqual(metricas.calculateBreakPointEfficiency().efficiency, { home: '64.0', away: '68.0' });
 
 const snapshotsLegacy = snapshots.map(snapshot => {
     const copia = { ...snapshot, serving: snapshot.servingAfter };

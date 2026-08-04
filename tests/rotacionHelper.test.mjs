@@ -10,13 +10,17 @@ const {
     calcularRotacionesPorEquipo,
     obtenerStatsRotacion,
     rotarFormacion,
-    reconstruirFormacionInicial
+    reconstruirFormacionInicial,
+    filtrarPuntosPorSet
 } = await import(`data:text/javascript;base64,${Buffer.from(helperSource).toString('base64')}`);
 
 const fixtureUrl = new URL('./fixtures/rotaciones_258880.json', import.meta.url);
 const puntos = JSON.parse(readFileSync(fileURLToPath(fixtureUrl), 'utf8'));
 
 assert.equal(puntos.length, 33, 'el caso real debe contener los 33 puntos anotados');
+assert.equal(filtrarPuntosPorSet(puntos, 'all').length, 33);
+assert.equal(filtrarPuntosPorSet(puntos, '1').length, 33);
+assert.equal(filtrarPuntosPorSet(puntos, '2').length, 0);
 
 const local = calcularRotacionesPorEquipo(puntos, 'LOCAL');
 assert.deepEqual(

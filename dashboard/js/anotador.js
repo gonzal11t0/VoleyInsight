@@ -215,17 +215,17 @@ export class AnotadorManager {
             this.mostrarFeedback('❌ Seleccioná un equipo primero', 'error');
             return;
         }
-        const breakPoint = {
+        const marca = {
             timestamp: new Date().toISOString(),
             set: this.estado.set,
             equipo: this.estado.equipo,
-            tipo: 'break',
+            tipo: 'momento_clave',
             marcador: `${this.estado.local.score}-${this.estado.visitante.score}`
         };
-        let breaksGuardados = JSON.parse(localStorage.getItem(`breaks_${this.matchIdActual}`) || '[]');
-        breaksGuardados.push(breakPoint);
-        localStorage.setItem(`breaks_${this.matchIdActual}`, JSON.stringify(breaksGuardados));
-        this.mostrarFeedback(`⚡ BREAK! ${this.estado.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} rompe el saque (${breakPoint.marcador})`, 'success');
+        const marcas = JSON.parse(localStorage.getItem(`marcas_${this.matchIdActual}`) || '[]');
+        marcas.push(marca);
+        localStorage.setItem(`marcas_${this.matchIdActual}`, JSON.stringify(marcas));
+        this.mostrarFeedback(`⭐ Momento clave marcado para ${this.estado.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} (${marca.marcador})`, 'success');
     }
 
     renderConfig() {

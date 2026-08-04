@@ -36,7 +36,7 @@ function claveRally(set, homeScore, awayScore) {
 
 function eventoDesdeRally(anotador, saqueAntes) {
     if (!anotador || !saqueAntes) return 'POINT';
-    const tipo = anotador === saqueAntes ? 'SIDEOUT' : 'BREAK';
+    const tipo = anotador === saqueAntes ? 'BREAK' : 'SIDEOUT';
     return `${tipo}_${anotador}`;
 }
 

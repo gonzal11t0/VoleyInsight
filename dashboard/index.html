@@ -35,6 +35,15 @@
     <link rel="icon" type="image/png" sizes="64x64" href="/dashboard/favicon-64.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/dashboard/apple-touch-icon.png">
     <link rel="manifest" href="/dashboard/site.webmanifest">
+
+    <script>
+        window.deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            window.deferredInstallPrompt = event;
+            window.dispatchEvent(new Event('voleyinsight-install-ready'));
+        });
+    </script>
     
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -122,6 +131,19 @@
             #vistaAnotador .btn-accion .label { font-size: 9px; }
             #vistaAnotador .suplente-btn { min-height: 36px !important; font-size: 10px !important; }
             #vistaAnotador .suplente-btn .nombre { font-size: 6px !important; }
+            .jugador-card-movil summary::-webkit-details-marker { display: none; }
+            .jugador-card-movil summary::after { content: '⌄'; color: #9ca3af; font-size: 18px; }
+            .jugador-card-movil[open] summary::after { content: '⌃'; }
+            .jugador-card-movil summary { list-style: none; }
+            .jugador-card-movil div > div { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 7px 3px; }
+            .jugador-card-movil div > div span { display: block; color: #6b7280; font-size: 8px; }
+            .jugador-card-movil div > div strong { display: block; color: #e5e7eb; font-size: 12px; margin-top: 2px; }
+            #coachPanel { min-width: 0 !important; width: calc(100vw - 24px); right: 12px; bottom: 12px; }
+            #coachPanel.panel-minimizado { width: 48px; height: 48px; border-radius: 9999px; overflow: hidden; }
+            #coachPanel.panel-minimizado #panelHeader { height: 48px; padding: 0; justify-content: center; border: 0; }
+            #coachPanel.panel-minimizado #panelHeader > span { display: none; }
+            #coachPanel.panel-minimizado #togglePanelBtn { width: 48px; height: 48px; color: white; font-size: 0; }
+            #coachPanel.panel-minimizado #togglePanelBtn::after { content: '📊'; font-size: 20px; }
         }
 
         #vistaAnotador .separador {
@@ -740,6 +762,7 @@
             <div id="menuDesplegable" class="hidden md:hidden bg-card rounded-xl p-3 border border-white/10 flex flex-col gap-2">
                 <button id="saveHTMLBtnMobile" class="bg-primary hover:bg-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">💾 Guardar</button>
                 <button id="soundToggleBtnMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm transition-all w-full">🔊 Sonidos</button>
+                <button id="installAppBtnMobile" class="hidden bg-gradient-to-r from-primary to-secondary text-white px-3 py-2 rounded-lg text-sm transition-all w-full">📲 Instalar VoleyInsight</button>
                 <div class="flex gap-2">
                     <select id="refreshIntervalSelectorMobile" class="bg-gray-700 hover:bg-gray-600 text-white px-2 py-2 rounded-lg text-sm flex-1">
                         <option value="5000">⏱️ 5 seg</option>
@@ -758,8 +781,8 @@
             <div class="stats-grid-mobile grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🔥</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunHome">0</div><div class="text-xs text-gray-400 uppercase">Racha LOCAL</div></div>
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">⚡</div><div class="text-xl md:text-2xl font-bold text-primary" id="maxRunAway">0</div><div class="text-xs text-gray-400 uppercase">Racha VISITA</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Quiebre LOCAL</div></div>
-                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Quiebre VISITA</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">💪</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksHome">0</div><div class="text-xs text-gray-400 uppercase">Breakpoints LOCAL</div></div>
+                <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎯</div><div class="text-xl md:text-2xl font-bold text-primary" id="breaksAway">0</div><div class="text-xs text-gray-400 uppercase">Breakpoints VISITA</div></div>
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📊</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyHome">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia LOCAL</div></div>
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">📈</div><div class="text-xl md:text-2xl font-bold text-primary" id="efficiencyAway">0%</div><div class="text-xs text-gray-400 uppercase">Eficiencia VISITA</div></div>
                 <div class="bg-card rounded-xl p-3 md:p-4 text-center border border-white/5 hover:border-primary/50 transition-all"><div class="text-xl md:text-2xl mb-0.5 md:mb-1">🎭</div><div class="text-xl md:text-2xl font-bold text-primary" id="clutchHome">0%</div><div class="text-xs text-gray-400 uppercase">Bajo presión</div></div>
@@ -816,7 +839,7 @@
                 </div>
             </div>
 
-            <!-- Clutch y Quiebres -->
+            <!-- Clutch y breakpoints -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">💎 Rendimiento bajo presión</h3>
@@ -828,7 +851,7 @@
                     <div id="clutchInsight" class="bg-primary/10 border-l-4 border-primary p-2 md:p-3 rounded text-xs md:text-sm text-gray-300">Cargando análisis...</div>
                 </div>
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Puntos de Quiebre</h3>
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔍 Breakpoints ganados con saque propio</h3>
                     <div id="breakPointsList" class="max-h-[200px] overflow-y-auto space-y-2"><div class="text-center text-gray-400 py-4 text-sm">Cargando datos...</div></div>
                 </div>
             </div>
@@ -868,7 +891,7 @@
                     <div class="bg-dark rounded-full h-4 overflow-hidden">
                         <div id="sideoutBarLocal" class="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
                     </div>
-                    <div class="text-xs text-gray-500 text-center mt-2">💡 Eficiencia cuando se tiene el saque</div>
+                    <div class="text-xs text-gray-500 text-center mt-2">💡 Puntos ganados al recibir el saque rival</div>
                 </div>
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-purple-400">⚡ BREAKPOINT%</h3>
@@ -880,7 +903,7 @@
                     <div class="bg-dark rounded-full h-4 overflow-hidden">
                         <div id="breakpointBarLocal" class="bg-gradient-to-r from-purple-500 to-pink-500 h-full flex items-center justify-center text-xs font-bold text-white" style="width: 0%"></div>
                     </div>
-                    <div class="text-xs text-gray-500 text-center mt-2">💡 Capacidad de romper el saque rival</div>
+                    <div class="text-xs text-gray-500 text-center mt-2">💡 Puntos ganados mientras el equipo saca</div>
                 </div>
             </div>
         </div>
@@ -889,9 +912,21 @@
         <!-- VISTA ROTACIONES -->
         <!-- ============================================================ -->
         <div id="vistaRotaciones" class="hidden space-y-4 md:space-y-6">
+            <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
+                <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR ROTACIONES</h3>
+                <div id="filtrosSetsRotaciones" class="flex flex-wrap gap-1 md:gap-2">
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="1" aria-pressed="false">Set 1</button>
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2" aria-pressed="false">Set 2</button>
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3" aria-pressed="false">Set 3</button>
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4" aria-pressed="false">Set 4</button>
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5" aria-pressed="false">Set 5</button>
+                    <button class="filtro-rotacion-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="all" aria-pressed="true">📊 ACUMULADO</button>
+                </div>
+            </div>
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                 <h3 id="rotacionesTitulo" class="text-base md:text-lg font-semibold mb-3 md:mb-4">🔄 EFICIENCIA POR ROTACIÓN</h3>
                 <p id="rotacionesDescripcion" class="text-xs text-gray-400 mb-4">Análisis del rendimiento del equipo en cada rotación (1-6).</p>
+                <p class="text-[11px] text-gray-500 mb-4">Las rotaciones son cíclicas: después de la 6 vuelve la 1. No existe una rotación 7.</p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs md:text-sm">
                         <thead class="text-gray-400 border-b border-gray-700">
@@ -979,13 +1014,13 @@
         <div id="vistaIndividuales" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
                 <h3 class="text-sm md:text-md font-semibold mb-2 md:mb-3">🎯 FILTRAR POR SET</h3>
-                <div class="flex flex-wrap gap-1 md:gap-2">
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="1">Set 1</button>
+                <div id="filtrosSetsIndividuales" class="flex flex-wrap gap-1 md:gap-2">
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="1" aria-pressed="false">Set 1</button>
                     <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="2">Set 2</button>
                     <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="3">Set 3</button>
                     <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="4">Set 4</button>
                     <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-gray-700 text-gray-300 text-xs md:text-sm" data-set="5">Set 5</button>
-                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-yellow-600 text-white text-xs md:text-sm" data-set="all">📊 TODOS</button>
+                    <button class="filtro-set-btn px-3 md:px-4 py-1.5 md:py-2 rounded-lg bg-primary text-white text-xs md:text-sm" data-set="all" aria-pressed="true">📊 ACUMULADO</button>
                 </div>
             </div>
             <div class="bg-card rounded-2xl p-3 md:p-4 border border-white/5">
@@ -993,7 +1028,8 @@
                     <h3 class="text-base md:text-lg font-semibold text-blue-400">🔵 EQUIPO LOCAL</h3>
                     <div class="flex gap-3 text-xs"><span class="text-gray-400" id="localTotalPts">Total: 0 pts</span><span class="text-gray-400" id="localTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="localTotalServErrors">❌ Err Serv: 0</span></div>
                 </div>
-                <div class="overflow-x-auto table-container">
+                <div id="tarjetasLocalMovil" class="md:hidden space-y-2"></div>
+                <div class="hidden md:block overflow-x-auto table-container">
                     <table class="w-full text-xs md:text-sm min-w-[800px]">
                         <thead class="text-gray-400 border-b border-gray-700">
                             <tr>
@@ -1024,7 +1060,8 @@
                     <h3 class="text-base md:text-lg font-semibold text-red-400">🔴 EQUIPO VISITANTE</h3>
                     <div class="flex gap-3 text-xs"><span class="text-gray-400" id="visitanteTotalPts">Total: 0 pts</span><span class="text-gray-400" id="visitanteTotalAces">🎯 Aces: 0</span><span class="text-gray-400" id="visitanteTotalServErrors">❌ Err Serv: 0</span></div>
                 </div>
-                <div class="overflow-x-auto table-container">
+                <div id="tarjetasVisitanteMovil" class="md:hidden space-y-2"></div>
+                <div class="hidden md:block overflow-x-auto table-container">
                     <table class="w-full text-xs md:text-sm min-w-[800px]">
                         <thead class="text-gray-400 border-b border-gray-700">
                             <tr>
@@ -1193,8 +1230,8 @@
                             <span>TIMEOUT</span>
                         </button>
                         <button class="btn-break" id="btnBreak" style="padding: 10px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #7c3aed, #6d28d9);">
-                            <span style="font-size: 18px;">⚡</span>
-                            <span>BREAK</span>
+                            <span style="font-size: 18px;">⭐</span>
+                            <span>MARCAR CLAVE</span>
                         </button>
                     </div>
                 </div>
@@ -1215,7 +1252,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | Actualización cada 3 segundos | VoleyInsight v2.9.3 - Estadísticas de servicio por jugador</p>
+            <p>Datos en tiempo real | VoleyInsight v3.0.0 · Métricas estándar y estadísticas por set</p>
         </div>
     </div>
 
@@ -1976,17 +2013,21 @@
                 const btnBreak = document.getElementById('btnBreak');
                 if (btnBreak) {
                     btnBreak.onclick = () => {
-                        const breakPoint = {
+                        if (!estado.equipo) {
+                            mostrarFeedback('❌ Seleccioná un equipo primero', true);
+                            return;
+                        }
+                        const marca = {
                             timestamp: new Date().toISOString(),
                             set: estado.set,
                             equipo: estado.equipo,
-                            tipo: 'break',
+                            tipo: 'momento_clave',
                             marcador: `${estado.local.score}-${estado.visitante.score}`
                         };
-                        let breaksGuardados = JSON.parse(localStorage.getItem(`breaks_${estado.matchId}`) || '[]');
-                        breaksGuardados.push(breakPoint);
-                        localStorage.setItem(`breaks_${estado.matchId}`, JSON.stringify(breaksGuardados));
-                        mostrarFeedback(`⚡ BREAK! ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName} rompe el saque`);
+                        const marcas = JSON.parse(localStorage.getItem(`marcas_${estado.matchId}`) || '[]');
+                        marcas.push(marca);
+                        localStorage.setItem(`marcas_${estado.matchId}`, JSON.stringify(marcas));
+                        mostrarFeedback(`⭐ Momento clave marcado para ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName}`);
                     };
                 }
 

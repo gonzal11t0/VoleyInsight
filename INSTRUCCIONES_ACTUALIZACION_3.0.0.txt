@@ -1,0 +1,53 @@
+VOLEYINSIGHT v3.0.0 - 12 MEJORAS DE CONSISTENCIA Y USO MÓVIL
+
+ANTES DE COPIAR
+1. Cerrá VoleyInsight y todas sus consolas.
+2. Confirmá que tu versión 2.9.3 esté subida a GitHub o guardá una copia de la carpeta.
+
+INSTALACIÓN
+1. Descomprimí el ZIP en Descargas.
+2. Abrí la carpeta VoleyInsight-3.0.0-mejoras.
+3. Copiá TODO su contenido.
+4. Pegalo dentro de C:\Users\User\Desktop\voley.
+5. Elegí "Reemplazar los archivos en el destino".
+
+El ZIP conserva las subcarpetas dashboard, src y tests. No contiene data/config.json,
+por lo que no cambia el partido configurado ni borra tus datos.
+
+VERIFICACIÓN
+Abrí CMD en C:\Users\User\Desktop\voley y ejecutá:
+
+npm test
+
+Resultado esperado:
+formacionHelper: tests OK
+rotacionHelper: tests OK
+metricasVoleyHelper: tests OK
+reportConsistency: tests OK
+rotationState 259144: tests OK
+
+Después ejecutá iniciar-partido.bat y comprobá:
+- El dashboard abre sin errores en la consola.
+- Individuales inicia en ACUMULADO y permite filtrar por set.
+- Rotaciones permite Set 1-5 y ACUMULADO.
+- En celular, el panel flotante cerrado es un botón circular pequeño.
+- El botón violeta dice MARCAR CLAVE.
+
+CAMBIOS PRINCIPALES
+1. Filtro individual por set auditado y estado inicial corregido.
+2. Rotaciones separadas por set y acumulado.
+3. Aclaración de ciclo 1-6: después de la 6 vuelve la 1.
+4. Formación histórica vinculada al set correspondiente.
+5. Sideout% con definición estándar: punto ganado al recibir.
+6. Breakpoint% con definición estándar: punto ganado con saque propio.
+7. Breakpoints automáticos separados de las marcas manuales.
+8. Servicio, totales y Top 5 calculados con fórmulas consistentes.
+9. Tarjetas individuales y Top 5 adaptados a celular.
+10. Estados sin datos claros; se elimina "Cargando análisis..." permanente.
+11. Panel flotante móvil reducido y opción controlada de instalación.
+12. Informe por set/acumulado, esquema v3 comparable y documentación actualizada.
+
+IMPORTANTE SOBRE INFORMES ANTERIORES
+Los informes anteriores a v3.0 usaban otra definición de Sideout y Breakpoint.
+El análisis evolutivo los identifica y no los mezcla con informes v3.0 para evitar
+comparaciones incorrectas. No se borran: siguen abriendo normalmente.

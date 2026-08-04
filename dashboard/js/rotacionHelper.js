@@ -45,6 +45,14 @@ export function calcularRotacionesPorEquipo(puntos, equipo = 'LOCAL') {
     return rotaciones;
 }
 
+export function filtrarPuntosPorSet(puntos, setSeleccionado = 'all') {
+    if (setSeleccionado === 'all' || setSeleccionado === null || setSeleccionado === undefined) {
+        return Array.isArray(puntos) ? puntos : [];
+    }
+    const setNumero = Number(setSeleccionado);
+    return (Array.isArray(puntos) ? puntos : []).filter(punto => Number(punto?.set || 1) === setNumero);
+}
+
 export function obtenerStatsRotacion(puntos, equipo, rotacion) {
     const numero = Number(rotacion);
     if (!Number.isInteger(numero) || numero < 1 || numero > 6) return null;
