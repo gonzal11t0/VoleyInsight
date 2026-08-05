@@ -1,5 +1,5 @@
 // Service Worker para recursos estáticos y funcionamiento offline.
-const CACHE_NAME = 'voleyinsight-v3.0.2-final-seguro';
+const CACHE_NAME = 'voleyinsight-v3.0.3-undo-acceso';
 const STATIC_ASSETS = [
     '/dashboard/index.html',
     '/dashboard/css/styles.css',

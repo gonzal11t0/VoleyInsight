@@ -18,8 +18,8 @@ class StateProcessor {
         const awayScore = Number(setData.awayTeamScore) || 0;
         return {
             set: currentSet,
-            homeTeam: apiData.match.homeTeam?.name || 'LOCAL',
-            awayTeam: apiData.match.awayTeam?.name || 'VISITANTE',
+            homeTeam: apiData.match.homeTeam?.name || this.lastState?.homeTeam || 'LOCAL',
+            awayTeam: apiData.match.awayTeam?.name || this.lastState?.awayTeam || 'VISITANTE',
             homeScore,
             awayScore,
             serving: apiData.liveState?.serving === 'home'
@@ -145,14 +145,143 @@ class StateProcessor {
         return [...eventsById.values()];
     }
 
+    resolveTeamSide(apiData, teamId) {
+        if (teamId == null) return null;
+        const normalizedId = String(teamId);
+        const homeIds = [
+            apiData?.match?.homeTeam?.id,
+            apiData?.homeTeam?.id
+        ].filter(id => id != null).map(String);
+        const awayIds = [
+            apiData?.match?.awayTeam?.id,
+            apiData?.awayTeam?.id
+        ].filter(id => id != null).map(String);
+
+        if (homeIds.includes(normalizedId)) return 'home';
+        if (awayIds.includes(normalizedId)) return 'away';
+
+        const lineup = this.extractTimeline(apiData).find(event =>
+            event?.type === 'LINEUP_SET' &&
+            String(event?.data?.teamId) === normalizedId
+        );
+        const side = lineup?.data?.side || lineup?.team;
+        return side === 'home' || side === 'away' ? side : null;
+    }
+
+    extractUndoCorrections(apiData) {
+        return this.extractTimeline(apiData)
+            .filter(event => event?.type === 'UNDO_SCORE_POINT' && event?.undone !== true)
+            .map(event => {
+                const set = Number(event?.setNumber || apiData?.match?.currentSet) || 1;
+                const correctedHome = Number(event?.score?.home);
+                const correctedAway = Number(event?.score?.away);
+                const teamId = event?.data?.originalPayload?.teamId;
+                let scorer = this.resolveTeamSide(apiData, teamId);
+
+                const originalScores = event?.data?.originalPayload?.scores || {};
+                const originalHomeById = Object.entries(originalScores).find(([id]) =>
+                    this.resolveTeamSide(apiData, id) === 'home'
+                );
+                const originalAwayById = Object.entries(originalScores).find(([id]) =>
+                    this.resolveTeamSide(apiData, id) === 'away'
+                );
+
+                let originalHome = Number(originalHomeById?.[1]);
+                let originalAway = Number(originalAwayById?.[1]);
+
+                if (!scorer && Number.isFinite(correctedHome) && Number.isFinite(correctedAway)) {
+                    const values = Object.values(originalScores).map(Number).filter(Number.isFinite);
+                    const homeCandidate = values.includes(correctedHome + 1) && values.includes(correctedAway);
+                    const awayCandidate = values.includes(correctedAway + 1) && values.includes(correctedHome);
+                    if (homeCandidate !== awayCandidate) scorer = homeCandidate ? 'home' : 'away';
+                }
+
+                if (!Number.isFinite(originalHome) && Number.isFinite(correctedHome)) {
+                    originalHome = correctedHome + (scorer === 'home' ? 1 : 0);
+                }
+                if (!Number.isFinite(originalAway) && Number.isFinite(correctedAway)) {
+                    originalAway = correctedAway + (scorer === 'away' ? 1 : 0);
+                }
+
+                if (
+                    !Number.isFinite(correctedHome) ||
+                    !Number.isFinite(correctedAway) ||
+                    !Number.isFinite(originalHome) ||
+                    !Number.isFinite(originalAway)
+                ) return null;
+
+                return {
+                    undoEventId: event?.id != null ? String(event.id) : null,
+                    undoneEventId: event?.data?.undoneEventId != null
+                        ? String(event.data.undoneEventId)
+                        : null,
+                    set,
+                    scorer,
+                    correctedScore: { home: correctedHome, away: correctedAway },
+                    originalScore: { home: originalHome, away: originalAway }
+                };
+            })
+            .filter(Boolean);
+    }
+
+    rebuildFromSnapshots(snapshots) {
+        this.reset();
+        const history = (Array.isArray(snapshots) ? snapshots : [])
+            .filter(snapshot =>
+                Number.isFinite(Number(snapshot?.homeScore)) &&
+                Number.isFinite(Number(snapshot?.awayScore))
+            );
+        if (!history.length) return;
+
+        const last = history[history.length - 1];
+        const servingValue = last.servingAfter || last.equipoSacaDespues || last.scorer || last.serving;
+        const serving = servingValue === 'HOME' || servingValue === 'LOCAL'
+            ? 'home'
+            : servingValue === 'AWAY' || servingValue === 'VISITANTE'
+                ? 'away'
+                : null;
+
+        this.currentSet = Number(last.set) || 1;
+        this.lastState = {
+            set: this.currentSet,
+            homeTeam: last.homeTeam || 'LOCAL',
+            awayTeam: last.awayTeam || 'VISITANTE',
+            homeScore: Number(last.homeScore) || 0,
+            awayScore: Number(last.awayScore) || 0,
+            serving,
+            totalPoints: (Number(last.homeScore) || 0) + (Number(last.awayScore) || 0)
+        };
+        this.rotations = {
+            home: Number(last.rotacionLocalDespues) || Number(last.rotacionLocal) || 1,
+            away: Number(last.rotacionVisitanteDespues) || Number(last.rotacionVisitante) || 1
+        };
+        this.homeRun = Number(last.homeRun) || 0;
+        this.awayRun = Number(last.awayRun) || 0;
+
+        for (const snapshot of history) {
+            if (snapshot?.event === 'BREAK_HOME') {
+                this.breakPoints.set('home', (this.breakPoints.get('home') || 0) + 1);
+            }
+            if (snapshot?.event === 'BREAK_AWAY') {
+                this.breakPoints.set('away', (this.breakPoints.get('away') || 0) + 1);
+            }
+        }
+    }
+
     resolveTimelineSequence(apiData, previousState, currentState) {
+        const undoneScores = this.extractUndoCorrections(apiData);
         const events = this.extractTimeline(apiData)
             .filter(event =>
                 event?.type === 'SCORE_POINT' &&
                 event?.undone !== true &&
                 Number(event?.setNumber || currentState.set) === currentState.set &&
                 Number.isFinite(Number(event?.score?.home)) &&
-                Number.isFinite(Number(event?.score?.away))
+                Number.isFinite(Number(event?.score?.away)) &&
+                !undoneScores.some(correction =>
+                    Number(correction.set) === Number(event?.setNumber || currentState.set) &&
+                    Number(correction.originalScore.home) === Number(event?.score?.home) &&
+                    Number(correction.originalScore.away) === Number(event?.score?.away)
+                )
             )
             .sort((a, b) => {
                 const timeDiff = Date.parse(a.timestamp || 0) - Date.parse(b.timestamp || 0);

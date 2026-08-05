@@ -1,14 +1,14 @@
 {
-  "matchId": 275125,
-  "homeTeam": "MUNMARG",
-  "awayTeam": "EP B",
-  "categoria": "Superiores",
+  "matchId": 230512,
+  "homeTeam": "GEBA",
+  "awayTeam": "SGREGOR",
+  "categoria": "sub_14",
   "partidos": [
     {
-      "id": 275125,
-      "homeTeam": "MUNMARG",
-      "awayTeam": "EP B",
-      "categoria": "Superiores"
+      "id": 230512,
+      "homeTeam": "GEBA",
+      "awayTeam": "SGREGOR",
+      "categoria": "sub_14"
     }
   ]
 }

@@ -22,6 +22,38 @@ class DataRepository {
         this.snapshots.push(snapshot);
     }
 
+    applyCorrections(corrections) {
+        const applied = [];
+        for (const correction of Array.isArray(corrections) ? corrections : []) {
+            let index = -1;
+            if (correction?.undoneEventId) {
+                index = this.snapshots.findIndex(snapshot =>
+                    snapshot?.metroEventId != null &&
+                    String(snapshot.metroEventId) === String(correction.undoneEventId)
+                );
+            }
+            if (index < 0) {
+                index = this.snapshots.findIndex(snapshot => {
+                    const sameSet = Number(snapshot?.set) === Number(correction?.set);
+                    const sameScore =
+                        Number(snapshot?.homeScore) === Number(correction?.originalScore?.home) &&
+                        Number(snapshot?.awayScore) === Number(correction?.originalScore?.away);
+                    const sameScorer = !correction?.scorer ||
+                        snapshot?.scorer === correction.scorer.toUpperCase();
+                    return sameSet && sameScore && sameScorer;
+                });
+            }
+            if (index < 0) continue;
+
+            const removed = this.snapshots.splice(index);
+            applied.push({ correction, removed });
+        }
+        return {
+            applied,
+            removedCount: applied.reduce((total, item) => total + item.removed.length, 0)
+        };
+    }
+
     getSnapshots() {
         return [...this.snapshots];
     }

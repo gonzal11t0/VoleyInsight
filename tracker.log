@@ -6399,3 +6399,1022 @@
 {"timestamp":"2026-08-05T01:59:05.614Z","level":"info","message":"CSV saved","filename":"data\\match_275125.csv","records":142}
 {"timestamp":"2026-08-05T15:46:48.426Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}
 {"timestamp":"2026-08-05T15:48:45.928Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}
+{"timestamp":"2026-08-05T20:23:15.773Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-08-05T20:23:15.778Z","level":"info","message":"🚀 Iniciando tracker para partido 204812 con reconexión automática"}
+{"timestamp":"2026-08-05T20:23:15.789Z","level":"info","message":"📄 Archivo creado para partido 204812"}
+{"timestamp":"2026-08-05T20:23:15.866Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-08-05T20:23:15.871Z","level":"info","message":"📡 Suscrito a partido 204812"}
+{"timestamp":"2026-08-05T20:23:16.206Z","level":"info","message":"🎯 LOCAL 0 - 0 VISITANTE","set":1,"scorer":null,"event":"POINT","lead":0,"homeRun":0,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:23:16.210Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:23:26.422Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:23:36.423Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:23:46.429Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:23:56.440Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:06.445Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:16.420Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:24:16.424Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:24:16.450Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:29.074Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:36.472Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:46.484Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:24:56.496Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:06.501Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:16.431Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:25:16.434Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:25:16.510Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:26.523Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:36.536Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:46.537Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:25:56.549Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:06.561Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:16.484Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:26:16.570Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:26:16.682Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:26.635Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:36.650Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:46.659Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:26:56.663Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:27:06.675Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:27:16.486Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:27:16.488Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:27:16.690Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:27:26.704Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T20:27:29.359Z","level":"info","message":"🔄 LOCAL 0 - 1 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:27:29.546Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:27:36.713Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":2}
+{"timestamp":"2026-08-05T20:27:46.716Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":2}
+{"timestamp":"2026-08-05T20:27:47.398Z","level":"info","message":"🔄 LOCAL 1 - 1 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:27:47.407Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:27:56.717Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":3}
+{"timestamp":"2026-08-05T20:28:06.729Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":3}
+{"timestamp":"2026-08-05T20:28:08.443Z","level":"info","message":"⚡ LOCAL 2 - 1 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":2,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:28:08.449Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:28:16.501Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:28:16.503Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:28:16.733Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":4}
+{"timestamp":"2026-08-05T20:28:26.486Z","level":"info","message":"🔄 LOCAL 2 - 2 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":0,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:28:26.493Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:28:26.743Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":5}
+{"timestamp":"2026-08-05T20:28:36.754Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":5}
+{"timestamp":"2026-08-05T20:28:46.765Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":5}
+{"timestamp":"2026-08-05T20:28:47.559Z","level":"info","message":"⚡ LOCAL 2 - 3 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-1,"homeRun":0,"awayRun":2,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:28:47.567Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:28:56.768Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":6}
+{"timestamp":"2026-08-05T20:29:06.769Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":6}
+{"timestamp":"2026-08-05T20:29:08.624Z","level":"info","message":"⚡ LOCAL 2 - 4 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-2,"homeRun":0,"awayRun":3,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:29:08.630Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:29:16.507Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:29:16.510Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:29:16.772Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":7}
+{"timestamp":"2026-08-05T20:29:23.697Z","level":"info","message":"⚡ LOCAL 2 - 5 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-3,"homeRun":0,"awayRun":4,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:29:23.713Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:29:26.781Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":8}
+{"timestamp":"2026-08-05T20:29:36.791Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":8}
+{"timestamp":"2026-08-05T20:29:46.800Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":8}
+{"timestamp":"2026-08-05T20:29:53.768Z","level":"info","message":"⚡ LOCAL 2 - 6 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-4,"homeRun":0,"awayRun":5,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:29:53.780Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:29:56.813Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":9}
+{"timestamp":"2026-08-05T20:30:06.814Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":9}
+{"timestamp":"2026-08-05T20:30:08.814Z","level":"info","message":"🔄 LOCAL 3 - 6 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:30:08.822Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:30:16.512Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:30:16.514Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:30:16.828Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":10}
+{"timestamp":"2026-08-05T20:30:26.834Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":10}
+{"timestamp":"2026-08-05T20:30:36.776Z","level":"info","message":"🔄 LOCAL 3 - 7 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:30:36.784Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:30:36.838Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":11}
+{"timestamp":"2026-08-05T20:30:46.842Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":11}
+{"timestamp":"2026-08-05T20:30:53.914Z","level":"info","message":"🔄 LOCAL 4 - 7 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:30:53.920Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:30:56.857Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":12}
+{"timestamp":"2026-08-05T20:31:06.869Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":12}
+{"timestamp":"2026-08-05T20:31:15.013Z","level":"info","message":"🔄 LOCAL 4 - 8 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T20:31:15.021Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:31:16.520Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:31:16.522Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:31:16.880Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":13}
+{"timestamp":"2026-08-05T20:31:26.892Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":13}
+{"timestamp":"2026-08-05T20:31:36.904Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":13}
+{"timestamp":"2026-08-05T20:31:45.084Z","level":"info","message":"🔄 LOCAL 5 - 8 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:31:45.090Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:31:46.915Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":14}
+{"timestamp":"2026-08-05T20:31:56.918Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":14}
+{"timestamp":"2026-08-05T20:32:03.108Z","level":"info","message":"⚡ LOCAL 6 - 8 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-2,"homeRun":2,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:32:03.116Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:32:06.928Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":15}
+{"timestamp":"2026-08-05T20:32:16.520Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:32:16.526Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:32:16.928Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":15}
+{"timestamp":"2026-08-05T20:32:24.158Z","level":"info","message":"🔄 LOCAL 6 - 9 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-3,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T20:32:24.169Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:32:26.935Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":16}
+{"timestamp":"2026-08-05T20:32:36.944Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":16}
+{"timestamp":"2026-08-05T20:32:45.206Z","level":"info","message":"⚡ LOCAL 6 - 10 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-4,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T20:32:45.212Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:32:46.952Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":17}
+{"timestamp":"2026-08-05T20:32:56.960Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":17}
+{"timestamp":"2026-08-05T20:33:03.260Z","level":"info","message":"⚡ LOCAL 6 - 11 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-5,"homeRun":0,"awayRun":3,"phase":"MID"}
+{"timestamp":"2026-08-05T20:33:03.268Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:33:06.963Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:33:16.521Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:33:16.522Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:33:16.974Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:33:26.984Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:33:36.994Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:33:47.030Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:33:57.038Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:34:07.043Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:34:16.526Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:34:16.527Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:34:17.055Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:34:27.069Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":18}
+{"timestamp":"2026-08-05T20:34:33.484Z","level":"info","message":"⚡ LOCAL 6 - 12 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-6,"homeRun":0,"awayRun":4,"phase":"MID"}
+{"timestamp":"2026-08-05T20:34:33.493Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:34:37.084Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":19}
+{"timestamp":"2026-08-05T20:34:47.097Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":19}
+{"timestamp":"2026-08-05T20:34:54.526Z","level":"info","message":"⚡ LOCAL 6 - 13 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-7,"homeRun":0,"awayRun":5,"phase":"MID"}
+{"timestamp":"2026-08-05T20:34:54.533Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:34:57.109Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":20}
+{"timestamp":"2026-08-05T20:35:07.120Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":20}
+{"timestamp":"2026-08-05T20:35:16.543Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:35:16.545Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:35:17.133Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":20}
+{"timestamp":"2026-08-05T20:35:18.593Z","level":"info","message":"🔄 LOCAL 7 - 13 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-6,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:35:18.599Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:35:27.143Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":21}
+{"timestamp":"2026-08-05T20:35:37.153Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":21}
+{"timestamp":"2026-08-05T20:35:42.695Z","level":"info","message":"⚡ LOCAL 8 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-5,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:35:42.701Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:35:47.157Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":22}
+{"timestamp":"2026-08-05T20:35:57.164Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":22}
+{"timestamp":"2026-08-05T20:36:03.735Z","level":"info","message":"🔄 LOCAL 8 - 14 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-6,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:36:03.741Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:36:07.169Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":23}
+{"timestamp":"2026-08-05T20:36:16.555Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:36:16.557Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:36:17.178Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":23}
+{"timestamp":"2026-08-05T20:36:24.809Z","level":"info","message":"⚡ LOCAL 8 - 15 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-7,"homeRun":0,"awayRun":2,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:36:24.815Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:36:27.185Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":24}
+{"timestamp":"2026-08-05T20:36:37.191Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":24}
+{"timestamp":"2026-08-05T20:36:47.201Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":24}
+{"timestamp":"2026-08-05T20:36:51.882Z","level":"info","message":"🔄 LOCAL 9 - 15 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-6,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:36:51.891Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:36:57.213Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":25}
+{"timestamp":"2026-08-05T20:37:07.217Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":25}
+{"timestamp":"2026-08-05T20:37:16.557Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:37:16.559Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:37:17.224Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":25}
+{"timestamp":"2026-08-05T20:37:18.953Z","level":"info","message":"⚡ LOCAL 10 - 15 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-5,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:37:18.962Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:37:27.230Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:37:37.245Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:37:47.258Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:37:57.273Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:07.281Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:16.568Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:38:16.569Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:38:17.297Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:27.309Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:37.320Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:47.320Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":26}
+{"timestamp":"2026-08-05T20:38:49.184Z","level":"info","message":"🔄 LOCAL 10 - 16 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-6,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:38:49.192Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:38:57.326Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":27}
+{"timestamp":"2026-08-05T20:39:04.255Z","level":"info","message":"🔄 LOCAL 11 - 16 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-5,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:39:04.264Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:39:07.333Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":28}
+{"timestamp":"2026-08-05T20:39:16.581Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:39:16.582Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:39:17.349Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":28}
+{"timestamp":"2026-08-05T20:39:27.355Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":28}
+{"timestamp":"2026-08-05T20:39:28.308Z","level":"info","message":"🔄 LOCAL 11 - 17 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-6,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:39:28.314Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:39:37.357Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":29}
+{"timestamp":"2026-08-05T20:39:47.357Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":29}
+{"timestamp":"2026-08-05T20:39:52.357Z","level":"info","message":"🔄 LOCAL 12 - 17 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-5,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:39:52.364Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:39:57.365Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":30}
+{"timestamp":"2026-08-05T20:40:07.374Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":30}
+{"timestamp":"2026-08-05T20:40:16.587Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:40:16.588Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:40:17.382Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":30}
+{"timestamp":"2026-08-05T20:40:25.417Z","level":"info","message":"⚡ LOCAL 13 - 17 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-4,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:40:25.423Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:40:27.388Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":31}
+{"timestamp":"2026-08-05T20:40:37.393Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":31}
+{"timestamp":"2026-08-05T20:40:43.475Z","level":"info","message":"⚡ LOCAL 14 - 17 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-3,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:40:43.482Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:40:47.404Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:40:57.406Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:07.420Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:16.599Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:41:16.600Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:41:17.424Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:27.436Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:37.438Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:47.451Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:41:57.452Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:42:07.460Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":32}
+{"timestamp":"2026-08-05T20:42:10.768Z","level":"info","message":"🔄 LOCAL 14 - 18 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:42:10.777Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:42:16.614Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:42:16.615Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:42:17.474Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":33}
+{"timestamp":"2026-08-05T20:42:27.476Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":33}
+{"timestamp":"2026-08-05T20:42:37.488Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":33}
+{"timestamp":"2026-08-05T20:42:43.843Z","level":"info","message":"🔄 LOCAL 15 - 18 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:42:43.849Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:42:47.500Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":34}
+{"timestamp":"2026-08-05T20:42:57.512Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":34}
+{"timestamp":"2026-08-05T20:43:07.520Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":34}
+{"timestamp":"2026-08-05T20:43:11.005Z","level":"info","message":"🔄 LOCAL 15 - 19 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:43:11.011Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:43:16.622Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:43:16.624Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:43:17.523Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":35}
+{"timestamp":"2026-08-05T20:43:27.529Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":35}
+{"timestamp":"2026-08-05T20:43:37.531Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":35}
+{"timestamp":"2026-08-05T20:43:41.006Z","level":"info","message":"🔄 LOCAL 16 - 19 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:43:41.012Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:43:47.540Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":36}
+{"timestamp":"2026-08-05T20:43:57.555Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":36}
+{"timestamp":"2026-08-05T20:44:07.701Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":36}
+{"timestamp":"2026-08-05T20:44:11.156Z","level":"info","message":"⚡ LOCAL 17 - 19 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-2,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:44:11.162Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:44:16.631Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:44:16.632Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:44:17.644Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":37}
+{"timestamp":"2026-08-05T20:44:27.658Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":37}
+{"timestamp":"2026-08-05T20:44:37.671Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":37}
+{"timestamp":"2026-08-05T20:44:47.253Z","level":"info","message":"🔄 LOCAL 17 - 20 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:44:47.262Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:44:47.681Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":38}
+{"timestamp":"2026-08-05T20:44:57.693Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":38}
+{"timestamp":"2026-08-05T20:45:02.343Z","level":"info","message":"🔄 LOCAL 18 - 20 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-2,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:45:02.350Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:45:07.700Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":39}
+{"timestamp":"2026-08-05T20:45:16.633Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:45:16.637Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:45:17.714Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":39}
+{"timestamp":"2026-08-05T20:45:23.398Z","level":"info","message":"🔄 LOCAL 18 - 21 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:45:23.414Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:45:27.725Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":40}
+{"timestamp":"2026-08-05T20:45:37.734Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":40}
+{"timestamp":"2026-08-05T20:45:47.735Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":40}
+{"timestamp":"2026-08-05T20:45:50.443Z","level":"info","message":"⚡ LOCAL 18 - 22 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-4,"homeRun":0,"awayRun":2,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:45:50.451Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:45:57.747Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:07.748Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:16.648Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:46:16.649Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:46:17.760Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:27.762Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:37.769Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:47.781Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:46:57.783Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:47:07.799Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":41}
+{"timestamp":"2026-08-05T20:47:08.632Z","level":"info","message":"🔄 LOCAL 19 - 22 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:47:08.640Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:47:16.659Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:47:16.661Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:47:17.805Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":42}
+{"timestamp":"2026-08-05T20:47:27.819Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":42}
+{"timestamp":"2026-08-05T20:47:29.732Z","level":"info","message":"🔄 LOCAL 19 - 23 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:47:29.738Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:47:37.828Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":43}
+{"timestamp":"2026-08-05T20:47:47.841Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":43}
+{"timestamp":"2026-08-05T20:47:50.792Z","level":"info","message":"⚡ LOCAL 19 - 24 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-5,"homeRun":0,"awayRun":2,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:47:50.800Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:47:57.846Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":44}
+{"timestamp":"2026-08-05T20:48:07.862Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":44}
+{"timestamp":"2026-08-05T20:48:11.835Z","level":"info","message":"🔄 LOCAL 20 - 24 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-4,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:48:11.841Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:48:16.669Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:48:16.670Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:48:17.870Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":45}
+{"timestamp":"2026-08-05T20:48:27.870Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":45}
+{"timestamp":"2026-08-05T20:48:37.870Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":45}
+{"timestamp":"2026-08-05T20:48:38.913Z","level":"info","message":"⚡ LOCAL 21 - 24 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-3,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:48:38.943Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:48:47.880Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":46}
+{"timestamp":"2026-08-05T20:48:56.941Z","level":"info","message":"⚡ LOCAL 22 - 24 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-2,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:48:56.956Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:48:57.888Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:07.894Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:16.680Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:49:16.681Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:49:17.900Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:27.915Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:37.917Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:47.920Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":47}
+{"timestamp":"2026-08-05T20:49:57.093Z","level":"info","message":"🔄 LOCAL 22 - 25 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T20:49:57.101Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:49:57.920Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:07.935Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:16.687Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:50:16.688Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:50:17.941Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:27.943Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:37.950Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:47.956Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:50:57.957Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:07.966Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:16.698Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:51:16.699Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:51:17.975Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:27.991Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:38.000Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:48.011Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:51:57.454Z","level":"info","message":"⏸️ Partido sin puntos durante 120s - el seguimiento continúa"}
+{"timestamp":"2026-08-05T20:51:58.021Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:08.030Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:16.702Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:52:16.704Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:52:18.043Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:28.059Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:38.062Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:48.071Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:52:58.076Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:53:08.078Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":48}
+{"timestamp":"2026-08-05T20:53:15.709Z","level":"info","message":"🎯 LOCAL 0 - 0 VISITANTE","set":2,"scorer":null,"event":"POINT","lead":0,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:53:15.711Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:16.703Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:16.705Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:53:18.079Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":49}
+{"timestamp":"2026-08-05T20:53:18.722Z","level":"info","message":"⚡ LOCAL 0 - 1 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-1,"homeRun":0,"awayRun":2,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:53:18.739Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:24.714Z","level":"info","message":"🔄 LOCAL 1 - 1 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:53:24.721Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:27.730Z","level":"info","message":"🔄 LOCAL 1 - 2 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:53:27.738Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:28.085Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":52}
+{"timestamp":"2026-08-05T20:53:38.086Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":52}
+{"timestamp":"2026-08-05T20:53:42.802Z","level":"info","message":"🔄 LOCAL 2 - 2 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:53:42.809Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:53:48.090Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":53}
+{"timestamp":"2026-08-05T20:53:58.102Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":53}
+{"timestamp":"2026-08-05T20:54:00.839Z","level":"info","message":"⚡ LOCAL 3 - 2 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":2,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:54:00.845Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:54:08.113Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":54}
+{"timestamp":"2026-08-05T20:54:16.713Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:54:16.715Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:54:18.128Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":54}
+{"timestamp":"2026-08-05T20:54:27.945Z","level":"info","message":"🔄 LOCAL 3 - 3 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":0,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:54:27.950Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:54:28.130Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":55}
+{"timestamp":"2026-08-05T20:54:38.143Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":55}
+{"timestamp":"2026-08-05T20:54:48.146Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":55}
+{"timestamp":"2026-08-05T20:54:51.970Z","level":"info","message":"⚡ LOCAL 3 - 4 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-1,"homeRun":0,"awayRun":2,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:54:51.978Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:54:58.146Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":56}
+{"timestamp":"2026-08-05T20:55:08.153Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":56}
+{"timestamp":"2026-08-05T20:55:16.036Z","level":"info","message":"⚡ LOCAL 3 - 5 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-2,"homeRun":0,"awayRun":3,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:55:16.041Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:55:16.719Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:55:16.725Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:55:18.168Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":57}
+{"timestamp":"2026-08-05T20:55:28.171Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":57}
+{"timestamp":"2026-08-05T20:55:38.186Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":57}
+{"timestamp":"2026-08-05T20:55:48.188Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":57}
+{"timestamp":"2026-08-05T20:55:52.144Z","level":"info","message":"🔄 LOCAL 4 - 5 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-1,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:55:52.155Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:55:58.193Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":58}
+{"timestamp":"2026-08-05T20:56:08.201Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":58}
+{"timestamp":"2026-08-05T20:56:16.219Z","level":"info","message":"⚡ LOCAL 5 - 5 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":0,"homeRun":2,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T20:56:16.226Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:56:16.733Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:56:16.737Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:56:18.205Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":59}
+{"timestamp":"2026-08-05T20:56:28.213Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":59}
+{"timestamp":"2026-08-05T20:56:38.215Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":59}
+{"timestamp":"2026-08-05T20:56:48.225Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":59}
+{"timestamp":"2026-08-05T20:56:58.232Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":59}
+{"timestamp":"2026-08-05T20:57:01.319Z","level":"info","message":"⚡ LOCAL 6 - 5 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":3,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:57:01.327Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:57:08.277Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":60}
+{"timestamp":"2026-08-05T20:57:16.742Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:57:16.744Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:57:18.276Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":60}
+{"timestamp":"2026-08-05T20:57:19.402Z","level":"info","message":"🔄 LOCAL 6 - 6 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":0,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T20:57:19.411Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:57:28.291Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":61}
+{"timestamp":"2026-08-05T20:57:38.295Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":61}
+{"timestamp":"2026-08-05T20:57:48.299Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":61}
+{"timestamp":"2026-08-05T20:57:49.473Z","level":"info","message":"🔄 LOCAL 7 - 6 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":1,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:57:49.481Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:57:58.313Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":62}
+{"timestamp":"2026-08-05T20:58:01.507Z","level":"info","message":"🔄 LOCAL 7 - 7 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":0,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T20:58:01.512Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:58:08.318Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":63}
+{"timestamp":"2026-08-05T20:58:16.745Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:58:16.746Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:58:18.325Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":63}
+{"timestamp":"2026-08-05T20:58:28.334Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":63}
+{"timestamp":"2026-08-05T20:58:28.585Z","level":"info","message":"⚡ LOCAL 7 - 8 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-1,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T20:58:28.592Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:58:38.338Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":64}
+{"timestamp":"2026-08-05T20:58:48.350Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":64}
+{"timestamp":"2026-08-05T20:58:49.670Z","level":"info","message":"🔄 LOCAL 8 - 8 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:58:49.677Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:58:58.360Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":65}
+{"timestamp":"2026-08-05T20:59:08.364Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":65}
+{"timestamp":"2026-08-05T20:59:10.696Z","level":"info","message":"🔄 LOCAL 8 - 9 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T20:59:10.701Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:59:16.745Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:59:16.748Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T20:59:18.392Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":66}
+{"timestamp":"2026-08-05T20:59:28.405Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":66}
+{"timestamp":"2026-08-05T20:59:34.776Z","level":"info","message":"🔄 LOCAL 9 - 9 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T20:59:34.782Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T20:59:38.412Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":67}
+{"timestamp":"2026-08-05T20:59:48.415Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":67}
+{"timestamp":"2026-08-05T20:59:58.421Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":67}
+{"timestamp":"2026-08-05T21:00:07.877Z","level":"info","message":"🔄 LOCAL 9 - 10 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T21:00:07.882Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:00:08.434Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":68}
+{"timestamp":"2026-08-05T21:00:16.750Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:00:16.776Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T21:00:18.438Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":68}
+{"timestamp":"2026-08-05T21:00:28.454Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":68}
+{"timestamp":"2026-08-05T21:00:38.457Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":68}
+{"timestamp":"2026-08-05T21:00:47.349Z","level":"info","message":"⚡ LOCAL 9 - 11 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-2,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T21:00:47.358Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:00:48.459Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":69}
+{"timestamp":"2026-08-05T21:00:56.885Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":2,"from":"9-11","to":"10-10"}
+{"timestamp":"2026-08-05T21:00:56.886Z","level":"info","message":"🎯 LOCAL 10 - 10 VISITANTE","set":2,"scorer":null,"event":"SCORE_GAP_AMBIGUOUS","lead":0,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T21:00:56.894Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:00:58.469Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":70}
+{"timestamp":"2026-08-05T21:01:08.473Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":70}
+{"timestamp":"2026-08-05T21:01:16.750Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:01:16.751Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T21:01:18.480Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":70}
+{"timestamp":"2026-08-05T21:01:20.206Z","level":"info","message":"⚡ LOCAL 11 - 10 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T21:01:20.212Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:01:28.490Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":71}
+{"timestamp":"2026-08-05T21:01:38.490Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":71}
+{"timestamp":"2026-08-05T21:01:47.205Z","level":"info","message":"⚡ LOCAL 12 - 10 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":2,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T21:01:47.214Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:01:48.502Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:01:58.518Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:08.525Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:16.754Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:02:16.755Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T21:02:18.528Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:28.535Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:38.538Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:48.551Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:02:58.552Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:03:08.560Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":72}
+{"timestamp":"2026-08-05T21:03:16.761Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:03:16.762Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T21:03:17.304Z","level":"info","message":"⚡ LOCAL 13 - 10 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":3,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T21:03:17.309Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:03:18.575Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":73}
+{"timestamp":"2026-08-05T21:03:28.588Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":73}
+{"timestamp":"2026-08-05T21:03:35.366Z","level":"info","message":"⚡ LOCAL 14 - 10 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":4,"homeRun":4,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T21:03:35.372Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:03:38.592Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":74}
+{"timestamp":"2026-08-05T21:03:48.604Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":74}
+{"timestamp":"2026-08-05T21:03:56.424Z","level":"info","message":"🔄 LOCAL 14 - 11 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T21:03:56.430Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T21:03:58.607Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":75}
+{"timestamp":"2026-08-05T21:04:08.622Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":75}
+{"timestamp":"2026-08-05T21:04:14.693Z","level":"warn","message":"⚠️ WebSocket desconectado; Socket.IO intentará reconectar"}
+{"timestamp":"2026-08-05T22:28:26.877Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}
+{"timestamp":"2026-08-05T22:28:59.543Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-08-05T22:28:59.549Z","level":"info","message":"🚀 Iniciando tracker para partido 204812 con reconexión automática"}
+{"timestamp":"2026-08-05T22:28:59.858Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-08-05T22:29:00.047Z","level":"info","message":"📡 Suscrito a partido 204812"}
+{"timestamp":"2026-08-05T22:29:00.161Z","level":"info","message":"🎯 LOCAL 15 - 12 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":3,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T22:29:00.310Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T22:29:10.713Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:29:20.783Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:29:30.806Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:29:40.788Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:29:50.800Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:00.709Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T22:30:00.711Z","level":"info","message":"Analysis saved","filename":"data\\analysis_204812.json"}
+{"timestamp":"2026-08-05T22:30:00.804Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:10.818Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:21.030Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:31.088Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:41.015Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:30:51.103Z","level":"info","message":"CSV saved","filename":"data\\match_204812.csv","records":1}
+{"timestamp":"2026-08-05T22:31:00.331Z","level":"info","message":"📋 [MONITOR] config.json cambió: 204812 -> 230512"}
+{"timestamp":"2026-08-05T22:31:00.337Z","level":"info","message":"🔄 Cambiando partido de 204812 a 230512"}
+{"timestamp":"2026-08-05T22:31:00.343Z","level":"info","message":"JSON saved","filename":"data\\match_204812.json"}
+{"timestamp":"2026-08-05T22:31:00.345Z","level":"info","message":"💾 Datos del partido 204812 guardados"}
+{"timestamp":"2026-08-05T22:31:00.364Z","level":"info","message":"📄 Archivo creado para partido 230512"}
+{"timestamp":"2026-08-05T22:31:00.408Z","level":"info","message":"✅ Partido cambiado a 230512"}
+{"timestamp":"2026-08-05T22:31:00.411Z","level":"info","message":"📋 Equipos: VELEZ vs BOCA"}
+{"timestamp":"2026-08-05T22:31:00.419Z","level":"info","message":"📡 Suscrito a partido 230512"}
+{"timestamp":"2026-08-05T22:31:01.698Z","level":"error","message":"❌ Error en fetch (1 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:02.541Z","level":"error","message":"❌ Error en fetch (2 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:04.662Z","level":"error","message":"❌ Error en fetch (3 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:04.663Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 1000ms, error #3)"}
+{"timestamp":"2026-08-05T22:31:05.865Z","level":"error","message":"❌ Error en fetch (4 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:05.867Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 4000ms, error #4)"}
+{"timestamp":"2026-08-05T22:31:10.218Z","level":"error","message":"❌ Error en fetch (5 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:10.223Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 16000ms, error #5)"}
+{"timestamp":"2026-08-05T22:31:26.540Z","level":"error","message":"❌ Error en fetch (6 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:31:26.541Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #6)"}
+{"timestamp":"2026-08-05T22:32:26.883Z","level":"error","message":"❌ Error en fetch (7 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:32:27.044Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #7)"}
+{"timestamp":"2026-08-05T22:33:27.491Z","level":"error","message":"❌ Error en fetch (8 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:33:27.491Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #8)"}
+{"timestamp":"2026-08-05T22:34:27.832Z","level":"error","message":"❌ Error en fetch (9 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:34:27.832Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #9)"}
+{"timestamp":"2026-08-05T22:35:28.232Z","level":"error","message":"❌ Error en fetch (10 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:35:28.232Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #10)"}
+{"timestamp":"2026-08-05T22:36:28.532Z","level":"error","message":"❌ Error en fetch (11 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:36:28.534Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #11)"}
+{"timestamp":"2026-08-05T22:37:29.325Z","level":"error","message":"❌ Error en fetch (12 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:37:29.327Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #12)"}
+{"timestamp":"2026-08-05T22:38:29.611Z","level":"error","message":"❌ Error en fetch (13 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:38:29.613Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #13)"}
+{"timestamp":"2026-08-05T22:39:29.974Z","level":"error","message":"❌ Error en fetch (14 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:39:30.012Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #14)"}
+{"timestamp":"2026-08-05T22:40:30.320Z","level":"error","message":"❌ Error en fetch (15 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:40:30.358Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #15)"}
+{"timestamp":"2026-08-05T22:41:30.670Z","level":"error","message":"❌ Error en fetch (16 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:41:30.672Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #16)"}
+{"timestamp":"2026-08-05T22:42:30.946Z","level":"error","message":"❌ Error en fetch (17 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:42:30.946Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #17)"}
+{"timestamp":"2026-08-05T22:43:31.226Z","level":"error","message":"❌ Error en fetch (18 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:43:31.227Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #18)"}
+{"timestamp":"2026-08-05T22:44:31.590Z","level":"error","message":"❌ Error en fetch (19 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:44:31.592Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #19)"}
+{"timestamp":"2026-08-05T22:45:31.881Z","level":"error","message":"❌ Error en fetch (20 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:45:31.882Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #20)"}
+{"timestamp":"2026-08-05T22:46:32.175Z","level":"error","message":"❌ Error en fetch (21 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:46:32.196Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #21)"}
+{"timestamp":"2026-08-05T22:47:32.500Z","level":"error","message":"❌ Error en fetch (22 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:47:32.500Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #22)"}
+{"timestamp":"2026-08-05T22:47:32.643Z","level":"error","message":"❌ Error en fetch (23 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:48:32.769Z","level":"error","message":"❌ Error en fetch (24 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:48:32.770Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #24)"}
+{"timestamp":"2026-08-05T22:48:32.790Z","level":"error","message":"❌ Error en fetch (25 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:49:33.125Z","level":"error","message":"❌ Error en fetch (26 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:49:33.125Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #26)"}
+{"timestamp":"2026-08-05T22:50:33.458Z","level":"error","message":"❌ Error en fetch (27 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:50:33.459Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #27)"}
+{"timestamp":"2026-08-05T22:51:33.753Z","level":"error","message":"❌ Error en fetch (28 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:51:33.754Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #28)"}
+{"timestamp":"2026-08-05T22:52:34.039Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #29)"}
+{"timestamp":"2026-08-05T22:52:34.039Z","level":"error","message":"❌ Error en fetch (29 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:53:34.340Z","level":"error","message":"❌ Error en fetch (30 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:53:34.343Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #30)"}
+{"timestamp":"2026-08-05T22:54:34.711Z","level":"error","message":"❌ Error en fetch (31 consecutivos):","error":"HTTP 502: Bad Gateway","name":"APIError"}
+{"timestamp":"2026-08-05T22:54:34.712Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #31)"}
+{"timestamp":"2026-08-05T22:55:35.003Z","level":"error","message":"❌ Error en fetch (32 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:55:35.004Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #32)"}
+{"timestamp":"2026-08-05T22:56:35.294Z","level":"error","message":"❌ Error en fetch (33 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:56:35.295Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #33)"}
+{"timestamp":"2026-08-05T22:57:35.612Z","level":"error","message":"❌ Error en fetch (34 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:57:35.612Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #34)"}
+{"timestamp":"2026-08-05T22:58:35.902Z","level":"error","message":"❌ Error en fetch (35 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:58:35.903Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #35)"}
+{"timestamp":"2026-08-05T22:59:36.296Z","level":"error","message":"❌ Error en fetch (36 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T22:59:36.296Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #36)"}
+{"timestamp":"2026-08-05T23:00:36.611Z","level":"error","message":"❌ Error en fetch (37 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T23:00:36.611Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #37)"}
+{"timestamp":"2026-08-05T23:01:36.923Z","level":"error","message":"❌ Error en fetch (38 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T23:01:36.924Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #38)"}
+{"timestamp":"2026-08-05T23:02:37.233Z","level":"error","message":"❌ Error en fetch (39 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T23:02:37.234Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #39)"}
+{"timestamp":"2026-08-05T23:03:37.537Z","level":"error","message":"❌ Error en fetch (40 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T23:03:37.539Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #40)"}
+{"timestamp":"2026-08-05T23:04:37.895Z","level":"error","message":"❌ Error en fetch (41 consecutivos):","error":"Invalid API response: sets must be a non-empty array","name":"Error"}
+{"timestamp":"2026-08-05T23:04:37.895Z","level":"warn","message":"🔄 Intentando reconexión... (delay: 60000ms, error #41)"}
+{"timestamp":"2026-08-05T23:05:38.204Z","level":"info","message":"✅ Conexión restablecida después de 41 errores"}
+{"timestamp":"2026-08-05T23:05:38.209Z","level":"info","message":"🎯 LOCAL 0 - 0 VISITANTE","set":1,"scorer":null,"event":"POINT","lead":0,"homeRun":0,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:05:38.212Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:05:42.954Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-05T23:05:52.964Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-05T23:06:01.145Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:06:01.185Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:06:02.982Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-05T23:06:11.429Z","level":"info","message":"🎯 LOCAL 0 - 0 VISITANTE","set":1,"scorer":null,"event":"POINT","lead":0,"homeRun":0,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:06:11.431Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:06:13.030Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:06:23.006Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:06:33.015Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:06:43.026Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:06:53.029Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:01.129Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:07:01.131Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:07:03.042Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:13.054Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:23.062Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:33.064Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:43.070Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:07:53.072Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:01.144Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:08:01.146Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:08:03.087Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:13.102Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:23.114Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:33.128Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:43.139Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:08:53.146Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:01.154Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:09:01.186Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:09:03.191Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:13.201Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:23.208Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:33.218Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:43.221Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:09:53.227Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:01.154Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:10:01.157Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:10:03.240Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:13.244Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:23.244Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:33.249Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:43.264Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:10:53.276Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:01.169Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:11:01.170Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:11:03.282Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:13.283Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:23.294Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:33.297Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:43.306Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:11:53.308Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:12:01.177Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:12:01.178Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:12:03.321Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:12:13.324Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":2}
+{"timestamp":"2026-08-05T23:12:18.734Z","level":"info","message":"🔄 LOCAL 0 - 1 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:12:18.765Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:12:23.333Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":3}
+{"timestamp":"2026-08-05T23:12:33.335Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":3}
+{"timestamp":"2026-08-05T23:12:43.340Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":3}
+{"timestamp":"2026-08-05T23:12:48.827Z","level":"info","message":"🔄 LOCAL 1 - 1 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:12:48.834Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:12:53.342Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":4}
+{"timestamp":"2026-08-05T23:13:01.190Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:13:01.191Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:13:03.356Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":4}
+{"timestamp":"2026-08-05T23:13:13.359Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":4}
+{"timestamp":"2026-08-05T23:13:15.844Z","level":"info","message":"🔄 LOCAL 1 - 2 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:13:15.850Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:13:23.360Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":5}
+{"timestamp":"2026-08-05T23:13:33.368Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":5}
+{"timestamp":"2026-08-05T23:13:43.373Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":5}
+{"timestamp":"2026-08-05T23:13:45.895Z","level":"info","message":"🔄 LOCAL 2 - 2 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:13:45.901Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:13:53.385Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":6}
+{"timestamp":"2026-08-05T23:14:01.197Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:14:01.199Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:14:03.388Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":6}
+{"timestamp":"2026-08-05T23:14:10.012Z","level":"info","message":"🔄 LOCAL 2 - 3 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:14:10.019Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:14:13.389Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":7}
+{"timestamp":"2026-08-05T23:14:23.397Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":7}
+{"timestamp":"2026-08-05T23:14:33.406Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":7}
+{"timestamp":"2026-08-05T23:14:34.048Z","level":"info","message":"🔄 LOCAL 3 - 3 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:14:34.054Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:14:43.407Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":8}
+{"timestamp":"2026-08-05T23:14:53.410Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":8}
+{"timestamp":"2026-08-05T23:15:01.136Z","level":"info","message":"🔄 LOCAL 3 - 4 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:15:01.143Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:15:01.197Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:15:01.198Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:15:03.424Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":9}
+{"timestamp":"2026-08-05T23:15:13.446Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":9}
+{"timestamp":"2026-08-05T23:15:23.451Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":9}
+{"timestamp":"2026-08-05T23:15:33.465Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":9}
+{"timestamp":"2026-08-05T23:15:40.256Z","level":"info","message":"🔄 LOCAL 4 - 4 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:15:40.332Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:15:43.473Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":10}
+{"timestamp":"2026-08-05T23:15:53.477Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":10}
+{"timestamp":"2026-08-05T23:16:01.197Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:16:01.202Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:16:03.485Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":10}
+{"timestamp":"2026-08-05T23:16:13.483Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":10}
+{"timestamp":"2026-08-05T23:16:19.352Z","level":"info","message":"🔄 LOCAL 4 - 5 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:16:19.378Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:16:23.487Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":11}
+{"timestamp":"2026-08-05T23:16:33.495Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":11}
+{"timestamp":"2026-08-05T23:16:43.510Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":11}
+{"timestamp":"2026-08-05T23:16:53.533Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":11}
+{"timestamp":"2026-08-05T23:16:55.462Z","level":"info","message":"🔄 LOCAL 5 - 5 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:16:55.476Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:17:01.208Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:17:01.216Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:17:03.541Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":12}
+{"timestamp":"2026-08-05T23:17:13.546Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":12}
+{"timestamp":"2026-08-05T23:17:16.524Z","level":"info","message":"🔄 LOCAL 5 - 6 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T23:17:16.537Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:17:23.559Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":13}
+{"timestamp":"2026-08-05T23:17:33.560Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":13}
+{"timestamp":"2026-08-05T23:17:34.579Z","level":"info","message":"⚡ LOCAL 5 - 7 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-2,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T23:17:34.597Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:17:43.571Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":14}
+{"timestamp":"2026-08-05T23:17:53.574Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":14}
+{"timestamp":"2026-08-05T23:18:01.232Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:18:01.234Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:18:01.651Z","level":"info","message":"🔄 LOCAL 6 - 7 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-1,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T23:18:01.668Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:18:03.584Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":15}
+{"timestamp":"2026-08-05T23:18:13.585Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":15}
+{"timestamp":"2026-08-05T23:18:23.588Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":15}
+{"timestamp":"2026-08-05T23:18:33.598Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":15}
+{"timestamp":"2026-08-05T23:18:34.859Z","level":"info","message":"🔄 LOCAL 6 - 8 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-2,"homeRun":0,"awayRun":1,"phase":"MID"}
+{"timestamp":"2026-08-05T23:18:34.868Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:18:43.602Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":16}
+{"timestamp":"2026-08-05T23:18:53.643Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":16}
+{"timestamp":"2026-08-05T23:18:58.946Z","level":"info","message":"⚡ LOCAL 6 - 9 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-3,"homeRun":0,"awayRun":2,"phase":"MID"}
+{"timestamp":"2026-08-05T23:18:58.955Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:19:01.235Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:19:01.238Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:19:03.652Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":17}
+{"timestamp":"2026-08-05T23:19:13.656Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":17}
+{"timestamp":"2026-08-05T23:19:23.671Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":17}
+{"timestamp":"2026-08-05T23:19:26.003Z","level":"info","message":"⚡ LOCAL 6 - 10 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-4,"homeRun":0,"awayRun":3,"phase":"MID"}
+{"timestamp":"2026-08-05T23:19:26.010Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:19:33.680Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:19:43.683Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:19:53.693Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:20:01.249Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:20:01.255Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:20:03.696Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:20:13.697Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:20:23.701Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:20:33.711Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":18}
+{"timestamp":"2026-08-05T23:20:38.260Z","level":"info","message":"⚡ LOCAL 6 - 11 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-5,"homeRun":0,"awayRun":4,"phase":"MID"}
+{"timestamp":"2026-08-05T23:20:38.269Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:20:43.719Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":19}
+{"timestamp":"2026-08-05T23:20:53.731Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":19}
+{"timestamp":"2026-08-05T23:21:01.251Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:21:01.253Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:21:03.747Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":19}
+{"timestamp":"2026-08-05T23:21:11.333Z","level":"info","message":"⚡ LOCAL 6 - 12 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":-6,"homeRun":0,"awayRun":5,"phase":"MID"}
+{"timestamp":"2026-08-05T23:21:11.348Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:21:13.758Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":20}
+{"timestamp":"2026-08-05T23:21:23.770Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":20}
+{"timestamp":"2026-08-05T23:21:33.781Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":20}
+{"timestamp":"2026-08-05T23:21:35.388Z","level":"info","message":"🔄 LOCAL 7 - 12 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-5,"homeRun":1,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T23:21:35.401Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:21:43.796Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":21}
+{"timestamp":"2026-08-05T23:21:53.803Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":21}
+{"timestamp":"2026-08-05T23:21:59.512Z","level":"info","message":"⚡ LOCAL 8 - 12 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-4,"homeRun":2,"awayRun":0,"phase":"MID"}
+{"timestamp":"2026-08-05T23:21:59.542Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:22:01.263Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:22:01.266Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:22:03.813Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":22}
+{"timestamp":"2026-08-05T23:22:13.815Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":22}
+{"timestamp":"2026-08-05T23:22:23.818Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":22}
+{"timestamp":"2026-08-05T23:22:26.534Z","level":"info","message":"⚡ LOCAL 9 - 12 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-3,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:22:26.542Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:22:33.866Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":23}
+{"timestamp":"2026-08-05T23:22:43.832Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":23}
+{"timestamp":"2026-08-05T23:22:44.602Z","level":"info","message":"🔄 LOCAL 9 - 13 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-4,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:22:44.619Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:22:53.844Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":24}
+{"timestamp":"2026-08-05T23:23:01.271Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:23:01.280Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:23:03.855Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":24}
+{"timestamp":"2026-08-05T23:23:13.862Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":24}
+{"timestamp":"2026-08-05T23:23:23.871Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":24}
+{"timestamp":"2026-08-05T23:23:33.873Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":24}
+{"timestamp":"2026-08-05T23:23:35.759Z","level":"info","message":"🔄 LOCAL 10 - 13 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-3,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:23:35.812Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:23:43.882Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":25}
+{"timestamp":"2026-08-05T23:23:53.881Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":25}
+{"timestamp":"2026-08-05T23:24:01.286Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:24:01.287Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:24:03.897Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":25}
+{"timestamp":"2026-08-05T23:24:13.905Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":25}
+{"timestamp":"2026-08-05T23:24:14.907Z","level":"info","message":"⚡ LOCAL 11 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-2,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:24:14.932Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:24:23.915Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":26}
+{"timestamp":"2026-08-05T23:24:33.921Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":26}
+{"timestamp":"2026-08-05T23:24:38.974Z","level":"info","message":"⚡ LOCAL 12 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":-1,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:24:38.983Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:24:43.931Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":27}
+{"timestamp":"2026-08-05T23:24:53.942Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":27}
+{"timestamp":"2026-08-05T23:25:01.300Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:25:01.301Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:25:03.950Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":27}
+{"timestamp":"2026-08-05T23:25:06.083Z","level":"info","message":"⚡ LOCAL 13 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":0,"homeRun":4,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:25:06.106Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:25:13.962Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":28}
+{"timestamp":"2026-08-05T23:25:23.972Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":28}
+{"timestamp":"2026-08-05T23:25:33.978Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":28}
+{"timestamp":"2026-08-05T23:25:42.194Z","level":"info","message":"⚡ LOCAL 14 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":5,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:25:42.203Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:25:43.988Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":29}
+{"timestamp":"2026-08-05T23:25:53.990Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":29}
+{"timestamp":"2026-08-05T23:26:01.381Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:26:01.394Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:26:04.490Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":29}
+{"timestamp":"2026-08-05T23:26:06.413Z","level":"info","message":"⚡ LOCAL 15 - 13 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":2,"homeRun":6,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:26:06.496Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:26:14.344Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:26:24.320Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:26:34.334Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:26:44.345Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:26:54.358Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:01.386Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:27:01.391Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:27:04.360Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:14.470Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:24.423Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:34.426Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:44.430Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":30}
+{"timestamp":"2026-08-05T23:27:52.057Z","level":"info","message":"🔄 LOCAL 15 - 14 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":1,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:27:52.069Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:27:54.437Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":31}
+{"timestamp":"2026-08-05T23:28:01.385Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:28:01.388Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:28:04.435Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":31}
+{"timestamp":"2026-08-05T23:28:14.447Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":31}
+{"timestamp":"2026-08-05T23:28:16.072Z","level":"info","message":"🔄 LOCAL 16 - 14 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":2,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:28:16.080Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:28:24.451Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":32}
+{"timestamp":"2026-08-05T23:28:34.481Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":32}
+{"timestamp":"2026-08-05T23:28:44.488Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":32}
+{"timestamp":"2026-08-05T23:28:49.399Z","level":"info","message":"⚡ LOCAL 17 - 14 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":3,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:28:49.685Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:28:54.500Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":33}
+{"timestamp":"2026-08-05T23:29:01.406Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:29:01.410Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:29:04.573Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":33}
+{"timestamp":"2026-08-05T23:29:10.625Z","level":"info","message":"🔄 LOCAL 17 - 15 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":2,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:29:10.650Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:29:14.829Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":34}
+{"timestamp":"2026-08-05T23:29:24.645Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":34}
+{"timestamp":"2026-08-05T23:29:34.648Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":34}
+{"timestamp":"2026-08-05T23:29:37.812Z","level":"info","message":"🔄 LOCAL 18 - 15 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":3,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:29:37.879Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:29:44.697Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":35}
+{"timestamp":"2026-08-05T23:29:54.705Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":35}
+{"timestamp":"2026-08-05T23:30:01.431Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:30:01.433Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:30:02.015Z","level":"info","message":"⚡ LOCAL 19 - 15 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":4,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:30:02.214Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:30:04.712Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:30:14.737Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:30:24.758Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:30:34.823Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:30:44.809Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:30:54.841Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:31:01.441Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:31:01.445Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:31:04.881Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:31:14.869Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":36}
+{"timestamp":"2026-08-05T23:31:23.790Z","level":"info","message":"🔄 LOCAL 19 - 16 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:31:23.832Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:31:24.975Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":37}
+{"timestamp":"2026-08-05T23:31:34.960Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":37}
+{"timestamp":"2026-08-05T23:31:45.011Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":37}
+{"timestamp":"2026-08-05T23:31:54.995Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":37}
+{"timestamp":"2026-08-05T23:31:59.964Z","level":"info","message":"⚡ LOCAL 19 - 17 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":2,"homeRun":0,"awayRun":2,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:31:59.979Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:32:01.458Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:32:01.466Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:32:05.002Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":38}
+{"timestamp":"2026-08-05T23:32:15.189Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":38}
+{"timestamp":"2026-08-05T23:32:21.162Z","level":"info","message":"⚡ LOCAL 19 - 18 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":1,"homeRun":0,"awayRun":3,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:32:21.204Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:32:25.093Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":39}
+{"timestamp":"2026-08-05T23:32:35.105Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":39}
+{"timestamp":"2026-08-05T23:32:45.110Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":39}
+{"timestamp":"2026-08-05T23:32:48.329Z","level":"info","message":"🔄 LOCAL 20 - 18 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":2,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:32:48.337Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:32:55.116Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":40}
+{"timestamp":"2026-08-05T23:33:01.463Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:33:01.465Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:33:05.128Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":40}
+{"timestamp":"2026-08-05T23:33:12.360Z","level":"info","message":"🔄 LOCAL 20 - 19 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":1,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:33:12.371Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:33:15.133Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":41}
+{"timestamp":"2026-08-05T23:33:25.133Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":41}
+{"timestamp":"2026-08-05T23:33:33.453Z","level":"info","message":"⚡ LOCAL 20 - 20 VISITANTE","set":1,"scorer":"AWAY","event":"BREAK_AWAY","lead":0,"homeRun":0,"awayRun":2,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:33:33.468Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:33:35.138Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":42}
+{"timestamp":"2026-08-05T23:33:45.149Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":42}
+{"timestamp":"2026-08-05T23:33:55.155Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":42}
+{"timestamp":"2026-08-05T23:34:00.500Z","level":"info","message":"🔄 LOCAL 21 - 20 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":1,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:34:00.514Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:34:01.474Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:34:01.476Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:34:05.171Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":43}
+{"timestamp":"2026-08-05T23:34:15.178Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":43}
+{"timestamp":"2026-08-05T23:34:25.186Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":43}
+{"timestamp":"2026-08-05T23:34:35.202Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":43}
+{"timestamp":"2026-08-05T23:34:36.576Z","level":"info","message":"⚡ LOCAL 22 - 20 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":2,"homeRun":2,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:34:36.587Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:34:45.212Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":44}
+{"timestamp":"2026-08-05T23:34:55.221Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":44}
+{"timestamp":"2026-08-05T23:35:01.483Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:35:01.490Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:35:03.741Z","level":"info","message":"⚡ LOCAL 23 - 20 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":3,"homeRun":3,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:35:03.758Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:35:05.231Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":45}
+{"timestamp":"2026-08-05T23:35:15.241Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":45}
+{"timestamp":"2026-08-05T23:35:25.244Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":45}
+{"timestamp":"2026-08-05T23:35:33.809Z","level":"info","message":"⚡ LOCAL 24 - 20 VISITANTE","set":1,"scorer":"HOME","event":"BREAK_HOME","lead":4,"homeRun":4,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:35:33.820Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:35:35.259Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":46}
+{"timestamp":"2026-08-05T23:35:45.259Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":46}
+{"timestamp":"2026-08-05T23:35:55.265Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":46}
+{"timestamp":"2026-08-05T23:36:01.489Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:36:01.493Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:36:05.278Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":46}
+{"timestamp":"2026-08-05T23:36:12.890Z","level":"info","message":"🔄 LOCAL 24 - 21 VISITANTE","set":1,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":3,"homeRun":0,"awayRun":1,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:36:12.904Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:36:15.282Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":47}
+{"timestamp":"2026-08-05T23:36:25.298Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":47}
+{"timestamp":"2026-08-05T23:36:35.310Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":47}
+{"timestamp":"2026-08-05T23:36:39.992Z","level":"info","message":"🔄 LOCAL 25 - 21 VISITANTE","set":1,"scorer":"HOME","event":"SIDEOUT_HOME","lead":4,"homeRun":1,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-05T23:36:40.002Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:36:45.325Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:36:55.342Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:01.496Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:37:01.505Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:37:05.347Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:15.350Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:25.355Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:35.373Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:47.409Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:37:55.383Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:01.562Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:38:01.643Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:38:05.400Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:15.408Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:25.411Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:35.602Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:40.928Z","level":"info","message":"⏸️ Partido sin puntos durante 120s - el seguimiento continúa"}
+{"timestamp":"2026-08-05T23:38:45.483Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:38:55.484Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:39:01.524Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:39:01.527Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:39:05.513Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:39:15.501Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":48}
+{"timestamp":"2026-08-05T23:39:17.071Z","level":"info","message":"🎯 LOCAL 0 - 0 VISITANTE","set":2,"scorer":null,"event":"POINT","lead":0,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:39:17.073Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:39:25.511Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":49}
+{"timestamp":"2026-08-05T23:39:29.168Z","level":"info","message":"⚡ LOCAL 0 - 1 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-1,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:39:29.178Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:39:35.521Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":50}
+{"timestamp":"2026-08-05T23:39:45.525Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":50}
+{"timestamp":"2026-08-05T23:39:55.533Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":50}
+{"timestamp":"2026-08-05T23:39:56.206Z","level":"info","message":"⚡ LOCAL 0 - 2 VISITANTE","set":2,"scorer":"AWAY","event":"BREAK_AWAY","lead":-2,"homeRun":0,"awayRun":2,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:39:56.221Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:40:01.540Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:40:01.546Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:40:05.540Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":51}
+{"timestamp":"2026-08-05T23:40:15.543Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":51}
+{"timestamp":"2026-08-05T23:40:25.697Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":51}
+{"timestamp":"2026-08-05T23:40:32.480Z","level":"info","message":"🔄 LOCAL 1 - 2 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-1,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:40:32.694Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:40:35.656Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":52}
+{"timestamp":"2026-08-05T23:40:45.662Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":52}
+{"timestamp":"2026-08-05T23:40:55.664Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":52}
+{"timestamp":"2026-08-05T23:40:59.501Z","level":"info","message":"🔄 LOCAL 1 - 3 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-2,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:40:59.519Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:41:01.551Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:41:01.553Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:41:05.676Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:15.684Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:25.694Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:35.697Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:45.711Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:55.715Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":53}
+{"timestamp":"2026-08-05T23:41:59.713Z","level":"info","message":"🔄 LOCAL 2 - 3 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-1,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:41:59.722Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:42:01.550Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:42:01.552Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:42:05.728Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":54}
+{"timestamp":"2026-08-05T23:42:15.736Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":54}
+{"timestamp":"2026-08-05T23:42:20.766Z","level":"info","message":"🔄 LOCAL 2 - 4 VISITANTE","set":2,"scorer":"AWAY","event":"SIDEOUT_AWAY","lead":-2,"homeRun":0,"awayRun":1,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:42:20.774Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:42:25.772Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":55}
+{"timestamp":"2026-08-05T23:42:35.755Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":55}
+{"timestamp":"2026-08-05T23:42:45.759Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":55}
+{"timestamp":"2026-08-05T23:42:47.829Z","level":"info","message":"🔄 LOCAL 3 - 4 VISITANTE","set":2,"scorer":"HOME","event":"SIDEOUT_HOME","lead":-1,"homeRun":1,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:42:47.842Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:42:55.766Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":56}
+{"timestamp":"2026-08-05T23:43:01.554Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:43:01.558Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:43:05.782Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":56}
+{"timestamp":"2026-08-05T23:43:15.785Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":56}
+{"timestamp":"2026-08-05T23:43:20.899Z","level":"info","message":"⚡ LOCAL 4 - 4 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":0,"homeRun":2,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:43:20.909Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:43:25.806Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":57}
+{"timestamp":"2026-08-05T23:43:35.803Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":57}
+{"timestamp":"2026-08-05T23:43:44.974Z","level":"info","message":"⚡ LOCAL 5 - 4 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":1,"homeRun":3,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:43:44.988Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:43:45.810Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":58}
+{"timestamp":"2026-08-05T23:43:55.812Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":58}
+{"timestamp":"2026-08-05T23:44:01.556Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-05T23:44:01.557Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-05T23:44:05.825Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":58}
+{"timestamp":"2026-08-05T23:44:08.638Z","level":"warn","message":"⚠️ WebSocket desconectado; Socket.IO intentará reconectar"}
+{"timestamp":"2026-08-05T23:44:09.084Z","level":"info","message":"⚡ LOCAL 6 - 4 VISITANTE","set":2,"scorer":"HOME","event":"BREAK_HOME","lead":2,"homeRun":4,"awayRun":0,"phase":"EARLY"}
+{"timestamp":"2026-08-05T23:44:09.131Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}

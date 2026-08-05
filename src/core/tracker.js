@@ -169,6 +169,22 @@ class MatchTracker {
                 await this.notifyConnectionRestored();
             }
             this.lastSuccessfulFetch = new Date();
+            const corrections = this.processor.extractUndoCorrections(data);
+            const correctionResult = this.repository.applyCorrections(corrections);
+            if (correctionResult.removedCount > 0) {
+                this.processor.rebuildFromSnapshots(this.repository.getSnapshots());
+                logger.info('↩️ Punto anulado por Metro retirado del historial', {
+                    matchId: this.matchId,
+                    corrections: correctionResult.applied.length,
+                    snapshotsRemoved: correctionResult.removedCount
+                });
+                if (this.socket && this.socket.connected) {
+                    this.socket.emit('score_correction', {
+                        matchId: this.matchId,
+                        corrections: correctionResult.applied.map(item => item.correction)
+                    });
+                }
+            }
             const snapshots = this.processor.processUpdates(data);
             if (snapshots.length) {
                 for (const snapshot of snapshots) {
