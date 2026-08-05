@@ -11,20 +11,23 @@ class StateProcessor {
     }
 
     extractMatchState(apiData) {
-        const setData = apiData.match.sets[apiData.match.currentSet - 1];
-        if (!setData) throw new Error(`Set ${apiData.match.currentSet} not found`);
+        const currentSet = Number(apiData.match.currentSet) || 1;
+        const setData = apiData.match.sets[currentSet - 1];
+        if (!setData) throw new Error(`Set ${currentSet} not found`);
+        const homeScore = Number(setData.homeTeamScore) || 0;
+        const awayScore = Number(setData.awayTeamScore) || 0;
         return {
-            set: apiData.match.currentSet,
+            set: currentSet,
             homeTeam: apiData.match.homeTeam?.name || 'LOCAL',
             awayTeam: apiData.match.awayTeam?.name || 'VISITANTE',
-            homeScore: setData.homeTeamScore,
-            awayScore: setData.awayTeamScore,
+            homeScore,
+            awayScore,
             serving: apiData.liveState?.serving === 'home'
                 ? 'home'
                 : apiData.liveState?.serving === 'away'
                     ? 'away'
                     : null,
-            totalPoints: setData.homeTeamScore + setData.awayTeamScore
+            totalPoints: homeScore + awayScore
         };
     }
 
@@ -58,8 +61,8 @@ class StateProcessor {
     }
 
     calculatePhase(totalPoints) {
-        if (totalPoints < 10) return 'EARLY';
-        if (totalPoints < 20) return 'MID';
+        if (totalPoints <= 10) return 'EARLY';
+        if (totalPoints <= 20) return 'MID';
         return 'LATE';
     }
 
@@ -78,7 +81,7 @@ class StateProcessor {
         this.rotations[team] = (this.rotations[team] % 6) + 1;
     }
 
-    createSnapshot(currentState, scorer, servingBefore) {
+    createSnapshot(currentState, scorer, servingBefore, metadata = {}) {
         this.updateRuns(scorer);
         this.updateBreakPoints(scorer, servingBefore);
 
@@ -91,7 +94,7 @@ class StateProcessor {
         const servingBeforeUpper = servingBefore ? servingBefore.toUpperCase() : null;
         const servingAfterUpper = servingAfter ? servingAfter.toUpperCase() : null;
         return {
-            timestamp: new Date().toISOString(),
+            timestamp: metadata.timestamp || new Date().toISOString(),
             set: currentState.set,
             homeTeam: currentState.homeTeam,
             awayTeam: currentState.awayTeam,
@@ -121,13 +124,139 @@ class StateProcessor {
                 ? 'LOCAL'
                 : servingAfterUpper === 'AWAY'
                     ? 'VISITANTE'
-                    : null
+                    : null,
+            origenPunto: metadata.source || (scorer ? 'score_delta' : 'estado_api'),
+            metroEventId: metadata.eventId ? String(metadata.eventId) : null
         };
     }
 
-    processUpdate(apiData) {
+    extractTimeline(apiData) {
+        const timelines = [apiData?.timeline, apiData?.liveState?.timeline]
+            .filter(Array.isArray);
+        const eventsById = new Map();
+
+        for (const event of timelines.flat()) {
+            const key = event?.id != null
+                ? String(event.id)
+                : `${event?.type || 'EVENT'}:${event?.timestamp || ''}:${JSON.stringify(event?.score || {})}`;
+            eventsById.set(key, event);
+        }
+
+        return [...eventsById.values()];
+    }
+
+    resolveTimelineSequence(apiData, previousState, currentState) {
+        const events = this.extractTimeline(apiData)
+            .filter(event =>
+                event?.type === 'SCORE_POINT' &&
+                event?.undone !== true &&
+                Number(event?.setNumber || currentState.set) === currentState.set &&
+                Number.isFinite(Number(event?.score?.home)) &&
+                Number.isFinite(Number(event?.score?.away))
+            )
+            .sort((a, b) => {
+                const timeDiff = Date.parse(a.timestamp || 0) - Date.parse(b.timestamp || 0);
+                if (timeDiff) return timeDiff;
+                return Number(a.id || 0) - Number(b.id || 0);
+            });
+
+        let expectedHome = previousState.homeScore;
+        let expectedAway = previousState.awayScore;
+        const previousTotal = expectedHome + expectedAway;
+        const currentTotal = currentState.homeScore + currentState.awayScore;
+        const sequence = [];
+
+        for (const event of events) {
+            const homeScore = Number(event.score.home);
+            const awayScore = Number(event.score.away);
+            const total = homeScore + awayScore;
+            if (total <= previousTotal || total > currentTotal) continue;
+
+            let scorer = null;
+            if (homeScore === expectedHome + 1 && awayScore === expectedAway) scorer = 'home';
+            if (awayScore === expectedAway + 1 && homeScore === expectedHome) scorer = 'away';
+            if (!scorer) continue;
+
+            sequence.push({
+                scorer,
+                homeScore,
+                awayScore,
+                timestamp: event.timestamp || null,
+                eventId: event.id ?? null,
+                source: 'metro_timeline'
+            });
+            expectedHome = homeScore;
+            expectedAway = awayScore;
+        }
+
+        const expectedLength = currentTotal - previousTotal;
+        if (
+            sequence.length !== expectedLength ||
+            expectedHome !== currentState.homeScore ||
+            expectedAway !== currentState.awayScore
+        ) {
+            return null;
+        }
+
+        return sequence;
+    }
+
+    resolveScoreSequence(apiData, previousState, currentState) {
+        const deltaHome = currentState.homeScore - previousState.homeScore;
+        const deltaAway = currentState.awayScore - previousState.awayScore;
+        if (deltaHome < 0 || deltaAway < 0) return null;
+
+        const deltaTotal = deltaHome + deltaAway;
+        if (deltaTotal === 0) return [];
+
+        const timelineSequence = this.resolveTimelineSequence(apiData, previousState, currentState);
+        if (timelineSequence) return timelineSequence;
+
+        // Si todos los puntos fueron del mismo equipo, el orden es inequívoco
+        // aunque Metro ya no incluya esos eventos en su timeline.
+        if (deltaHome > 0 && deltaAway === 0) {
+            return Array.from({ length: deltaHome }, (_, index) => ({
+                scorer: 'home',
+                homeScore: previousState.homeScore + index + 1,
+                awayScore: previousState.awayScore,
+                timestamp: null,
+                eventId: null,
+                source: deltaHome > 1 ? 'score_gap_same_team' : 'score_delta'
+            }));
+        }
+        if (deltaAway > 0 && deltaHome === 0) {
+            return Array.from({ length: deltaAway }, (_, index) => ({
+                scorer: 'away',
+                homeScore: previousState.homeScore,
+                awayScore: previousState.awayScore + index + 1,
+                timestamp: null,
+                eventId: null,
+                source: deltaAway > 1 ? 'score_gap_same_team' : 'score_delta'
+            }));
+        }
+
+        // Si subieron los dos equipos y la timeline no permite reconstruir el
+        // orden, no inventamos rallies ni rotaciones.
+        return null;
+    }
+
+    createAmbiguousGapSnapshot(currentState, servingBefore, previousState) {
+        const snapshot = this.createSnapshot(currentState, null, servingBefore, {
+            source: 'score_gap_ambiguous'
+        });
+        snapshot.event = 'SCORE_GAP_AMBIGUOUS';
+        snapshot.sincronizacionOficial = 'ambigua';
+        snapshot.scoreGap = {
+            home: currentState.homeScore - previousState.homeScore,
+            away: currentState.awayScore - previousState.awayScore,
+            total: currentState.totalPoints - previousState.totalPoints
+        };
+        return snapshot;
+    }
+
+    processUpdates(apiData) {
         const currentState = this.extractMatchState(apiData);
-        if (!this.hasChanged(currentState)) return null;
+        if (!this.hasChanged(currentState)) return [];
 
         const setChanged = this.currentSet !== null && this.currentSet !== currentState.set;
         if (this.currentSet === null || setChanged) {
@@ -135,14 +264,67 @@ class StateProcessor {
             this.currentSet = currentState.set;
         }
 
-        const scorer = setChanged ? null : this.determineScorer(currentState);
-        const servingBefore = setChanged
-            ? currentState.serving
-            : this.lastState?.serving || currentState.serving;
-        const snapshot = this.createSnapshot(currentState, scorer, servingBefore);
-        logger.debug('State updated', { set: snapshot.set, score: `${snapshot.homeScore}-${snapshot.awayScore}`, scorer: snapshot.scorer });
+        if (!this.lastState || setChanged) {
+            const snapshot = this.createSnapshot(currentState, null, currentState.serving);
+            logger.debug('State updated', { set: snapshot.set, score: `${snapshot.homeScore}-${snapshot.awayScore}`, scorer: null });
+            this.lastState = currentState;
+            return [snapshot];
+        }
+
+        const previousState = this.lastState;
+        const servingBefore = previousState.serving || currentState.serving;
+        const scoreChanged =
+            previousState.homeScore !== currentState.homeScore ||
+            previousState.awayScore !== currentState.awayScore;
+
+        if (!scoreChanged) {
+            const snapshot = this.createSnapshot(currentState, null, servingBefore);
+            this.lastState = currentState;
+            return [snapshot];
+        }
+
+        const sequence = this.resolveScoreSequence(apiData, previousState, currentState);
+        if (!sequence) {
+            const snapshot = this.createAmbiguousGapSnapshot(currentState, servingBefore, previousState);
+            logger.warn('No se pudo reconstruir el orden de un salto de marcador', {
+                set: currentState.set,
+                from: `${previousState.homeScore}-${previousState.awayScore}`,
+                to: `${currentState.homeScore}-${currentState.awayScore}`
+            });
+            this.lastState = currentState;
+            return [snapshot];
+        }
+
+        const snapshots = [];
+        let serving = servingBefore;
+        for (const point of sequence) {
+            const intermediateState = {
+                ...currentState,
+                homeScore: point.homeScore,
+                awayScore: point.awayScore,
+                totalPoints: point.homeScore + point.awayScore,
+                serving: point.scorer
+            };
+            const snapshot = this.createSnapshot(intermediateState, point.scorer, serving, point);
+            snapshots.push(snapshot);
+            serving = point.scorer;
+            logger.debug('State updated', {
+                set: snapshot.set,
+                score: `${snapshot.homeScore}-${snapshot.awayScore}`,
+                scorer: snapshot.scorer,
+                source: snapshot.origenPunto
+            });
+        }
+
         this.lastState = currentState;
-        return snapshot;
+        return snapshots;
+    }
+
+    // Compatibilidad para consumidores antiguos: en una actualización con
+    // varios rallies devuelve el último. El tracker usa processUpdates().
+    processUpdate(apiData) {
+        const snapshots = this.processUpdates(apiData);
+        return snapshots.length ? snapshots[snapshots.length - 1] : null;
     }
 
     getBreakPoints() {

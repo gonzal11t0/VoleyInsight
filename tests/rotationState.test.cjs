@@ -119,4 +119,67 @@ assert.deepEqual(resumenLocal, {
     6: { favor: 4, contra: 1 }
 });
 
-console.log('rotationState 259144: tests OK');
+// Caso real MUNMARG 9-12 -> 11-12: los dos puntos deben conservarse.
+const gapProcessor = new StateProcessor();
+gapProcessor.processUpdate(apiData(9, 12, 'A'));
+gapProcessor.rotations = { home: 2, away: 1 };
+const gapSnapshots = gapProcessor.processUpdates(apiData(11, 12, 'H'));
+
+assert.equal(gapSnapshots.length, 2, 'un salto de dos debe producir dos rallies');
+assert.deepEqual(
+    gapSnapshots.map(punto => ({
+        marcador: `${punto.homeScore}-${punto.awayScore}`,
+        evento: punto.event,
+        rotacionAntes: punto.rotacionLocal,
+        rotacionDespues: punto.rotacionLocalDespues,
+        origen: punto.origenPunto
+    })),
+    [
+        {
+            marcador: '10-12',
+            evento: 'SIDEOUT_HOME',
+            rotacionAntes: 2,
+            rotacionDespues: 3,
+            origen: 'score_gap_same_team'
+        },
+        {
+            marcador: '11-12',
+            evento: 'BREAK_HOME',
+            rotacionAntes: 3,
+            rotacionDespues: 3,
+            origen: 'score_gap_same_team'
+        }
+    ]
+);
+
+// Si anotaron ambos equipos entre consultas, la timeline define el orden.
+const timelineProcessor = new StateProcessor();
+timelineProcessor.processUpdate(apiData(1, 1, 'H'));
+const mixedData = apiData(2, 2, 'H');
+mixedData.liveState.timeline = [
+    { id: 'metro-1', type: 'SCORE_POINT', setNumber: 1, score: { home: 1, away: 2 }, timestamp: '2026-08-05T00:00:01.000Z', undone: false },
+    { id: 'metro-2', type: 'SCORE_POINT', setNumber: 1, score: { home: 2, away: 2 }, timestamp: '2026-08-05T00:00:02.000Z', undone: false }
+];
+const mixedSnapshots = timelineProcessor.processUpdates(mixedData);
+assert.deepEqual(mixedSnapshots.map(p => p.scorer), ['AWAY', 'HOME']);
+assert.deepEqual(mixedSnapshots.map(p => p.metroEventId), ['metro-1', 'metro-2']);
+assert.ok(mixedSnapshots.every(p => p.origenPunto === 'metro_timeline'));
+
+// Sin timeline y con puntos de ambos equipos, no se inventa el orden.
+const ambiguousProcessor = new StateProcessor();
+ambiguousProcessor.processUpdate(apiData(1, 1, 'H'));
+const ambiguousSnapshots = ambiguousProcessor.processUpdates(apiData(2, 2, 'H'));
+assert.equal(ambiguousSnapshots.length, 1);
+assert.equal(ambiguousSnapshots[0].scorer, null);
+assert.equal(ambiguousSnapshots[0].event, 'SCORE_GAP_AMBIGUOUS');
+assert.equal(ambiguousSnapshots[0].sincronizacionOficial, 'ambigua');
+assert.deepEqual(ambiguousSnapshots[0].scoreGap, { home: 1, away: 1, total: 2 });
+
+// Los límites visibles son Early 1-10, Mid 11-20 y Late 21+.
+const phaseProcessor = new StateProcessor();
+assert.equal(phaseProcessor.calculatePhase(10), 'EARLY');
+assert.equal(phaseProcessor.calculatePhase(11), 'MID');
+assert.equal(phaseProcessor.calculatePhase(20), 'MID');
+assert.equal(phaseProcessor.calculatePhase(21), 'LATE');
+
+console.log('rotationState + score gaps: tests OK');

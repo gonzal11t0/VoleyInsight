@@ -606,7 +606,7 @@ export class VolleyballDashboard {
         resumenElem.textContent = resumenTexto;
         let fortalezas = [],
             debilidades = [];
-        if (ultimo.sideoutLocal > 60) fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Buena recepción y primer ataque.`);
+        if (ultimo.sideoutLocal > 60) fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Buen rendimiento al recibir el saque rival.`);
         else if (ultimo.sideoutLocal < 45) debilidades.push(`⚠️ Sideout% bajo (${ultimo.sideoutLocal}%) - Dificultad para anotar al recibir.`);
         if (ultimo.breakpointLocal > 40) fortalezas.push(`⚡ Breakpoint% del ${ultimo.breakpointLocal}% - Buena presión con saque propio.`);
         else if (ultimo.breakpointLocal < 25) debilidades.push(`🔻 Breakpoint% bajo (${ultimo.breakpointLocal}%) - Poca producción mientras el equipo saca.`);
@@ -1519,7 +1519,7 @@ export class VolleyballDashboard {
         const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
         const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
         const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
-        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%). Buena recepción y primer ataque.`);
+        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%). Ganó con frecuencia los rallies en los que recibió el saque rival.`);
         else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Revisar recepción y salida de ataque.`);
         if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). El saque propio genera puntos.`);
         else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Falta presión con saque propio.`);
@@ -2072,7 +2072,7 @@ export class VolleyballDashboard {
             interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
         }
         if (sideout > 65) {
-            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamName} convirtió ${sideout}% de las recepciones en punto.`, accion: 'La recepción y el primer ataque funcionan bien. Mantener calidad de pase y distribución.' });
+            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamName} ganó ${sideout}% de los rallies en los que recibió el saque rival.`, accion: 'Es un buen resultado de sideout. Para identificar la causa, revisar por separado recepción, distribución y primer ataque.' });
         } else if (sideout < 45 && sideout > 0) {
             interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${this.homeTeamName} solo ganó ${sideout}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
         }

@@ -1,14 +1,14 @@
 {
-  "matchId": 275440,
-  "homeTeam": "CEDEN",
-  "awayTeam": "AIP",
-  "categoria": "superiores",
+  "matchId": 275125,
+  "homeTeam": "MUNMARG",
+  "awayTeam": "EP B",
+  "categoria": "Superiores",
   "partidos": [
     {
-      "id": 275440,
-      "homeTeam": "CEDEN",
-      "awayTeam": "AIP",
-      "categoria": "superiores"
+      "id": 275125,
+      "homeTeam": "MUNMARG",
+      "awayTeam": "EP B",
+      "categoria": "Superiores"
     }
   ]
 }

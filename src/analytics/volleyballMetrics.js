@@ -37,7 +37,7 @@ class VolleyballMetrics {
         const homePct = metricas.HOME.sideout.porcentaje.toFixed(1);
         const awayPct = metricas.AWAY.sideout.porcentaje.toFixed(1);
         let interp = "📊 Sideout equilibrado.";
-        if (homePct > 65 && awayPct > 65) interp = "🏐 Ambos equipos son muy sólidos en recepción y primer ataque.";
+        if (homePct > 65 && awayPct > 65) interp = "🏐 Ambos equipos ganan con frecuencia los rallies en los que reciben el saque rival.";
         else if (homePct > 65) interp = `🏐 ${this.homeTeam} es sólido en sideout (${homePct}%).`;
         else if (awayPct > 65) interp = `🏐 ${this.awayTeam} es sólido en sideout (${awayPct}%).`;
         else if (homePct < 50 && awayPct < 50) interp = "⚠️ Ambos equipos tienen problemas para recuperar el saque desde la recepción.";

@@ -179,13 +179,13 @@ class MatchTracker {
                 await this.notifyConnectionRestored();
             }
             this.lastSuccessfulFetch = new Date();
-            const snapshot = this.processor.processUpdate(data);
-            if (snapshot) {
-                this.repository.addSnapshot(snapshot);
-                this.logSnapshot(snapshot);
-                this.detectarFinalPartido(snapshot);
-                if (this.socket && this.socket.connected) {
-                    if (snapshot.scorer) {
+            const snapshots = this.processor.processUpdates(data);
+            if (snapshots.length) {
+                for (const snapshot of snapshots) {
+                    this.repository.addSnapshot(snapshot);
+                    this.logSnapshot(snapshot);
+                    this.detectarFinalPartido(snapshot);
+                    if (this.socket && this.socket.connected && snapshot.scorer) {
                         this.socket.emit('new_point', {
                             matchId: this.matchId,
                             point: snapshot
@@ -306,8 +306,8 @@ class MatchTracker {
                     serving: data.serving
                 }
             };
-            const snapshot = this.processor.processUpdate(apiCompatible);
-            if (snapshot) {
+            const snapshots = this.processor.processUpdates(apiCompatible);
+            for (const snapshot of snapshots) {
                 this.repository.addSnapshot(snapshot);
                 this.logSnapshot(snapshot);
             }
