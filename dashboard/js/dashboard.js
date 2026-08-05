@@ -13,6 +13,11 @@ import {
     filtrarPuntosPorSet
 } from './rotacionHelper.js';
 import { calcularMetricasRally } from './metricasVoleyHelper.js';
+import {
+    evaluarEstadoPartido,
+    extraerEstadoOficial,
+    isSetTerminado as isSetTerminadoHelper
+} from './partidoHelper.js';
 
 export class VolleyballDashboard {
     constructor() {
@@ -28,6 +33,7 @@ export class VolleyballDashboard {
         this.lastPointCount = 0;
         this.matchEnded = false;
         this.partidoTerminado = false;
+        this.estadoOficialPartido = null;
         this.vistaActual = 'partido';
         this.filtroSet = 'all';
         this.filtroRotaciones = 'all';
@@ -213,12 +219,14 @@ export class VolleyballDashboard {
             });
 
             this.socket.on('partido_terminado', () => {
-                console.log('🏁 Partido terminado, guardando reporte automático...');
-                this.mostrarFeedbackPartido('📄 Guardando reporte automático...');
-                setTimeout(() => {
-                    this.saveAsHTML();
-                    this.mostrarFeedbackPartido('✅ Reporte guardado automáticamente');
-                }, 2000);
+                console.log('🏁 Se recibió una notificación de final; verificando el estado oficial...');
+                this.loadData();
+            });
+
+            this.socket.on('partido_sin_actividad', (estado) => {
+                const segundos = estado?.secondsWithoutPoints || 120;
+                console.log(`⏸️ Sin puntos durante ${segundos}s; el seguimiento continúa`);
+                this.mostrarFeedbackPartido('⏸️ Pausa sin puntos. El seguimiento continúa.');
             });
 
             this.socket.on('punto_manual', (punto) => {
@@ -345,6 +353,7 @@ export class VolleyballDashboard {
             this.ultimoPuntoSonido = null;
             this.matchEnded = false;
             this.partidoTerminado = false;
+            this.estadoOficialPartido = null;
             Object.keys(this.charts).forEach(key => {
                 if (this.charts[key]) { this.charts[key].destroy();
                     this.charts[key] = null; }
@@ -930,9 +939,12 @@ export class VolleyballDashboard {
         }
         const setsArray = Array.from(setsMap.keys()).sort((a, b) => a - b);
         const ultimoSetNum = setsArray[setsArray.length - 1];
-        const { local: setsGanadosLocal, visitante: setsGanadosVisitante } = this.calcularSetsGanados(setsMap);
+        const estadoPartido = evaluarEstadoPartido(setsMap, this.configSets, this.estadoOficialPartido);
+        const setsGanadosLocal = estadoPartido.setsGanadosLocal;
+        const setsGanadosVisitante = estadoPartido.setsGanadosVisitante;
         const setsParaGanar = this.configSets.setsParaGanar;
-        this.partidoTerminado = setsGanadosLocal >= setsParaGanar || setsGanadosVisitante >= setsParaGanar;
+        this.partidoTerminado = estadoPartido.partidoTerminado;
+        if (!this.partidoTerminado) this.matchEnded = false;
         let setsHtml = '';
         for (const setNum of setsArray) {
             const set = setsMap.get(setNum);
@@ -969,20 +981,12 @@ export class VolleyballDashboard {
     }
 
     calcularSetsGanados(setsMap) {
-        let local = 0,
-            visitante = 0;
-        for (const [setNum, set] of setsMap) {
-            if (this.isSetTerminado(set.home, set.away, setNum, setsMap.size)) {
-                set.home > set.away ? local++ : visitante++;
-            }
-        }
-        return { local, visitante };
+        const estado = evaluarEstadoPartido(setsMap, this.configSets, this.estadoOficialPartido);
+        return { local: estado.setsGanadosLocal, visitante: estado.setsGanadosVisitante };
     }
 
-    isSetTerminado(home, away, setNum, totalSets) {
-        const esSetDecisivo = setNum === totalSets && totalSets === this.configSets.maxSets;
-        const puntosNecesarios = esSetDecisivo ? this.configSets.puntosSetDecisivo : this.configSets.puntosSetNormal;
-        return (home >= puntosNecesarios || away >= puntosNecesarios) && Math.abs(home - away) >= 2;
+    isSetTerminado(home, away, setNum) {
+        return isSetTerminadoHelper(home, away, setNum, this.configSets);
     }
 
     mostrarFeedbackPartido(mensaje) {
@@ -1088,6 +1092,8 @@ export class VolleyballDashboard {
             const fullResponse = await fetch(`/data/full_${this.matchId}.json?_t=${Date.now()}`);
             if (fullResponse.ok) {
                 const fullData = await fullResponse.json();
+                this.estadoOficialPartido = extraerEstadoOficial(fullData);
+                this.actualizarSets();
                 const findCourt = (obj) => {
                     if (!obj) return null;
                     if (obj.court) return obj.court;

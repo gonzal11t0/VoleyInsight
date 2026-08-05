@@ -7,6 +7,7 @@ const StateProcessor = require('./stateProcessor');
 const DataRepository = require('../repositories/dataRepository');
 const PerformanceAnalyzer = require('../analytics/performanceAnalyzer');
 const HTMLExporter = require('../export/htmlExporter');
+const ActivityStatus = require('./activityStatus');
 const fs = require('fs').promises;
 const path = require('path');
 const io = require('socket.io-client');
@@ -31,34 +32,22 @@ class MatchTracker {
         this.reconnectDelay = 1000;
         this.maxReconnectDelay = 60000;
         this.lastSuccessfulFetch = null;
-        this.partidoTerminado = false;
-        this.ultimoPuntoTimestamp = null;
-        this.tiempoSinPuntos = 0;
+        this.activityStatus = new ActivityStatus(120);
     }
 
-    detectarFinalPartido(snapshot) {
-        if (snapshot && snapshot.scorer) {
-            this.ultimoPuntoTimestamp = Date.now();
-            this.partidoTerminado = false;
-            return;
-        }
-        if (this.ultimoPuntoTimestamp && this.repository.snapshots.length > 1) {
-            const tiempoSinPuntos = (Date.now() - this.ultimoPuntoTimestamp) / 1000;
-            if (tiempoSinPuntos > 120 && !this.partidoTerminado) {
-                this.partidoTerminado = true;
-                this.notificarPartidoTerminado();
+    actualizarActividadPartido(snapshot = null) {
+        const actividad = this.activityStatus.update(snapshot);
+        if (actividad.shouldNotify) {
+            logger.info(`⏸️ Partido sin puntos durante ${actividad.secondsWithoutPoints}s - el seguimiento continúa`);
+            if (this.socket && this.socket.connected) {
+                this.socket.emit('partido_sin_actividad', {
+                    matchId: this.matchId,
+                    timestamp: new Date().toISOString(),
+                    secondsWithoutPoints: actividad.secondsWithoutPoints
+                });
             }
         }
-    }
-
-    notificarPartidoTerminado() {
-        logger.info(`🏁 PARTIDO TERMINADO - ${this.matchId}`);
-        if (this.socket && this.socket.connected) {
-            this.socket.emit('partido_terminado', {
-                matchId: this.matchId,
-                timestamp: new Date().toISOString()
-            });
-        }
+        return actividad;
     }
 
     connectWebSocket() {
@@ -98,6 +87,7 @@ class MatchTracker {
         this.api = new MetroVoleyAPI(this.matchId);
         this.repository = new DataRepository(this.matchId);
         this.processor.reset();
+        this.activityStatus.reset();
         await this.crearArchivoPartidoVacio(this.matchId);
         this.repository.snapshots = [];
         if (this.socket && this.socket.connected) {
@@ -184,7 +174,7 @@ class MatchTracker {
                 for (const snapshot of snapshots) {
                     this.repository.addSnapshot(snapshot);
                     this.logSnapshot(snapshot);
-                    this.detectarFinalPartido(snapshot);
+                    this.actualizarActividadPartido(snapshot);
                     if (this.socket && this.socket.connected && snapshot.scorer) {
                         this.socket.emit('new_point', {
                             matchId: this.matchId,
@@ -217,12 +207,12 @@ class MatchTracker {
                     const courtPath = path.join('./data', `court_${this.matchId}.json`);
                     await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
                 } else {
-                    this.detectarFinalPartido(null);
                     console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
                 }
             } catch (e) {
                 console.error('Error guardando datos completos:', e.message);
             }
+            this.actualizarActividadPartido();
             await this.fetchStats();
         } catch (error) {
             this.consecutiveErrors++;

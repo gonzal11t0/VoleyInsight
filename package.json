@@ -1,12 +1,12 @@
 {
   "name": "voleyinsight",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Sistema de análisis de partidos de voleibol",
   "main": "server-api.js",
   "scripts": {
     "start": "node server-api.js",
     "tracker": "node index.js",
-    "test": "node tests/formacionHelper.test.mjs && node tests/rotacionHelper.test.mjs && node tests/metricasVoleyHelper.test.mjs && node tests/reportConsistency.test.mjs && node tests/rotationState.test.cjs"
+    "test": "node tests/formacionHelper.test.mjs && node tests/rotacionHelper.test.mjs && node tests/metricasVoleyHelper.test.mjs && node tests/reportConsistency.test.mjs && node tests/rotationState.test.cjs && node tests/partidoStatus.test.mjs"
   },
   "dependencies": {
     "cors": "^2.8.6",

@@ -6397,3 +6397,5 @@
 {"timestamp":"2026-08-05T01:58:51.675Z","level":"info","message":"Analysis saved","filename":"data\\analysis_275125.json"}
 {"timestamp":"2026-08-05T01:58:55.607Z","level":"info","message":"CSV saved","filename":"data\\match_275125.csv","records":142}
 {"timestamp":"2026-08-05T01:59:05.614Z","level":"info","message":"CSV saved","filename":"data\\match_275125.csv","records":142}
+{"timestamp":"2026-08-05T15:46:48.426Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}
+{"timestamp":"2026-08-05T15:48:45.928Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}

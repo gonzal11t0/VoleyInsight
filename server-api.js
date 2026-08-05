@@ -217,6 +217,14 @@ io.on('connection', (socket) => {
     });
     
     socket.on('ping_keepalive', () => {});
+
+    socket.on('partido_sin_actividad', (estado) => {
+        const matchId = estado?.matchId;
+        if (!matchId || !connectedClients.has(matchId)) return;
+        connectedClients.get(matchId).forEach(client => {
+            client.emit('partido_sin_actividad', estado);
+        });
+    });
     
     socket.on('disconnect', () => {
         if (socket.matchId && connectedClients.has(socket.matchId)) {
