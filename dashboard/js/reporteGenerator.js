@@ -19,9 +19,54 @@ export class ReporteGenerator {
             resumenVisitante = {},
             marcasManualHtml = '',
             rotacionesHtml = '',
-            logoDataUrl = ''
+            logoDataUrl = '',
+            reportMetadata = {}
 
         } = d;
+
+        const numeroSeguro = (valor) => {
+            const numero = Number(valor);
+            return Number.isFinite(numero) ? numero : null;
+        };
+        const metricasBase = {
+            home: {
+                efficiency: { percentage: numeroSeguro(homeEfficiency) },
+                sideout: { percentage: numeroSeguro(sideoutHome) },
+                breakpoint: { percentage: numeroSeguro(breakpointHome) },
+                clutch: { percentage: numeroSeguro(homeClutchPct) },
+                service: { percentage: numeroSeguro(serviceEfficiencyHome) }
+            },
+            away: {
+                efficiency: { percentage: numeroSeguro(awayEfficiency) },
+                sideout: { percentage: numeroSeguro(sideoutAway) },
+                breakpoint: { percentage: numeroSeguro(breakpointAway) },
+                clutch: { percentage: numeroSeguro(homeClutchPct) === null ? null : Number((100 - Number(homeClutchPct)).toFixed(1)) },
+                service: { percentage: numeroSeguro(serviceEfficiencyAway) }
+            }
+        };
+        const metadataReporte = {
+            type: 'voleyinsight-report',
+            schema: 'comparison-v1',
+            version: '3.0.5',
+            generatedAt: reportMetadata.generatedAt || new Date().toISOString(),
+            displayDate: reportMetadata.displayDate || fechaHora || '',
+            matchId: reportMetadata.matchId ?? null,
+            category: reportMetadata.category || null,
+            status: ['final', 'partial'].includes(reportMetadata.status) ? reportMetadata.status : 'unknown',
+            teams: { home: homeTeam, away: awayTeam },
+            score: {
+                home: numeroSeguro(homeScore),
+                away: numeroSeguro(awayScore),
+                homeSets: reportMetadata.homeSets ?? null,
+                awaySets: reportMetadata.awaySets ?? null
+            },
+            sets: Array.isArray(reportMetadata.sets) ? reportMetadata.sets : [],
+            metrics: {
+                home: { ...metricasBase.home, ...(reportMetadata.metrics?.home || {}) },
+                away: { ...metricasBase.away, ...(reportMetadata.metrics?.away || {}) }
+            }
+        };
+        const metadataJson = JSON.stringify(metadataReporte).replace(/</g, '\\u003c');
 
         const encabezadoIndividuales = `<thead><tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>📥 REC</th><th>REC%</th><th>🛡️ DEF</th><th>DEF%</th><th>🏐 SAQUE</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr></thead>`;
         const setsConIndividuales = [...new Set([
@@ -145,7 +190,8 @@ export class ReporteGenerator {
 </style>
 </head>
 <body>
-    <div class="container" data-version="3.0.4" data-metric-schema="standard-v1" data-sideout-home="${sideoutHome}" data-sideout-away="${sideoutAway}" data-breakpoint-home="${breakpointHome}" data-breakpoint-away="${breakpointAway}" data-service-home="${serviceEfficiencyHome}" data-service-away="${serviceEfficiencyAway}">
+    <script id="voleyInsightReportData" type="application/json">${metadataJson}</script>
+    <div class="container" data-version="3.0.5" data-metric-schema="standard-v1" data-sideout-home="${sideoutHome}" data-sideout-away="${sideoutAway}" data-breakpoint-home="${breakpointHome}" data-breakpoint-away="${breakpointAway}" data-service-home="${serviceEfficiencyHome}" data-service-away="${serviceEfficiencyAway}">
         <div style="text-align:center;margin:20px 0;">
             <button id="btnDescargarPDF" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:60px;padding:12px 24px;font-size:16px;font-weight:bold;cursor:pointer;">📄 DESCARGAR REPORTE EN PDF</button>
         </div>
@@ -402,7 +448,7 @@ export class ReporteGenerator {
                 </div>
             </div>
         </div>
-        <div class="footer">VoleyInsight v3.0.4 · Centro seguro de preparación · Informe generado ${fechaHora}</div>
+        <div class="footer">VoleyInsight v3.0.5 · Comparación confiable de informes · Informe generado ${fechaHora}</div>
     </div>
     <script>
         const eficienciaData = ${JSON.stringify(eficienciaPorSet)};

@@ -7494,3 +7494,50 @@
 {"timestamp":"2026-08-06T14:34:49.057Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
 {"timestamp":"2026-08-06T14:34:59.073Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
 {"timestamp":"2026-08-06T14:35:09.077Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:35:18.692Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T14:35:18.707Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-06T14:35:19.080Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:35:29.087Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:35:39.097Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:35:49.101Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:35:59.112Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:36:09.118Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:36:18.690Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T14:36:18.692Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-06T14:36:19.181Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:36:29.141Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T14:36:30.566Z","level":"warn","message":"⚠️ WebSocket desconectado; Socket.IO intentará reconectar"}
+{"timestamp":"2026-08-06T15:39:43.758Z","level":"warn","message":"No se pudo reconstruir el orden de un salto de marcador","set":1,"from":"1-1","to":"2-2"}
+{"timestamp":"2026-08-06T17:08:49.610Z","level":"info","message":"🚀 Starting Metro Vóley Tracker..."}
+{"timestamp":"2026-08-06T17:08:49.613Z","level":"info","message":"🚀 Iniciando tracker para partido 230512 con reconexión automática"}
+{"timestamp":"2026-08-06T17:08:49.675Z","level":"info","message":"🔌 WebSocket conectado al servidor"}
+{"timestamp":"2026-08-06T17:08:49.679Z","level":"info","message":"📡 Suscrito a partido 230512"}
+{"timestamp":"2026-08-06T17:08:49.993Z","level":"info","message":"🎯 LOCAL 15 - 13 VISITANTE","set":3,"scorer":null,"event":"POINT","lead":2,"homeRun":0,"awayRun":0,"phase":"LATE"}
+{"timestamp":"2026-08-06T17:08:49.996Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T17:09:00.210Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:09:10.250Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:09:20.241Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:09:30.242Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:09:40.251Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:09:50.207Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T17:09:50.209Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-06T17:09:50.254Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:00.265Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:10.280Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:20.287Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:30.302Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:40.304Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:10:50.221Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T17:10:50.223Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-06T17:10:50.314Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:00.330Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:10.340Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:20.348Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:30.348Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:40.352Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:11:50.228Z","level":"info","message":"JSON saved","filename":"data\\match_230512.json"}
+{"timestamp":"2026-08-06T17:11:50.246Z","level":"info","message":"Analysis saved","filename":"data\\analysis_230512.json"}
+{"timestamp":"2026-08-06T17:11:50.368Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:12:00.363Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:12:10.370Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}
+{"timestamp":"2026-08-06T17:12:20.370Z","level":"info","message":"CSV saved","filename":"data\\match_230512.csv","records":1}

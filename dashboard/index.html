@@ -929,7 +929,7 @@
                     <button id="tabPartido" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-primary text-white text-[10px] md:text-sm">📊 PARTIDO</button>
                     <button id="tabIndividuales" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">👕 INDIVIDUALES</button>
                     <button id="tabRotaciones" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🔄 ROTACIONES</button>
-                    <button id="tabEvolucion" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">📈 EVOLUCIÓN</button>
+                    <button id="tabEvolucion" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">📊 COMPARAR</button>
                     <button id="tabAnotador" class="tab-btn px-2 md:px-6 py-1.5 md:py-3 rounded-lg font-semibold transition-all bg-gray-700 text-gray-300 text-[10px] md:text-sm">🏐 ANOTADOR</button>
                 </div>
                 <div class="hidden md:flex gap-1 items-center">
@@ -1144,22 +1144,27 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- VISTA EVOLUCION -->
+        <!-- VISTA COMPARAR -->
         <!-- ============================================================ -->
         <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📤 SUBIR REPORTES DE PARTIDOS</h3>
-                <p class="text-sm text-gray-400 mb-3">Subí los archivos HTML generados por VoleyInsight para analizar la evolución del equipo</p>
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📂 COMPARAR INFORMES</h3>
+                <p class="text-sm text-gray-400 mb-3">Cargá al menos dos informes del mismo equipo. VoleyInsight detectará el equipo y ordenará los partidos.</p>
                 <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
                     <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
                     <div class="flex flex-col items-center gap-2">
                         <span class="text-3xl">📁</span>
                         <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
-                        <span class="text-xs text-gray-500">Podés subir múltiples reportes</span>
+                        <span class="text-xs text-gray-500">Los partidos parciales se excluyen automáticamente</span>
                     </div>
                 </div>
                 <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
-                <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 ANALIZAR EVOLUCIÓN</button>
+                <div id="comparativaEstado" class="mt-3 text-xs text-gray-500">Cargá dos o más informes para comenzar.</div>
+                <div id="equipoCompararContenedor" class="hidden mt-3">
+                    <label for="equipoCompararSelector" class="block text-xs text-gray-400 mb-1">Equipo a comparar</label>
+                    <select id="equipoCompararSelector" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white"><option value="">Elegí un equipo</option></select>
+                </div>
+                <button id="analizarComparativaBtn" class="w-full mt-4 bg-gradient-to-r from-primary to-secondary py-2 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled>📊 COMPARAR INFORMES</button>
             </div>
             <div id="analisisResultados" class="hidden">
                 <div class="bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl p-4 md:p-6 border border-primary/30">
@@ -1168,27 +1173,27 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div class="bg-card rounded-2xl p-4 md:p-6 border border-green-500/30">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">✅ FORTALEZAS DETECTADAS</h3>
+                        <h3 class="text-base md:text-lg font-semibold mb-3 text-green-400">📈 MEJORAS</h3>
                         <div id="fortalezasList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
                     </div>
                     <div class="bg-card rounded-2xl p-4 md:p-6 border border-red-500/30">
-                        <h3 class="text-base md:text-lg font-semibold mb-3 text-red-400">⚠️ DEBILIDADES A MEJORAR</h3>
+                        <h3 class="text-base md:text-lg font-semibold mb-3 text-amber-400">📌 A REVISAR O ESTABLE</h3>
                         <div id="debilidadesList" class="space-y-2 text-sm"><div class="text-gray-400">Cargá reportes para ver el análisis...</div></div>
                     </div>
                 </div>
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 EVOLUCIÓN POR PARTIDO</h3>
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📊 COMPARACIÓN POR PARTIDO</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs md:text-sm">
                             <thead class="text-gray-400 border-b border-gray-700">
-                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Clutch%</th><th class="text-center">Efi. Servicio</th><th class="text-center">Eficiencia</th></tr>
+                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Bajo presión</th><th class="text-center">Efi. Servicio</th><th class="text-center">Puntos ganados</th></tr>
                             </thead>
                             <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
                         </table>
                     </div>
                 </div>
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
-                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA DE MÉTRICAS CLAVE</h3>
+                    <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA</h3>
                     <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
                 </div>
             </div>
@@ -1438,7 +1443,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | VoleyInsight v3.0.4 · Centro seguro de preparación del partido</p>
+            <p>Datos en tiempo real | VoleyInsight v3.0.5 · Comparación confiable de informes</p>
         </div>
     </div>
 
@@ -1603,7 +1608,7 @@
                     if (!statusResponse.ok) throw new Error('Servidor no disponible');
                     const status = await statusResponse.json();
                     servidorDisponible = true;
-                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.0.4'}`);
+                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.0.5'}`);
                     actualizarBotonIngreso();
 
                     if (!configResponse.ok) {
@@ -1808,6 +1813,7 @@
             const vistaRotaciones = document.getElementById('vistaRotaciones');
 
             function cambiarPestana(activa) {
+                if (window.dashboard) window.dashboard.vistaActual = activa;
                 vistaPartido.classList.add('hidden');
                 vistaIndividuales.classList.add('hidden');
                 vistaAnotador.classList.add('hidden');

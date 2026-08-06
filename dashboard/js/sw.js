@@ -1,5 +1,5 @@
 // Service Worker para recursos estáticos y funcionamiento offline.
-const CACHE_NAME = 'voleyinsight-v3.0.4-centro-preparacion';
+const CACHE_NAME = 'voleyinsight-v3.0.5-comparativa-informes';
 const STATIC_ASSETS = [
     '/dashboard/index.html',
     '/dashboard/css/styles.css',
@@ -8,6 +8,7 @@ const STATIC_ASSETS = [
     '/dashboard/js/rotacionHelper.js',
     '/dashboard/js/metricasVoleyHelper.js',
     '/dashboard/js/partidoHelper.js',
+    '/dashboard/js/comparativaHelper.js',
     '/dashboard/js/reporteGenerator.js',
     '/dashboard/js/StatsHelper.js',
     '/dashboard/js/utils.js',

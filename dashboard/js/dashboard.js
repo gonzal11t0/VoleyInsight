@@ -18,6 +18,14 @@ import {
     extraerEstadoOficial,
     isSetTerminado as isSetTerminadoHelper
 } from './partidoHelper.js';
+import {
+    calcularTendencias,
+    crearReporteLegacy,
+    generarConclusiones,
+    numeroONull,
+    prepararComparativa,
+    reporteDesdeMetadata
+} from './comparativaHelper.js';
 
 export class VolleyballDashboard {
     constructor() {
@@ -86,7 +94,6 @@ export class VolleyballDashboard {
                 this.setupTabs();
                 this.setupFiltrosSets();
                 this.setupFiltrosRotaciones();
-                this.setupEvolucionTab();
                 this.setupReportUpload();
                 this.startAutoRefreshPuntos();
                 this.actualizarSets();
@@ -369,34 +376,11 @@ export class VolleyballDashboard {
         });
     }
 
-    setupEvolucionTab() {
-        const tabEvolucion = document.getElementById('tabEvolucion');
-        const vistaEvolucion = document.getElementById('vistaEvolucion');
-        if (!tabEvolucion) return;
-        tabEvolucion.addEventListener('click', () => {
-            this.vistaActual = 'evolucion';
-            ['tabPartido', 'tabIndividuales', 'tabAnotador', 'tabEvolucion'].forEach(id => {
-                const tab = document.getElementById(id);
-                if (tab) {
-                    tab.classList.remove('bg-primary', 'text-white');
-                    tab.classList.add('bg-gray-700', 'text-gray-300');
-                }
-            });
-            tabEvolucion.classList.remove('bg-gray-700', 'text-gray-300');
-            tabEvolucion.classList.add('bg-primary', 'text-white');
-            ['vistaPartido', 'vistaIndividuales', 'vistaAnotador'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('hidden');
-            });
-            if (vistaEvolucion) vistaEvolucion.classList.remove('hidden');
-        });
-    }
-
     setupReportUpload() {
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('reportFilesInput');
-        const reportList = document.getElementById('reportList');
         const analizarBtn = document.getElementById('analizarComparativaBtn');
+        const equipoSelector = document.getElementById('equipoCompararSelector');
         if (!uploadArea) return;
         uploadArea.addEventListener('click', () => fileInput.click());
         uploadArea.addEventListener('dragover', (e) => { e.preventDefault();
@@ -405,22 +389,30 @@ export class VolleyballDashboard {
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('border-primary', 'bg-primary/10');
-            const files = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.html'));
+            const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.html'));
             this.procesarReportes(files);
         });
         fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
+            const files = Array.from(e.target.files).filter(f => f.name.toLowerCase().endsWith('.html'));
             this.procesarReportes(files);
+            e.target.value = '';
         });
         analizarBtn.addEventListener('click', () => this.generarAnalisisComparativo());
+        equipoSelector?.addEventListener('change', () => this.actualizarEstadoComparativa());
     }
 
     async procesarReportes(files) {
         const reportList = document.getElementById('reportList');
-        const analizarBtn = document.getElementById('analizarComparativaBtn');
         if (!reportList) return;
         this.reportesCargados = [];
         reportList.innerHTML = '';
+        document.getElementById('analisisResultados')?.classList.add('hidden');
+        if (!files.length) {
+            const vacio = document.createElement('div');
+            vacio.className = 'text-sm text-amber-400';
+            vacio.textContent = 'Seleccioná archivos HTML de informes VoleyInsight.';
+            reportList.appendChild(vacio);
+        }
         for (const file of files) {
             try {
                 const text = await file.text();
@@ -429,115 +421,165 @@ export class VolleyballDashboard {
                 const datos = this.extraerDatosDeReporte(doc, file.name);
                 if (datos) {
                     this.reportesCargados.push(datos);
-                    const item = document.createElement('div');
-                    item.className = 'flex justify-between items-center bg-gray-800 rounded-lg p-2';
-                    item.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-primary">📄</span>
-                            <span class="text-sm">${datos.nombrePartido || file.name}</span>
-                            <span class="text-xs text-gray-500">${datos.fecha || ''}</span>
-                        </div>
-                        <span class="text-xs ${datos.metricasCompatibles ? 'text-green-400' : 'text-amber-400'}">${datos.metricasCompatibles ? '✓ v3' : '⚠ formato anterior'}</span>
-                    `;
-                    reportList.appendChild(item);
+                    this.agregarItemReporte(reportList, datos, file.name);
+                } else {
+                    this.agregarItemReporte(reportList, null, file.name, '❌ No es un informe VoleyInsight compatible.');
                 }
             } catch (e) {
                 console.error('Error procesando archivo:', file.name, e);
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center bg-red-900/30 rounded-lg p-2';
-                item.innerHTML = `<span class="text-sm text-red-400">❌ Error: ${file.name}</span>`;
-                reportList.appendChild(item);
+                this.agregarItemReporte(reportList, null, file.name, '❌ No se pudo leer el archivo.');
             }
         }
-        if (this.reportesCargados.some(reporte => reporte.metricasCompatibles)) {
-            analizarBtn.disabled = false;
-            analizarBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        this.actualizarEstadoComparativa();
+    }
+
+    agregarItemReporte(contenedor, reporte, nombreArchivo, error = '') {
+        const item = document.createElement('div');
+        item.className = `flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 rounded-lg p-2 ${error ? 'bg-red-900/30' : 'bg-gray-800'}`;
+        const detalle = document.createElement('div');
+        detalle.className = 'min-w-0';
+        const titulo = document.createElement('div');
+        titulo.className = `text-sm truncate ${error ? 'text-red-300' : 'text-gray-100'}`;
+        titulo.textContent = reporte?.nombrePartido || nombreArchivo;
+        const fecha = document.createElement('div');
+        fecha.className = 'text-xs text-gray-500';
+        fecha.textContent = reporte?.fecha || nombreArchivo;
+        detalle.append(titulo, fecha);
+        const estado = document.createElement('span');
+        estado.className = 'text-xs shrink-0';
+        if (error) {
+            estado.classList.add('text-red-400');
+            estado.textContent = error;
+        } else if (!reporte.metricasCompatibles) {
+            estado.classList.add('text-amber-400');
+            estado.textContent = '⚠ Formato anterior · no incluido';
+        } else if (reporte.estado === 'partial') {
+            estado.classList.add('text-amber-400');
+            estado.textContent = '🟡 Partido parcial · no incluido';
+        } else if (reporte.estado === 'unknown') {
+            estado.classList.add('text-amber-300');
+            estado.textContent = '🟡 Final no verificable';
         } else {
-            analizarBtn.disabled = true;
-            analizarBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            estado.classList.add('text-green-400');
+            estado.textContent = '✓ Listo para comparar';
         }
+        item.append(detalle, estado);
+        contenedor.appendChild(item);
     }
 
     extraerDatosDeReporte(doc, nombreArchivo) {
         try {
+            const metadataElem = doc.querySelector('#voleyInsightReportData');
+            if (metadataElem) {
+                try {
+                    const reporte = reporteDesdeMetadata(JSON.parse(metadataElem.textContent || '{}'), nombreArchivo);
+                    if (reporte) return reporte;
+                } catch (e) {
+                    console.warn('Metadatos de comparación inválidos:', nombreArchivo, e.message);
+                }
+            }
+            const contenedorReporte = doc.querySelector('.container');
+            const pareceVoleyInsight = Boolean(
+                contenedorReporte &&
+                (doc.title.includes('VoleyInsight') || doc.body?.textContent?.includes('VoleyInsight'))
+            );
+            if (!pareceVoleyInsight) return null;
             const fechaElem = doc.querySelector('.date');
             const statCards = doc.querySelectorAll('.stat-card');
-            let datos = {
-                nombrePartido: '',
-                fecha: fechaElem ? fechaElem.textContent.replace('📅', '').trim() : '',
-                sideoutLocal: 0,
-                sideoutVisitante: 0,
-                breakpointLocal: 0,
-                breakpointVisitante: 0,
-                clutchLocal: 0,
-                eficienciaServicioLocal: 0,
-                eficienciaServicioVisitante: 0,
-                eficienciaLocal: 0,
-                eficienciaVisitante: 0,
-                resultado: '',
-                metricasCompatibles: false
-            };
-            const contenedorReporte = doc.querySelector('.container');
-            if (contenedorReporte?.dataset.metricSchema === 'standard-v1') {
-                datos.metricasCompatibles = true;
-                datos.sideoutLocal = Number(contenedorReporte.dataset.sideoutHome) || 0;
-                datos.sideoutVisitante = Number(contenedorReporte.dataset.sideoutAway) || 0;
-                datos.breakpointLocal = Number(contenedorReporte.dataset.breakpointHome) || 0;
-                datos.breakpointVisitante = Number(contenedorReporte.dataset.breakpointAway) || 0;
-                datos.eficienciaServicioLocal = Number(contenedorReporte.dataset.serviceHome) || 0;
-                datos.eficienciaServicioVisitante = Number(contenedorReporte.dataset.serviceAway) || 0;
-            }
+            const fecha = fechaElem ? fechaElem.textContent.replace('📅', '').trim() : '';
+            let homeTeam = '';
+            let awayTeam = '';
+            let resultado = '';
             const teamScores = doc.querySelectorAll('.team-score');
             if (teamScores.length >= 2) {
                 const homeNameElem = teamScores[0].querySelector('.team-name');
                 const awayNameElem = teamScores[1].querySelector('.team-name');
                 const homeScoreElem = teamScores[0].querySelector('.score-number');
                 const awayScoreElem = teamScores[1].querySelector('.score-number');
-                datos.nombrePartido = `${homeNameElem?.textContent || 'LOCAL'} vs ${awayNameElem?.textContent || 'VISITANTE'}`;
-                datos.resultado = `${homeScoreElem?.textContent || '0'} - ${awayScoreElem?.textContent || '0'}`;
+                homeTeam = homeNameElem?.textContent?.trim() || '';
+                awayTeam = awayNameElem?.textContent?.trim() || '';
+                resultado = `${homeScoreElem?.textContent?.trim() || '0'} - ${awayScoreElem?.textContent?.trim() || '0'}`;
             }
+            if (!homeTeam || !awayTeam) return null;
+            let efficiencyHome = null;
+            let efficiencyAway = null;
+            let clutchHome = null;
             statCards.forEach(card => {
                 const label = card.querySelector('.stat-label')?.textContent || '';
-                const value = card.querySelector('.stat-value')?.textContent || '0';
-                const numValue = parseFloat(value) || 0;
-                if (label.includes('Eficiencia') && !label.includes('servicio')) {
-                    if (label.includes(datos.nombrePartido.split(' vs ')[0]) || (label.includes('LOCAL') && !datos.eficienciaLocal)) {
-                        datos.eficienciaLocal = numValue;
-                    } else if (label.includes(datos.nombrePartido.split(' vs ')[1]) || label.includes('VISITANTE')) {
-                        datos.eficienciaVisitante = numValue;
-                    }
-                }
-                if (label.includes('Bajo presión') || label.includes('Clutch')) datos.clutchLocal = numValue;
+                const numValue = numeroONull(parseFloat(card.querySelector('.stat-value')?.textContent || ''));
+                const labelNormalizado = label.toUpperCase();
+                if (labelNormalizado.includes('EFICIENCIA') && labelNormalizado.includes(homeTeam.toUpperCase())) efficiencyHome = numValue;
+                else if (labelNormalizado.includes('EFICIENCIA') && labelNormalizado.includes(awayTeam.toUpperCase())) efficiencyAway = numValue;
+                if (labelNormalizado.includes('BAJO PRESIÓN') || labelNormalizado.includes('CLUTCH')) clutchHome = numValue;
             });
-            const sections = doc.querySelectorAll('.section');
-            sections.forEach(section => {
-                const title = section.querySelector('.section-title')?.textContent || '';
-                if (title.includes('SIDEOUT') || title.includes('Sideout')) {
-                    section.querySelectorAll('.text-blue-400, .text-red-400, .font-bold').forEach(num => {
-                        const text = num.textContent;
-                        if (text.includes('%')) {
-                            const val = parseFloat(text);
-                            if (num.classList.contains('text-blue-400') && !datos.sideoutLocal) datos.sideoutLocal = val;
-                            else if (num.classList.contains('text-red-400') && !datos.sideoutVisitante) datos.sideoutVisitante = val;
-                        }
-                    });
-                }
-                if (title.includes('BREAKPOINT') || title.includes('Breakpoint')) {
-                    section.querySelectorAll('.text-blue-400, .text-red-400, .font-bold').forEach(num => {
-                        const text = num.textContent;
-                        if (text.includes('%')) {
-                            const val = parseFloat(text);
-                            if (num.classList.contains('text-blue-400') && !datos.breakpointLocal) datos.breakpointLocal = val;
-                            else if (num.classList.contains('text-red-400') && !datos.breakpointVisitante) datos.breakpointVisitante = val;
-                        }
-                    });
+            const esquema = contenedorReporte.dataset.metricSchema || '';
+            const atributosRequeridos = [
+                'data-sideout-home', 'data-sideout-away',
+                'data-breakpoint-home', 'data-breakpoint-away',
+                'data-service-home', 'data-service-away'
+            ];
+            const esquemaValido = esquema === 'standard-v1'
+                && atributosRequeridos.every(atributo => contenedorReporte.hasAttribute(atributo));
+            const leerDataset = (clave) => contenedorReporte.hasAttribute(`data-${clave.replace(/[A-Z]/g, letra => `-${letra.toLowerCase()}`)}`)
+                ? numeroONull(contenedorReporte.dataset[clave])
+                : null;
+            const estado = /(?:🔴\s*)?EN CURSO/i.test(doc.body?.textContent || '') ? 'partial' : 'unknown';
+            return crearReporteLegacy({
+                nombreArchivo,
+                version: contenedorReporte.dataset.version || '',
+                esquema: esquemaValido ? esquema : '',
+                homeTeam,
+                awayTeam,
+                fecha,
+                estado,
+                resultado,
+                metrics: {
+                    sideoutHome: leerDataset('sideoutHome'),
+                    sideoutAway: leerDataset('sideoutAway'),
+                    breakpointHome: leerDataset('breakpointHome'),
+                    breakpointAway: leerDataset('breakpointAway'),
+                    serviceHome: leerDataset('serviceHome'),
+                    serviceAway: leerDataset('serviceAway'),
+                    clutchHome,
+                    clutchAway: clutchHome === null ? null : Number((100 - clutchHome).toFixed(1)),
+                    efficiencyHome,
+                    efficiencyAway
                 }
             });
-            return datos;
         } catch (e) {
             console.error('Error extrayendo datos:', e);
             return null;
         }
+    }
+
+    actualizarEstadoComparativa() {
+        const analizarBtn = document.getElementById('analizarComparativaBtn');
+        const estadoElem = document.getElementById('comparativaEstado');
+        const selectorContenedor = document.getElementById('equipoCompararContenedor');
+        const selector = document.getElementById('equipoCompararSelector');
+        if (!analizarBtn || !estadoElem || !selector || !selectorContenedor) return;
+        let comparativa = prepararComparativa(this.reportesCargados, selector.value || null);
+        const opcionesAnteriores = Array.from(selector.options).map(opcion => opcion.value).filter(Boolean);
+        if (comparativa.equiposComunes?.length > 1) {
+            selectorContenedor.classList.remove('hidden');
+            const debenActualizarse = comparativa.equiposComunes.some(equipo => !opcionesAnteriores.includes(equipo))
+                || opcionesAnteriores.length !== comparativa.equiposComunes.length;
+            if (debenActualizarse) {
+                selector.replaceChildren(new Option('Elegí un equipo', ''));
+                comparativa.equiposComunes.forEach(equipo => selector.add(new Option(equipo, equipo)));
+            }
+            comparativa = prepararComparativa(this.reportesCargados, selector.value || null);
+        } else {
+            selectorContenedor.classList.add('hidden');
+            selector.replaceChildren(new Option('', ''));
+        }
+        estadoElem.textContent = comparativa.ok
+            ? `${comparativa.serie.length} informes listos · ${comparativa.equipoNombre}`
+            : comparativa.mensaje;
+        estadoElem.className = `mt-3 text-xs ${comparativa.ok ? 'text-green-400' : 'text-amber-400'}`;
+        analizarBtn.disabled = !comparativa.ok;
+        analizarBtn.classList.toggle('opacity-50', !comparativa.ok);
+        analizarBtn.classList.toggle('cursor-not-allowed', !comparativa.ok);
     }
 
     generarAnalisisComparativo() {
@@ -546,87 +588,98 @@ export class VolleyballDashboard {
         const fortalezasElem = document.getElementById('fortalezasList');
         const debilidadesElem = document.getElementById('debilidadesList');
         const tablaBody = document.getElementById('evolucionTablaBody');
+        const equipoSelector = document.getElementById('equipoCompararSelector');
         if (!resultados || this.reportesCargados.length === 0) return;
         resultados.classList.remove('hidden');
-        const compatibles = this.reportesCargados.filter(reporte => reporte.metricasCompatibles);
-        if (!compatibles.length) {
-            resumenElem.textContent = 'Los informes anteriores a v3.0 usaban otra definición de Sideout/Breakpoint y no se mezclan con los nuevos para evitar conclusiones incorrectas.';
-            fortalezasElem.innerHTML = '';
-            debilidadesElem.innerHTML = '';
-            tablaBody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-amber-400">Generá informes v3.0 para iniciar una serie comparable.</td></tr>';
+        const comparativa = prepararComparativa(this.reportesCargados, equipoSelector?.value || null);
+        if (!comparativa.ok) {
+            resumenElem.textContent = comparativa.mensaje;
+            fortalezasElem.replaceChildren();
+            debilidadesElem.replaceChildren();
+            tablaBody.replaceChildren();
+            const fila = tablaBody.insertRow();
+            const celda = fila.insertCell();
+            celda.colSpan = 6;
+            celda.className = 'text-center py-8 text-amber-400';
+            celda.textContent = comparativa.mensaje;
             return;
         }
-        const reportesOrdenados = [...compatibles].sort((a, b) => {
-            if (a.fecha && b.fecha) return new Date(a.fecha) - new Date(b.fecha);
-            return 0;
+        const tendencias = calcularTendencias(comparativa.serie);
+        const conclusiones = generarConclusiones(tendencias, 3);
+        const primero = comparativa.serie[0];
+        const ultimo = comparativa.serie.at(-1);
+        const periodo = `${this.formatearFechaComparativa(primero)} → ${this.formatearFechaComparativa(ultimo)}`;
+        const advertencia = comparativa.advertencias.length ? ` ${comparativa.advertencias.join(' ')}` : '';
+        resumenElem.textContent = `Comparando ${comparativa.equipoNombre} en ${comparativa.serie.length} partidos (${periodo}). Las conclusiones comparan el primer informe con el último.${advertencia}`;
+
+        const mejoras = conclusiones.filter(item => item.tipo === 'mejora');
+        const revisar = conclusiones.filter(item => item.tipo !== 'mejora');
+        this.renderizarConclusionesComparativa(fortalezasElem, mejoras, 'No se detectaron mejoras mayores a 2 puntos.', 'mejora');
+        this.renderizarConclusionesComparativa(debilidadesElem, revisar, 'No se detectaron caídas: las métricas comparables se mantuvieron.', 'revisar');
+
+        tablaBody.replaceChildren();
+        comparativa.serie.forEach(reporte => {
+            const fila = tablaBody.insertRow();
+            fila.className = 'border-b border-gray-700';
+            const partido = fila.insertCell();
+            partido.className = 'py-2';
+            const titulo = document.createElement('div');
+            titulo.className = 'font-medium';
+            titulo.textContent = `${reporte.equipo} vs ${reporte.rival}`;
+            const detalle = document.createElement('div');
+            detalle.className = 'text-xs text-gray-500';
+            detalle.textContent = `${this.formatearFechaComparativa(reporte)}${reporte.resultado ? ` · ${reporte.resultado}` : ''}`;
+            partido.append(titulo, detalle);
+            ['sideout', 'breakpoint', 'clutch', 'service', 'efficiency'].forEach(clave => {
+                const celda = fila.insertCell();
+                const valor = numeroONull(reporte.metricas?.[clave]);
+                celda.className = `text-center font-bold ${this.colorMetricaComparativa(clave, valor)}`;
+                celda.textContent = valor === null ? '—' : `${valor}%`;
+            });
         });
-        const ultimo = reportesOrdenados[reportesOrdenados.length - 1];
-        const primero = reportesOrdenados[0];
-        const mejoraSideout = (ultimo.sideoutLocal - primero.sideoutLocal).toFixed(1);
-        const mejoraBreakpoint = (ultimo.breakpointLocal - primero.breakpointLocal).toFixed(1);
-        const mejoraClutch = (ultimo.clutchLocal - primero.clutchLocal).toFixed(1);
-        const mejoraServicio = (ultimo.eficienciaServicioLocal - primero.eficienciaServicioLocal).toFixed(1);
-        let resumenTexto = '';
-        if (reportesOrdenados.length === 1) {
-            resumenTexto = `📊 Análisis del partido: ${ultimo.nombrePartido}. El equipo tuvo una eficiencia del ${ultimo.eficienciaLocal}%, con Sideout del ${ultimo.sideoutLocal}% y Breakpoint del ${ultimo.breakpointLocal}%. Bajo presión convirtió el ${ultimo.clutchLocal}% de los puntos.`;
-        } else {
-            const tendenciaSideout = mejoraSideout > 0 ? 'mejoró' : (mejoraSideout < 0 ? 'empeoró' : 'se mantuvo');
-            const tendenciaBreakpoint = mejoraBreakpoint > 0 ? 'mejoró' : (mejoraBreakpoint < 0 ? 'empeoró' : 'se mantuvo');
-            resumenTexto = `📈 Evolución a lo largo de ${reportesOrdenados.length} partidos. Sideout% ${tendenciaSideout} ${Math.abs(mejoraSideout)} puntos (${primero.sideoutLocal}% → ${ultimo.sideoutLocal}%). Breakpoint% ${tendenciaBreakpoint} ${Math.abs(mejoraBreakpoint)} puntos (${primero.breakpointLocal}% → ${ultimo.breakpointLocal}%). Clutch% ${mejoraClutch > 0 ? 'mejoró' : (mejoraClutch < 0 ? 'empeoró' : 'se mantuvo')} en momentos clave.`;
-        }
-        resumenElem.textContent = resumenTexto;
-        let fortalezas = [],
-            debilidades = [];
-        if (ultimo.sideoutLocal > 60) fortalezas.push(`🎯 Sideout% del ${ultimo.sideoutLocal}% - Buen rendimiento al recibir el saque rival.`);
-        else if (ultimo.sideoutLocal < 45) debilidades.push(`⚠️ Sideout% bajo (${ultimo.sideoutLocal}%) - Dificultad para anotar al recibir.`);
-        if (ultimo.breakpointLocal > 40) fortalezas.push(`⚡ Breakpoint% del ${ultimo.breakpointLocal}% - Buena presión con saque propio.`);
-        else if (ultimo.breakpointLocal < 25) debilidades.push(`🔻 Breakpoint% bajo (${ultimo.breakpointLocal}%) - Poca producción mientras el equipo saca.`);
-        if (ultimo.clutchLocal > 60) fortalezas.push(`🧠 Clutch% del ${ultimo.clutchLocal}% - El equipo rinde bien bajo presión.`);
-        else if (ultimo.clutchLocal < 40) debilidades.push(`😰 Clutch% bajo (${ultimo.clutchLocal}%) - Dificultad en momentos clave del set.`);
-        if (ultimo.eficienciaServicioLocal > 10) fortalezas.push(`🏐 Eficiencia de servicio del ${ultimo.eficienciaServicioLocal}% - Saque efectivo y con pocos errores.`);
-        else if (ultimo.eficienciaServicioLocal < 0) debilidades.push(`❌ Eficiencia de servicio negativa (${ultimo.eficienciaServicioLocal}%) - Muchos errores de saque.`);
-        if (fortalezas.length === 0) fortalezas.push('📌 No se detectaron fortalezas destacadas en este partido.');
-        if (debilidades.length === 0) debilidades.push('📌 No se detectaron debilidades críticas en este partido.');
-        fortalezasElem.innerHTML = fortalezas.map(f => `<div class="bg-green-900/20 rounded-lg p-2 border-l-4 border-green-500">${f}</div>`).join('');
-        debilidadesElem.innerHTML = debilidades.map(d => `<div class="bg-red-900/20 rounded-lg p-2 border-l-4 border-red-500">${d}</div>`).join('');
-        let tablaHtml = '';
-        for (let i = 0; i < reportesOrdenados.length; i++) {
-            const r = reportesOrdenados[i];
-            const sideoutColor = r.sideoutLocal >= 60 ? 'text-green-400' : (r.sideoutLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
-            const breakpointColor = r.breakpointLocal >= 40 ? 'text-green-400' : (r.breakpointLocal >= 25 ? 'text-yellow-400' : 'text-red-400');
-            const clutchColor = r.clutchLocal >= 60 ? 'text-green-400' : (r.clutchLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
-            const servicioColor = r.eficienciaServicioLocal >= 10 ? 'text-green-400' : (r.eficienciaServicioLocal >= 0 ? 'text-yellow-400' : 'text-red-400');
-            const eficienciaColor = r.eficienciaLocal >= 55 ? 'text-green-400' : (r.eficienciaLocal >= 45 ? 'text-yellow-400' : 'text-red-400');
-            tablaHtml += `<tr class="border-b border-gray-700">
-                <td class="py-2"><div class="font-medium">${r.nombrePartido}</div><div class="text-xs text-gray-500">${r.fecha || ''} ${r.resultado ? `| ${r.resultado}` : ''}</div></td>
-                <td class="text-center ${sideoutColor} font-bold">${r.sideoutLocal}%</td>
-                <td class="text-center ${breakpointColor} font-bold">${r.breakpointLocal}%</td>
-                <td class="text-center ${clutchColor} font-bold">${r.clutchLocal}%</td>
-                <td class="text-center ${servicioColor} font-bold">${r.eficienciaServicioLocal}%</td>
-                <td class="text-center ${eficienciaColor} font-bold">${r.eficienciaLocal}%</td>
-            </tr>`;
-        }
-        tablaBody.innerHTML = tablaHtml;
-        this.renderEvolucionChart(reportesOrdenados);
+        this.renderEvolucionChart(comparativa.serie);
+    }
+
+    renderizarConclusionesComparativa(contenedor, conclusiones, vacio, tipo) {
+        contenedor.replaceChildren();
+        const items = conclusiones.length ? conclusiones : [{ texto: vacio }];
+        items.forEach(item => {
+            const div = document.createElement('div');
+            const verde = tipo === 'mejora';
+            div.className = `${verde ? 'bg-green-900/20 border-green-500' : 'bg-amber-900/20 border-amber-500'} rounded-lg p-2 border-l-4`;
+            div.textContent = item.texto;
+            contenedor.appendChild(div);
+        });
+    }
+
+    formatearFechaComparativa(reporte) {
+        const fecha = Date.parse(reporte.generatedAt || '');
+        if (Number.isFinite(fecha)) return new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(fecha);
+        return reporte.fecha || 'Fecha desconocida';
+    }
+
+    colorMetricaComparativa(clave, valor) {
+        if (valor === null) return 'text-gray-500';
+        if (clave === 'sideout') return valor >= 60 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'breakpoint') return valor >= 40 ? 'text-green-400' : valor >= 25 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'clutch') return valor >= 60 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'service') return valor >= 10 ? 'text-green-400' : valor >= 0 ? 'text-yellow-400' : 'text-red-400';
+        return valor >= 55 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
     }
 
     renderEvolucionChart(reportes) {
         const canvas = document.getElementById('evolucionChart');
         if (!canvas) return;
         if (this.chartEvolucion) this.chartEvolucion.destroy();
-        const labels = reportes.map(r => {
-            const nombre = r.nombrePartido.split(' vs ')[0];
-            return nombre.length > 15 ? nombre.substring(0, 12) + '...' : nombre;
-        });
+        const labels = reportes.map(reporte => `${this.formatearFechaComparativa(reporte)} · ${reporte.rival}`);
         this.chartEvolucion = new Chart(canvas, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Sideout%', data: reportes.map(r => r.sideoutLocal), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
-                    { label: 'Breakpoint%', data: reportes.map(r => r.breakpointLocal), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
-                    { label: 'Clutch%', data: reportes.map(r => r.clutchLocal), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
-                    { label: 'Efi. Servicio%', data: reportes.map(r => r.eficienciaServicioLocal), borderColor: '#a855f7', backgroundColor: 'rgba(168,85,247,0.1)', borderWidth: 2, fill: false, tension: 0.2, borderDash: [5, 5] }
+                    { label: 'Sideout%', data: reportes.map(r => numeroONull(r.metricas?.sideout)), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', borderWidth: 2, fill: false, tension: 0.2, spanGaps: false },
+                    { label: 'Breakpoint%', data: reportes.map(r => numeroONull(r.metricas?.breakpoint)), borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 2, fill: false, tension: 0.2, spanGaps: false },
+                    { label: 'Bajo presión', data: reportes.map(r => numeroONull(r.metricas?.clutch)), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: false, tension: 0.2, spanGaps: false }
                 ]
             },
             options: {
@@ -2422,12 +2475,20 @@ export class VolleyballDashboard {
                     setData.away = s.awayScore;
                 });
             }
+            const estadoReporte = evaluarEstadoPartido(sets, this.configSets, this.estadoOficialPartido);
+            const setsReporte = [];
             let setsHtml = '';
             for (const [num, scores] of sets) {
-                const isFinished = (scores.home >= 25 || scores.away >= 25) && Math.abs(scores.home - scores.away) >= 2;
+                const isFinished = isSetTerminadoHelper(scores.home, scores.away, num, this.configSets);
                 const winner = isFinished
                     ? `🏆 ${scores.home > scores.away ? homeTeam : awayTeam}`
                     : '🔴 En curso';
+                setsReporte.push({
+                    number: Number(num),
+                    home: Number(scores.home),
+                    away: Number(scores.away),
+                    status: isFinished ? 'final' : 'partial'
+                });
                 const bgColor = !isFinished ? 'background: linear-gradient(135deg, #1a1f2e, #0f1119); border: 2px solid #667eea;' : 'background: linear-gradient(135deg, #1a1f2e, #0f1119); border: 1px solid rgba(102,126,234,0.3);';
                 setsHtml += `<div style="${bgColor} border-radius: 12px; padding: 15px; text-align: center;">
                     <div style="font-size: 14px; font-weight: bold; color: #667eea; margin-bottom: 8px;">SET ${num}</div>
@@ -2563,12 +2624,13 @@ export class VolleyballDashboard {
             const marcasManualHtml = marcas.length
                 ? marcas.map(marca => `<div style="display:flex;justify-content:space-between;padding:10px;background:rgba(124,58,237,.1);border-radius:8px;margin-bottom:6px;"><span>⭐ Momento clave · Set ${marca.set || '-'}</span><strong>${marca.equipo || '-'}</strong><span>${marca.marcador || '-'}</span></div>`).join('')
                 : '<div style="color:#6b7280;text-align:center;">Sin marcas manuales</div>';
+            const generadoEn = new Date();
             const datosReporte = {
                 homeTeam,
                 awayTeam,
                 homeScore,
                 awayScore,
-                fechaHora: new Date().toLocaleString(),
+                fechaHora: generadoEn.toLocaleString(),
                 homeEfficiency,
                 awayEfficiency,
                 maxHomeRun,
@@ -2604,7 +2666,33 @@ export class VolleyballDashboard {
                 resumenVisitante,
                 marcasManualHtml,
                 rotacionesHtml: this.generarRotacionesHTML(),
-                logoDataUrl
+                logoDataUrl,
+                reportMetadata: {
+                    generatedAt: generadoEn.toISOString(),
+                    displayDate: generadoEn.toLocaleString(),
+                    matchId: this.matchId,
+                    category: this.categoria,
+                    status: estadoReporte.partidoTerminado ? 'final' : 'partial',
+                    homeSets: estadoReporte.setsGanadosLocal,
+                    awaySets: estadoReporte.setsGanadosVisitante,
+                    sets: setsReporte,
+                    metrics: {
+                        home: {
+                            efficiency: { percentage: Number(homeEfficiency), successes: homePoints, attempts: total },
+                            sideout: { percentage: sideoutHome, successes: metricasRally.equipos.HOME.sideout.exitos, attempts: metricasRally.equipos.HOME.sideout.oportunidades },
+                            breakpoint: { percentage: breakpointHome, successes: metricasRally.equipos.HOME.breakpoint.exitos, attempts: metricasRally.equipos.HOME.breakpoint.oportunidades },
+                            clutch: { percentage: Number(homeClutchPct), successes: homeClutch, attempts: totalClutch },
+                            service: { percentage: servicioReporte.home.eficiencia, aces: servicioReporte.home.aces, errors: servicioReporte.home.errores, attempts: servicioReporte.home.totalSaques }
+                        },
+                        away: {
+                            efficiency: { percentage: Number(awayEfficiency), successes: awayPoints, attempts: total },
+                            sideout: { percentage: sideoutAway, successes: metricasRally.equipos.AWAY.sideout.exitos, attempts: metricasRally.equipos.AWAY.sideout.oportunidades },
+                            breakpoint: { percentage: breakpointAway, successes: metricasRally.equipos.AWAY.breakpoint.exitos, attempts: metricasRally.equipos.AWAY.breakpoint.oportunidades },
+                            clutch: { percentage: totalClutch ? Number((((totalClutch - homeClutch) / totalClutch) * 100).toFixed(1)) : 0, successes: totalClutch - homeClutch, attempts: totalClutch },
+                            service: { percentage: servicioReporte.away.eficiencia, aces: servicioReporte.away.aces, errors: servicioReporte.away.errores, attempts: servicioReporte.away.totalSaques }
+                        }
+                    }
+                }
             };
             const reportHtml = ReporteGenerator.generarHTML(datosReporte);
             const blob = new Blob([reportHtml], { type: 'text/html' });

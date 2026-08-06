@@ -45,12 +45,43 @@ const html = ReporteGenerator.generarHTML({
     localPorSet: { 1: '<tr><td>L1</td></tr>' },
     visitantePorSet: { 1: '<tr><td>V1</td></tr>' },
     resumenLocal: { puntosEquipo: 25, puntosAtribuidos: 20, sinAtribuir: 5 },
-    resumenVisitante: { puntosEquipo: 20, puntosAtribuidos: 18, sinAtribuir: 2 }
+    resumenVisitante: { puntosEquipo: 20, puntosAtribuidos: 18, sinAtribuir: 2 },
+    reportMetadata: {
+        generatedAt: '2026-08-06T18:30:00.000Z',
+        matchId: 230512,
+        category: 'sub_14',
+        status: 'final',
+        homeSets: 2,
+        awaySets: 0,
+        sets: [{ number: 1, home: 25, away: 20, status: 'final' }],
+        metrics: {
+            home: { sideout: { percentage: 62, successes: 13, attempts: 21 } },
+            away: { sideout: { percentage: 58, successes: 11, attempts: 19 } }
+        }
+    }
 });
 assert.match(html, /data-metric-schema="standard-v1"/);
 assert.match(html, /data-sideout-home="62"/);
+assert.match(html, /id="voleyInsightReportData"/);
 assert.match(html, /ESTADÍSTICAS INDIVIDUALES POR SET/);
 assert.match(html, /Equipo: 25 · Atribuidos a jugadoras\/es: 20 · Sin atribuir: 5/);
 assert.doesNotMatch(html, /Puntos que convertís cuando tenés el saque/);
+
+const metadataMatch = html.match(/<script id="voleyInsightReportData" type="application\/json">([\s\S]*?)<\/script>/);
+assert.ok(metadataMatch, 'el informe debe incluir metadatos estables para comparación');
+const metadata = JSON.parse(metadataMatch[1]);
+assert.equal(metadata.schema, 'comparison-v1');
+assert.equal(metadata.version, '3.0.5');
+assert.equal(metadata.status, 'final');
+assert.equal(metadata.matchId, 230512);
+assert.equal(metadata.category, 'sub_14');
+assert.equal(metadata.metrics.home.sideout.percentage, 62);
+assert.equal(metadata.metrics.home.sideout.attempts, 21);
+
+const comparativaHelper = await cargarModulo('../dashboard/js/comparativaHelper.js');
+const reporteComparable = comparativaHelper.reporteDesdeMetadata(metadata, 'reporte_LOCAL_2026-08-06T18-30-00.html');
+assert.equal(reporteComparable.metricasCompatibles, true);
+assert.equal(reporteComparable.estado, 'final');
+assert.equal(reporteComparable.metrics.home.sideout, 62);
 
 console.log('reportConsistency: tests OK');
