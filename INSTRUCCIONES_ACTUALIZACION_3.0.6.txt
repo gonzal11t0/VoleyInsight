@@ -1,0 +1,35 @@
+VOLEYINSIGHT v3.0.6 - PREPARACION ANTICIPADA DE PARTIDOS
+
+ARCHIVOS A REEMPLAZAR
+
+1. server-api.js
+2. package.json
+3. package-lock.json
+4. dashboard/index.html
+5. dashboard/js/reporteGenerator.js
+6. dashboard/js/sw.js
+7. src/core/preparationStatus.js
+8. tests/preparationStatus.test.mjs
+9. tests/reportConsistency.test.mjs
+10. README.md
+
+CAMBIOS PRINCIPALES
+
+- Permite preparar un partido cuando la pagina publica de Metro ya existe pero
+  la API de datos en vivo todavia no fue habilitada.
+- Exige Match ID, nombres reales de ambos equipos y una categoria valida.
+- Muestra una advertencia y pide confirmacion antes de guardar un ID pendiente.
+- Conserva los datos de partidos anteriores.
+- Reemplaza la categoria escrita a mano por una lista tomada del reglamento.
+- El tracker comienza a sincronizar automaticamente cuando Metro publica datos.
+- Elimina la dependencia googleapis, que estaba instalada pero no se utilizaba.
+
+VERIFICACION
+
+Abrir una consola en la carpeta voley y ejecutar:
+
+npm test
+
+El resultado final esperado es:
+
+preparationStatus: tests OK
