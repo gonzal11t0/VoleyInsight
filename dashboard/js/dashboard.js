@@ -336,74 +336,36 @@ export class VolleyballDashboard {
                 this.mostrarFeedbackPartido('⚠️ Ya estás en ese partido');
                 return;
             }
-            const idAnterior = this.matchId;
-            if (this.data && this.data.length > 0) await this.saveAsHTML();
-            ['puntos', 'timeouts', 'breaks', 'marcas', 'jugadores'].forEach(prefix => {
-                localStorage.removeItem(`${prefix}_${this.matchId}`);
-            });
-            if (window.anotador) {
-                await window.anotador.cambiarPartido(nuevoId);
-            }
-            this.data = [];
-            this.puntosJugadores = [];
-            this.timeouts = [];
-            this.jugadoresLocal = {};
-            this.jugadoresVisitante = {};
-            this.reportesCargados = [];
-            this.ultimoPuntoSonido = null;
-            this.matchEnded = false;
-            this.partidoTerminado = false;
-            this.estadoOficialPartido = null;
-            Object.keys(this.charts).forEach(key => {
-                if (this.charts[key]) { this.charts[key].destroy();
-                    this.charts[key] = null; }
-            });
-            if (this.chartEvolucion) { this.chartEvolucion.destroy();
-                this.chartEvolucion = null; }
-            if (this.chartPuntosJugadores) { this.chartPuntosJugadores.destroy();
-                this.chartPuntosJugadores = null; }
-            this.matchId = nuevoId;
             const partido = this.listaPartidos?.find(p => p.id === nuevoId);
-            if (partido) { this.homeTeamName = partido.homeTeam;
-                this.awayTeamName = partido.awayTeam; } else { this.homeTeamName = "LOCAL";
-                this.awayTeamName = "VISITANTE"; }
-            document.getElementById('homeTeamName').textContent = this.homeTeamName;
-            document.getElementById('awayTeamName').textContent = this.awayTeamName;
-            this.limpiarDOMCompletamente();
+            const descripcion = partido
+                ? `${partido.homeTeam} vs ${partido.awayTeam}`
+                : `Match ID ${nuevoId}`;
+            if (!window.confirm(`¿Cambiar a ${descripcion}?\n\nLos datos del partido actual se conservarán.`)) return;
+            btn.disabled = true;
+            btn.textContent = '🔎 VERIFICANDO EN METRO…';
             try {
                 const apiUrl = await this.obtenerUrlApi();
                 const response = await fetch(`${apiUrl}/api/config`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ matchId: nuevoId })
+                    body: JSON.stringify({
+                        matchId: nuevoId,
+                        homeTeam: partido?.homeTeam,
+                        awayTeam: partido?.awayTeam,
+                        categoria: partido?.categoria
+                    })
                 });
-                if (!response.ok) throw new Error('Error al actualizar config.json');
-                console.log('✅ config.json actualizado en el servidor');
+                const resultado = await response.json();
+                if (!response.ok) throw new Error(resultado.error || 'Error al actualizar config.json');
+                this.mostrarFeedbackPartido(`✅ Cambiando a ${descripcion}. Los datos anteriores se conservaron.`);
+                sessionStorage.removeItem('voleyinsight_acceso_local_v2');
+                setTimeout(() => window.location.reload(), 700);
             } catch (e) {
                 console.error('Error actualizando config.json:', e);
-                this.mostrarFeedbackPartido('❌ Error al cambiar partido en el servidor');
-                return;
+                this.mostrarFeedbackPartido(`❌ ${e.message}`);
+                btn.disabled = false;
+                btn.textContent = '📋 CARGAR PARTIDO';
             }
-            if (this.socket) {
-                if (this.socket.connected) {
-                    this.socket.emit('unsubscribe', idAnterior);
-                    this.socket.emit('subscribe', nuevoId);
-                    console.log(`🔄 WebSocket resuscrito: ${idAnterior} → ${nuevoId}`);
-                } else {
-                    this.socket.connect();
-                    this.socket.once('connect', () => {
-                        this.socket.emit('subscribe', nuevoId);
-                        console.log(`🔄 WebSocket reconectado y suscrito a ${nuevoId}`);
-                    });
-                }
-            }
-            await this.loadData();
-            await this.cargarPuntosJugadores();
-            await this.cargarTimeouts();
-            this.actualizarSets();
-            this.updateDashboard();
-            this.actualizarVistaIndividuales();
-            this.mostrarFeedbackPartido(`📊 Cambiado a ${this.homeTeamName} vs ${this.awayTeamName} (${nuevoId})`);
         });
     }
 

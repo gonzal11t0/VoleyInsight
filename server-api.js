@@ -6,10 +6,17 @@ const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
 const { version: APP_VERSION } = require('./package.json');
+const MetroVoleyAPI = require('./src/services/api');
 const {
     enriquecerPuntosManuales,
     enriquecerSnapshotsOficiales
 } = require('./src/core/rotationHistory');
+const {
+    normalizarMatchId,
+    obtenerEstadoCancha,
+    obtenerEquipos,
+    evaluarPreparacion
+} = require('./src/core/preparationStatus');
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
@@ -50,6 +57,109 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 5501;
 const connectedClients = new Map();
+const CONFIG_PATH = path.join(__dirname, 'data', 'config.json');
+
+async function leerJsonOpcional(filePath, fallback = null) {
+    try {
+        return JSON.parse(await fs.readFile(filePath, 'utf-8'));
+    } catch (error) {
+        return fallback;
+    }
+}
+
+function buscarPartidoConfigurado(config, matchId) {
+    return (config?.partidos || []).find(partido => Number(partido.id) === Number(matchId)) || null;
+}
+
+function obtenerRespaldoPartido(config, matchId) {
+    const guardado = buscarPartidoConfigurado(config, matchId);
+    if (guardado) return guardado;
+    if (Number(config?.matchId) === Number(matchId)) {
+        return {
+            id: matchId,
+            homeTeam: config.homeTeam,
+            awayTeam: config.awayTeam,
+            categoria: config.categoria
+        };
+    }
+    return { id: matchId };
+}
+
+async function verificarPartidoMetro(matchId) {
+    const api = new MetroVoleyAPI(matchId);
+    api.timeoutMs = Math.min(api.timeoutMs, 8_000);
+    api.retryConfig = { attempts: 1, backoffMs: 0 };
+    const datos = await api.fetchUpdates();
+    return {
+        datos,
+        cancha: obtenerEstadoCancha(datos),
+        estado: {
+            statusId: datos?.match?.statusId ?? null,
+            currentSet: datos?.match?.currentSet ?? null,
+            homeTeamSets: datos?.match?.homeTeamSets ?? 0,
+            awayTeamSets: datos?.match?.awayTeamSets ?? 0
+        }
+    };
+}
+
+async function obtenerResumenPreparacion(matchId, config) {
+    const fullPath = path.join(__dirname, 'data', `full_${matchId}.json`);
+    const matchPath = path.join(__dirname, 'data', `match_${matchId}.json`);
+    const manualPath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+    const trackerPath = path.join(__dirname, 'data', `tracker_status_${matchId}.json`);
+    const [fullData, snapshots, manuales, trackerStatus] = await Promise.all([
+        leerJsonOpcional(fullPath),
+        leerJsonOpcional(matchPath, []),
+        leerJsonOpcional(manualPath, []),
+        leerJsonOpcional(trackerPath)
+    ]);
+
+    let antiguedadFullMs = null;
+    if (fullData) {
+        try {
+            const stat = await fs.stat(fullPath);
+            antiguedadFullMs = Math.max(0, Date.now() - stat.mtimeMs);
+        } catch (error) {}
+    }
+
+    const respaldo = obtenerRespaldoPartido(config, matchId);
+    const equipos = obtenerEquipos(fullData || {}, respaldo);
+    const preparacion = evaluarPreparacion({
+        datosMetro: fullData,
+        fullExiste: Boolean(fullData),
+        antiguedadFullMs,
+        trackerStatus
+    });
+    const puntosOficiales = Array.isArray(snapshots)
+        ? snapshots.filter(punto => Number(punto.homeScore) + Number(punto.awayScore) > 0).length
+        : 0;
+    const puntosManuales = Array.isArray(manuales) ? manuales.length : 0;
+
+    return {
+        matchId,
+        configurado: Number(config?.matchId) === matchId,
+        equipos: {
+            ...equipos,
+            categoria: respaldo.categoria || null
+        },
+        preparacion,
+        partido: {
+            reconocidoLocalmente: Number(fullData?.match?.id) === matchId,
+            statusId: fullData?.match?.statusId ?? null,
+            currentSet: fullData?.match?.currentSet ?? null,
+            homeTeamSets: fullData?.match?.homeTeamSets ?? 0,
+            awayTeamSets: fullData?.match?.awayTeamSets ?? 0
+        },
+        datosGuardados: {
+            puntosOficiales,
+            puntosManuales,
+            hayDatos: puntosOficiales > 0 || puntosManuales > 0
+        },
+        ultimaActualizacion: antiguedadFullMs === null
+            ? null
+            : new Date(Date.now() - antiguedadFullMs).toISOString()
+    };
+}
 
 async function obtenerEstadoPartido(matchId) {
     try {
@@ -467,39 +577,124 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status'] });
+    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify'] });
 });
 
 app.get('/api/config', async (req, res) => {
     try {
-        const configPath = path.join(__dirname, 'data', 'config.json');
-        const data = await fs.readFile(configPath, 'utf-8');
+        const data = await fs.readFile(CONFIG_PATH, 'utf-8');
         res.json(JSON.parse(data));
     } catch(e) {
         res.status(404).json({ error: 'Config not found' });
     }
 });
 
-app.post('/api/config', async (req, res) => {
+app.get('/api/preparation', async (req, res) => {
     try {
-        const { matchId } = req.body;
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const matchId = normalizarMatchId(req.query.matchId || config.matchId);
         if (!matchId) {
-            return res.status(400).json({ error: 'matchId requerido' });
+            return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
         }
-        
-        const configPath = path.join(__dirname, 'data', 'config.json');
-        let config = {};
-        try {
-            const data = await fs.readFile(configPath, 'utf-8');
-            config = JSON.parse(data);
-        } catch(e) {}
-        
+        const resumen = await obtenerResumenPreparacion(matchId, config);
+        res.json({
+            success: true,
+            version: APP_VERSION,
+            configuredMatchId: normalizarMatchId(config.matchId),
+            partidos: config.partidos || [],
+            ...resumen
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/preparation/verify', async (req, res) => {
+    const matchId = normalizarMatchId(req.body?.matchId);
+    if (!matchId) {
+        return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
+    }
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const verificacion = await verificarPartidoMetro(matchId);
+        const respaldo = obtenerRespaldoPartido(config, matchId);
+        res.json({
+            success: true,
+            verified: true,
+            matchId,
+            equipos: {
+                ...obtenerEquipos(verificacion.datos, respaldo),
+                categoria: respaldo.categoria || null
+            },
+            cancha: verificacion.cancha,
+            estado: verificacion.estado,
+            message: verificacion.cancha.completa
+                ? 'Partido reconocido y formación disponible.'
+                : 'Partido reconocido. La formación todavía puede estar pendiente.'
+        });
+    } catch (error) {
+        const status = error.statusCode === 404 ? 404 : 503;
+        res.status(status).json({
+            success: false,
+            verified: false,
+            matchId,
+            error: error.statusCode === 404
+                ? `Metro Vóley no encontró el partido ${matchId}.`
+                : `No se pudo consultar Metro Vóley: ${error.message}`
+        });
+    }
+});
+
+app.post('/api/config', async (req, res) => {
+    const matchId = normalizarMatchId(req.body?.matchId);
+    if (!matchId) {
+        return res.status(400).json({ success: false, error: 'matchId inválido' });
+    }
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const anteriorMatchId = normalizarMatchId(config.matchId);
+        const verificacion = anteriorMatchId === matchId
+            ? null
+            : await verificarPartidoMetro(matchId);
+        const respaldo = obtenerRespaldoPartido(config, matchId);
+        const equiposMetro = verificacion
+            ? obtenerEquipos(verificacion.datos, respaldo)
+            : obtenerEquipos({}, respaldo);
+        const homeTeam = String(req.body.homeTeam || equiposMetro.homeTeam || 'LOCAL').trim();
+        const awayTeam = String(req.body.awayTeam || equiposMetro.awayTeam || 'VISITANTE').trim();
+        const categoria = String(req.body.categoria || respaldo.categoria || '').trim();
+
         config.matchId = matchId;
-        await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
-        
-        res.json({ success: true, matchId });
-    } catch(e) {
-        res.status(500).json({ error: e.message });
+        config.homeTeam = homeTeam;
+        config.awayTeam = awayTeam;
+        if (categoria) config.categoria = categoria;
+        else delete config.categoria;
+        config.partidos = Array.isArray(config.partidos) ? config.partidos : [];
+        const indice = config.partidos.findIndex(partido => Number(partido.id) === matchId);
+        const partidoActualizado = { id: matchId, homeTeam, awayTeam };
+        if (categoria) partidoActualizado.categoria = categoria;
+        if (indice >= 0) config.partidos[indice] = { ...config.partidos[indice], ...partidoActualizado };
+        else config.partidos.push(partidoActualizado);
+
+        await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+        res.json({
+            success: true,
+            matchId,
+            previousMatchId: anteriorMatchId,
+            homeTeam,
+            awayTeam,
+            categoria: categoria || null,
+            verified: Boolean(verificacion) || anteriorMatchId === matchId,
+            preservedPreviousData: true
+        });
+    } catch(error) {
+        const status = error.statusCode === 404 ? 404 : 503;
+        res.status(status).json({
+            success: false,
+            error: error.statusCode === 404
+                ? `Metro Vóley no encontró el partido ${matchId}. No se modificó la configuración.`
+                : `No se pudo verificar el partido. No se modificó la configuración: ${error.message}`
+        });
     }
 });
 app.use(express.static('./'));

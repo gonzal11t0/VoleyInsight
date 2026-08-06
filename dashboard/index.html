@@ -709,7 +709,7 @@
             box-shadow: 0 28px 80px rgba(0, 0, 0, 0.5);
         }
         .acceso-logo { height: 48px; width: auto; max-width: 280px; }
-        .acceso-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .acceso-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
         .acceso-estado {
             min-height: 86px;
             padding: 12px;
@@ -726,6 +726,45 @@
         .acceso-estado[data-estado="error"] { border-color: rgba(239, 68, 68, 0.42); }
         .acceso-estado[data-estado="error"] strong { color: #fca5a5; }
         .acceso-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .acceso-preparacion {
+            padding: 14px;
+            margin-bottom: 14px;
+            border-radius: 16px;
+            background: rgba(8, 10, 18, 0.62);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .acceso-partido-grid {
+            display: grid;
+            grid-template-columns: minmax(150px, 0.75fr) 1fr 1fr minmax(120px, 0.7fr);
+            gap: 10px;
+            align-items: end;
+        }
+        .acceso-partido-acciones { display: grid; grid-template-columns: auto auto; gap: 8px; margin-top: 10px; }
+        .acceso-aviso {
+            display: none;
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            line-height: 1.45;
+            color: #fde68a;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+        }
+        .acceso-aviso.visible { display: block; }
+        .acceso-url {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 14px;
+            padding: 9px 10px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            background: rgba(8, 10, 18, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+        .acceso-url span { min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+        .acceso-url button { flex: 0 0 auto; }
         .acceso-campo label { display: block; color: #9ca3af; font-size: 11px; margin-bottom: 5px; }
         .acceso-campo input {
             width: 100%;
@@ -741,7 +780,9 @@
         @media (max-width: 640px) {
             .acceso-card { padding: 18px; border-radius: 20px; }
             .acceso-logo { height: 40px; max-width: 230px; }
-            .acceso-grid, .acceso-campos { grid-template-columns: 1fr; }
+            .acceso-grid { grid-template-columns: 1fr 1fr; }
+            .acceso-campos, .acceso-partido-grid { grid-template-columns: 1fr; }
+            .acceso-partido-acciones { grid-template-columns: 1fr; }
             .acceso-estado { min-height: 68px; }
         }
     </style>
@@ -759,12 +800,54 @@
                 <div id="accesoEstadoServidor" class="acceso-estado" data-estado="espera">
                     <strong>⚪ Servidor</strong><span>Comprobando conexión…</span>
                 </div>
+                <div id="accesoEstadoTracker" class="acceso-estado" data-estado="espera">
+                    <strong>⚪ Tracker</strong><span>Comprobando actualizaciones…</span>
+                </div>
                 <div id="accesoEstadoPartido" class="acceso-estado" data-estado="espera">
                     <strong>⚪ Partido</strong><span>Consultando configuración…</span>
                 </div>
                 <div id="accesoEstadoFormacion" class="acceso-estado" data-estado="espera">
                     <strong>⚪ Formación</strong><span>Consultando Metro Vóley…</span>
                 </div>
+            </div>
+
+            <section class="acceso-preparacion" aria-labelledby="preparacionPartidoTitulo">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div>
+                        <h2 id="preparacionPartidoTitulo" class="text-sm font-bold">📋 Partido a analizar</h2>
+                        <p id="partidoConfiguradoTexto" class="text-[10px] text-gray-400 mt-0.5">Cargando configuración actual…</p>
+                    </div>
+                    <span id="estadoVerificacionId" class="text-[10px] text-gray-400">Sin verificar</span>
+                </div>
+                <div class="acceso-partido-grid">
+                    <div class="acceso-campo">
+                        <label for="accesoMatchId">Match ID de Metro</label>
+                        <input id="accesoMatchId" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Ej. 275125">
+                    </div>
+                    <div class="acceso-campo">
+                        <label for="accesoEquipoLocal">Equipo local</label>
+                        <input id="accesoEquipoLocal" autocomplete="off" placeholder="LOCAL">
+                    </div>
+                    <div class="acceso-campo">
+                        <label for="accesoEquipoVisitante">Equipo visitante</label>
+                        <input id="accesoEquipoVisitante" autocomplete="off" placeholder="VISITANTE">
+                    </div>
+                    <div class="acceso-campo">
+                        <label for="accesoCategoria">Categoría</label>
+                        <input id="accesoCategoria" autocomplete="off" placeholder="Ej. sub_13">
+                    </div>
+                </div>
+                <div class="acceso-partido-acciones">
+                    <button id="verificarMatchBtn" type="button" class="bg-blue-700 hover:bg-blue-600 px-4 py-2.5 rounded-xl text-xs font-semibold">🔎 Verificar en Metro</button>
+                    <button id="cambiarMatchBtn" type="button" class="bg-purple-700 hover:bg-purple-600 px-4 py-2.5 rounded-xl text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed" disabled>🔄 Confirmar cambio</button>
+                </div>
+            </section>
+
+            <div id="accesoAvisoDatos" class="acceso-aviso" role="status"></div>
+
+            <div class="acceso-url">
+                <span id="accesoUrlActual">🔗 Detectando dirección de acceso…</span>
+                <button id="copiarAccesoUrlBtn" type="button" class="bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg text-[10px] font-semibold">Copiar URL</button>
             </div>
 
             <div class="acceso-campos mb-4">
@@ -1355,7 +1438,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | VoleyInsight v3.0.3 · Correcciones oficiales y acceso de preparación</p>
+            <p>Datos en tiempo real | VoleyInsight v3.0.4 · Centro seguro de preparación del partido</p>
         </div>
     </div>
 
@@ -1415,7 +1498,21 @@
             const entrarAccesoBtn = document.getElementById('entrarAccesoBtn');
             const revisarAccesoBtn = document.getElementById('revisarAccesoBtn');
             const accesoMensaje = document.getElementById('accesoMensaje');
-            const accesoSessionKey = 'voleyinsight_acceso_local_v1';
+            const accesoMatchId = document.getElementById('accesoMatchId');
+            const accesoEquipoLocal = document.getElementById('accesoEquipoLocal');
+            const accesoEquipoVisitante = document.getElementById('accesoEquipoVisitante');
+            const accesoCategoria = document.getElementById('accesoCategoria');
+            const verificarMatchBtn = document.getElementById('verificarMatchBtn');
+            const cambiarMatchBtn = document.getElementById('cambiarMatchBtn');
+            const accesoAvisoDatos = document.getElementById('accesoAvisoDatos');
+            const estadoVerificacionId = document.getElementById('estadoVerificacionId');
+            const partidoConfiguradoTexto = document.getElementById('partidoConfiguradoTexto');
+            const accesoUrlActual = document.getElementById('accesoUrlActual');
+            const copiarAccesoUrlBtn = document.getElementById('copiarAccesoUrlBtn');
+            const accesoSessionKey = 'voleyinsight_acceso_local_v2';
+            let servidorDisponible = false;
+            let matchIdConfigurado = null;
+            let matchIdVerificado = null;
 
             function actualizarTarjetaAcceso(id, estadoTarjeta, titulo, detalle) {
                 const tarjeta = document.getElementById(id);
@@ -1425,10 +1522,76 @@
                 tarjeta.querySelector('span').textContent = detalle;
             }
 
+            function mostrarMensajeAcceso(mensaje, tipo = 'error') {
+                accesoMensaje.textContent = mensaje;
+                accesoMensaje.className = tipo === 'ok'
+                    ? 'text-xs text-green-300 mb-3'
+                    : 'text-xs text-red-300 mb-3';
+            }
+
+            function actualizarBotonIngreso(nivel = 'waiting') {
+                entrarAccesoBtn.disabled = !servidorDisponible;
+                entrarAccesoBtn.textContent = nivel === 'ready'
+                    ? 'INGRESAR A VOLEYINSIGHT'
+                    : 'INGRESAR IGUALMENTE';
+            }
+
+            function mostrarDatosGuardados(datos, matchId) {
+                const guardados = datos?.datosGuardados;
+                if (!guardados?.hayDatos) {
+                    accesoAvisoDatos.classList.remove('visible');
+                    accesoAvisoDatos.textContent = '';
+                    return;
+                }
+                accesoAvisoDatos.textContent = `⚠️ El partido ${matchId} ya tiene ${guardados.puntosOficiales} registros oficiales y ${guardados.puntosManuales} anotaciones manuales guardadas. Podés continuarlo; al cambiar de ID estos datos no se borrarán.`;
+                accesoAvisoDatos.classList.add('visible');
+            }
+
+            function aplicarResumenPreparacion(datos, completarFormulario = true) {
+                const equipos = datos.equipos || {};
+                const local = equipos.homeTeam || 'LOCAL';
+                const visitante = equipos.awayTeam || 'VISITANTE';
+                const preparacion = datos.preparacion || {};
+                matchIdConfigurado = Number(datos.configuredMatchId) || matchIdConfigurado;
+
+                actualizarTarjetaAcceso(
+                    'accesoEstadoTracker',
+                    preparacion.tracker?.estado || 'espera',
+                    `${preparacion.tracker?.estado === 'ok' ? '🟢' : preparacion.tracker?.estado === 'error' ? '🔴' : '🟡'} ${preparacion.tracker?.titulo || 'Tracker esperando'}`,
+                    preparacion.tracker?.detalle || 'Todavía no hay información.'
+                );
+                actualizarTarjetaAcceso(
+                    'accesoEstadoPartido',
+                    datos.partido?.reconocidoLocalmente || datos.configurado ? 'ok' : 'espera',
+                    datos.configurado ? '🟢 Partido configurado' : '🟡 Partido seleccionado',
+                    `${local} vs ${visitante} · ID ${datos.matchId}`
+                );
+                actualizarTarjetaAcceso(
+                    'accesoEstadoFormacion',
+                    preparacion.formacion?.estado || 'espera',
+                    `${preparacion.formacion?.estado === 'ok' ? '🟢' : '🟡'} ${preparacion.formacion?.titulo || 'Formación pendiente'}`,
+                    preparacion.formacion?.detalle || 'Es normal antes del partido.'
+                );
+
+                if (completarFormulario) {
+                    accesoMatchId.value = datos.matchId || '';
+                    accesoEquipoLocal.value = equipos.homeTeam || '';
+                    accesoEquipoVisitante.value = equipos.awayTeam || '';
+                    accesoCategoria.value = equipos.categoria || '';
+                    partidoConfiguradoTexto.textContent = datos.matchId
+                        ? `Actual: ${local} vs ${visitante} · ID ${datos.matchId}${equipos.categoria ? ` · ${equipos.categoria}` : ''}`
+                        : 'No hay un partido configurado.';
+                }
+                mostrarDatosGuardados(datos, datos.matchId);
+                actualizarBotonIngreso(preparacion.nivel);
+            }
+
             async function revisarPreparacion() {
+                servidorDisponible = false;
                 entrarAccesoBtn.disabled = true;
                 accesoMensaje.classList.add('hidden');
                 actualizarTarjetaAcceso('accesoEstadoServidor', 'espera', '⚪ Servidor', 'Comprobando conexión…');
+                actualizarTarjetaAcceso('accesoEstadoTracker', 'espera', '⚪ Tracker', 'Comprobando actualizaciones…');
                 actualizarTarjetaAcceso('accesoEstadoPartido', 'espera', '⚪ Partido', 'Consultando configuración…');
                 actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '⚪ Formación', 'Consultando Metro Vóley…');
 
@@ -1439,10 +1602,12 @@
                     ]);
                     if (!statusResponse.ok) throw new Error('Servidor no disponible');
                     const status = await statusResponse.json();
-                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.0.3'}`);
-                    entrarAccesoBtn.disabled = false;
+                    servidorDisponible = true;
+                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.0.4'}`);
+                    actualizarBotonIngreso();
 
                     if (!configResponse.ok) {
+                        actualizarTarjetaAcceso('accesoEstadoTracker', 'espera', '🟡 Tracker esperando', 'Primero configurá un partido.');
                         actualizarTarjetaAcceso('accesoEstadoPartido', 'espera', '🟡 Sin partido configurado', 'Podés ingresar para seleccionar uno.');
                         actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '🟡 Formación pendiente', 'Se comprobará al configurar el partido.');
                         return;
@@ -1451,37 +1616,136 @@
                     const config = await configResponse.json();
                     const matchId = Number(config.matchId);
                     if (!matchId) {
+                        actualizarTarjetaAcceso('accesoEstadoTracker', 'espera', '🟡 Tracker esperando', 'Primero configurá un partido.');
                         actualizarTarjetaAcceso('accesoEstadoPartido', 'espera', '🟡 Sin partido configurado', 'Podés ingresar para seleccionar uno.');
                         actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '🟡 Formación pendiente', 'Se comprobará al configurar el partido.');
                         return;
                     }
-
-                    const equipos = config.homeTeam && config.awayTeam
-                        ? `${config.homeTeam} vs ${config.awayTeam}`
-                        : `Match ID ${matchId}`;
-                    actualizarTarjetaAcceso('accesoEstadoPartido', 'ok', '🟢 Partido configurado', `${equipos} · ID ${matchId}`);
-
-                    try {
-                        const fullResponse = await fetch(`/data/full_${matchId}.json?_t=${Date.now()}`, { cache: 'no-store' });
-                        if (!fullResponse.ok) throw new Error('Sin datos de Metro');
-                        const fullData = await fullResponse.json();
-                        const court = fullData?.court || fullData?.liveState?.court;
-                        const homePositions = Object.keys(court?.home?.positions || {}).length;
-                        const awayPositions = Object.keys(court?.away?.positions || {}).length;
-                        if (homePositions === 6 && awayPositions === 6) {
-                            actualizarTarjetaAcceso('accesoEstadoFormacion', 'ok', '🟢 Formación disponible', 'Metro publicó las dos canchas completas.');
-                        } else {
-                            actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '🟡 Formación pendiente', 'Es normal antes del comienzo del partido.');
-                        }
-                    } catch (error) {
-                        actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '🟡 Formación pendiente', 'Es normal antes del comienzo del partido.');
+                    const preparacionResponse = await fetch(`/api/preparation?matchId=${matchId}&_t=${Date.now()}`, { cache: 'no-store' });
+                    if (!preparacionResponse.ok) {
+                        actualizarTarjetaAcceso('accesoEstadoTracker', 'error', '🔴 Tracker sin comprobación', 'No se pudo leer su estado. Podés ingresar igualmente.');
+                        actualizarTarjetaAcceso('accesoEstadoPartido', 'ok', '🟢 Partido configurado', `Match ID ${matchId}`);
+                        actualizarTarjetaAcceso('accesoEstadoFormacion', 'espera', '🟡 Formación sin comprobación', 'Volvé a revisar dentro de unos segundos.');
+                        actualizarBotonIngreso('warning');
+                        return;
                     }
+                    aplicarResumenPreparacion(await preparacionResponse.json());
                 } catch (error) {
+                    servidorDisponible = false;
                     actualizarTarjetaAcceso('accesoEstadoServidor', 'error', '🔴 Servidor sin conexión', 'Iniciá el sistema y volvé a revisar.');
+                    actualizarTarjetaAcceso('accesoEstadoTracker', 'error', '🔴 Sin comprobación', 'El servidor debe estar conectado.');
                     actualizarTarjetaAcceso('accesoEstadoPartido', 'error', '🔴 Sin comprobación', 'El servidor debe estar conectado.');
                     actualizarTarjetaAcceso('accesoEstadoFormacion', 'error', '🔴 Sin comprobación', 'El servidor debe estar conectado.');
+                    actualizarBotonIngreso();
                 }
             }
+
+            async function verificarMatch() {
+                const matchId = Number(accesoMatchId.value);
+                if (!Number.isInteger(matchId) || matchId <= 0) {
+                    mostrarMensajeAcceso('Ingresá un Match ID numérico válido.');
+                    return;
+                }
+                matchIdVerificado = null;
+                cambiarMatchBtn.disabled = true;
+                verificarMatchBtn.disabled = true;
+                estadoVerificacionId.textContent = 'Consultando Metro…';
+                accesoMensaje.classList.add('hidden');
+                try {
+                    const response = await fetch('/api/preparation/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ matchId })
+                    });
+                    const resultado = await response.json();
+                    if (!response.ok || !resultado.verified) throw new Error(resultado.error || 'No se pudo verificar el partido.');
+                    matchIdVerificado = matchId;
+                    if (resultado.equipos?.homeTeam) accesoEquipoLocal.value = resultado.equipos.homeTeam;
+                    if (resultado.equipos?.awayTeam) accesoEquipoVisitante.value = resultado.equipos.awayTeam;
+                    if (resultado.equipos?.categoria) accesoCategoria.value = resultado.equipos.categoria;
+                    estadoVerificacionId.textContent = '✅ ID reconocido';
+                    mostrarMensajeAcceso(resultado.message, 'ok');
+
+                    const resumenResponse = await fetch(`/api/preparation?matchId=${matchId}&_t=${Date.now()}`, { cache: 'no-store' });
+                    if (resumenResponse.ok) aplicarResumenPreparacion(await resumenResponse.json(), false);
+                    cambiarMatchBtn.disabled = matchId === matchIdConfigurado;
+                    if (matchId === matchIdConfigurado) {
+                        estadoVerificacionId.textContent = '✅ Ya está configurado';
+                    }
+                } catch (error) {
+                    estadoVerificacionId.textContent = '❌ ID no verificado';
+                    mostrarMensajeAcceso(error.message);
+                } finally {
+                    verificarMatchBtn.disabled = false;
+                }
+            }
+
+            async function cambiarPartidoPreparado() {
+                const matchId = Number(accesoMatchId.value);
+                const homeTeam = accesoEquipoLocal.value.trim();
+                const awayTeam = accesoEquipoVisitante.value.trim();
+                if (matchIdVerificado !== matchId) {
+                    mostrarMensajeAcceso('Primero verificá este Match ID en Metro Vóley.');
+                    return;
+                }
+                if (!homeTeam || !awayTeam) {
+                    mostrarMensajeAcceso('Completá los nombres de los dos equipos antes de cambiar.');
+                    return;
+                }
+                const confirmado = window.confirm(
+                    `¿Cambiar al partido ${matchId}: ${homeTeam} vs ${awayTeam}?\n\nLos datos del partido anterior se conservarán.`
+                );
+                if (!confirmado) return;
+
+                cambiarMatchBtn.disabled = true;
+                cambiarMatchBtn.textContent = 'Cambiando…';
+                try {
+                    const response = await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            matchId,
+                            homeTeam,
+                            awayTeam,
+                            categoria: accesoCategoria.value.trim()
+                        })
+                    });
+                    const resultado = await response.json();
+                    if (!response.ok) throw new Error(resultado.error || 'No se pudo cambiar el partido.');
+                    sessionStorage.removeItem(accesoSessionKey);
+                    mostrarMensajeAcceso('Partido cambiado. Recargando VoleyInsight…', 'ok');
+                    setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    mostrarMensajeAcceso(error.message);
+                    cambiarMatchBtn.disabled = false;
+                    cambiarMatchBtn.textContent = '🔄 Confirmar cambio';
+                }
+            }
+
+            const esTunelCloudflare = window.location.hostname.includes('trycloudflare.com');
+            accesoUrlActual.textContent = `${esTunelCloudflare ? '🌐 URL pública de Cloudflare' : '🏠 Acceso local'}: ${window.location.href.split('?')[0]}`;
+            copiarAccesoUrlBtn?.addEventListener('click', async () => {
+                try {
+                    await navigator.clipboard.writeText(window.location.href.split('?')[0]);
+                    copiarAccesoUrlBtn.textContent = '✅ Copiada';
+                    setTimeout(() => { copiarAccesoUrlBtn.textContent = 'Copiar URL'; }, 1600);
+                } catch (error) {
+                    mostrarMensajeAcceso('No se pudo copiar automáticamente. Mantené apretada la URL para copiarla.');
+                }
+            });
+
+            accesoMatchId?.addEventListener('input', () => {
+                matchIdVerificado = null;
+                cambiarMatchBtn.disabled = true;
+                estadoVerificacionId.textContent = 'Sin verificar';
+                if (Number(accesoMatchId.value) !== matchIdConfigurado) {
+                    accesoEquipoLocal.value = '';
+                    accesoEquipoVisitante.value = '';
+                    accesoCategoria.value = '';
+                }
+            });
+            verificarMatchBtn?.addEventListener('click', verificarMatch);
+            cambiarMatchBtn?.addEventListener('click', cambiarPartidoPreparado);
 
             if (sessionStorage.getItem(accesoSessionKey) === 'ok') {
                 pantallaAcceso.classList.add('oculta');
@@ -1806,7 +2070,12 @@
                         if (cambio || cambioSaque) {
                             renderizarCancha();
                         }
-                        
+                        if (cambio) {
+                            console.log('✅ Formación actualizada desde court.positions:', {
+                                local: jugadores.local.map(j => `P${j.posicion}: #${j.numero}`),
+                                visitante: jugadores.visitante.map(j => `P${j.posicion}: #${j.numero}`)
+                            });
+                        }
                         return true;
                     } catch (e) {
                         console.warn('No se pudo consultar la formación:', e.message);
