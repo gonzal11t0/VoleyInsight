@@ -7,6 +7,58 @@ function normalizarNombreEquipo(value) {
     return String(value || '').trim().replace(/\s+/g, ' ');
 }
 
+function normalizarPartidoConfigurado(partido = {}) {
+    const id = normalizarMatchId(partido?.id ?? partido?.matchId);
+    if (!id) return null;
+    return {
+        ...partido,
+        id
+    };
+}
+
+function obtenerPartidosConfigurados(config = {}) {
+    if (!Array.isArray(config?.partidos)) return [];
+    return config.partidos
+        .map(normalizarPartidoConfigurado)
+        .filter(Boolean);
+}
+
+function buscarPartidoConfigurado(config = {}, matchId) {
+    const id = normalizarMatchId(matchId);
+    if (!id) return null;
+    const partidos = obtenerPartidosConfigurados(config);
+    for (let indice = partidos.length - 1; indice >= 0; indice -= 1) {
+        if (partidos[indice].id === id) return partidos[indice];
+    }
+    return null;
+}
+
+function obtenerRespaldoPartido(config = {}, matchId) {
+    const id = normalizarMatchId(matchId);
+    if (!id) return {};
+
+    // Los campos principales son la fuente de verdad del partido activo.
+    if (normalizarMatchId(config?.matchId) === id) {
+        return {
+            id,
+            homeTeam: config.homeTeam,
+            awayTeam: config.awayTeam,
+            categoria: config.categoria,
+            metroStatus: config.metroStatus
+        };
+    }
+
+    return buscarPartidoConfigurado(config, id) || { id };
+}
+
+function actualizarHistorialPartidos(partidos = [], partidoActualizado = {}) {
+    const actualizado = normalizarPartidoConfigurado(partidoActualizado);
+    if (!actualizado) return Array.isArray(partidos) ? partidos : [];
+    const anteriores = obtenerPartidosConfigurados({ partidos })
+        .filter(partido => partido.id !== actualizado.id);
+    return [...anteriores, actualizado];
+}
+
 function obtenerClavesCategorias(categoriasPermitidas = []) {
     if (Array.isArray(categoriasPermitidas)) return categoriasPermitidas;
     if (categoriasPermitidas && typeof categoriasPermitidas === 'object') {
@@ -187,6 +239,11 @@ function evaluarPreparacion({
 module.exports = {
     normalizarMatchId,
     normalizarNombreEquipo,
+    normalizarPartidoConfigurado,
+    obtenerPartidosConfigurados,
+    buscarPartidoConfigurado,
+    obtenerRespaldoPartido,
+    actualizarHistorialPartidos,
     validarConfiguracionPendiente,
     obtenerCancha,
     obtenerEstadoCancha,

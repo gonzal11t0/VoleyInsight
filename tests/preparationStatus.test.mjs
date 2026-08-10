@@ -4,6 +4,9 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const {
     normalizarMatchId,
+    buscarPartidoConfigurado,
+    obtenerRespaldoPartido,
+    actualizarHistorialPartidos,
     validarConfiguracionPendiente,
     obtenerEstadoCancha,
     evaluarPreparacion
@@ -21,6 +24,40 @@ const courtCompleta = {
 assert.equal(normalizarMatchId('275125'), 275125);
 assert.equal(normalizarMatchId('0'), null);
 assert.equal(normalizarMatchId('abc'), null);
+
+const configConHistorialViejo = {
+    matchId: 277134,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEP',
+    categoria: 'mayores',
+    metroStatus: 'verified',
+    partidos: [
+        { id: 230512, homeTeam: 'GEBA', awayTeam: 'SGREGOR', categoria: 'sub_14' },
+        { id: 277134, homeTeam: 'LOCAL VIEJO', awayTeam: 'VISITANTE VIEJO', categoria: 'sub_18', metroStatus: 'pending' }
+    ]
+};
+assert.deepEqual(obtenerRespaldoPartido(configConHistorialViejo, 277134), {
+    id: 277134,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEP',
+    categoria: 'mayores',
+    metroStatus: 'verified'
+}, 'el partido activo debe usar los campos principales de config.json');
+assert.equal(buscarPartidoConfigurado({ partidos: {} }, 277134), null, 'un historial con formato inválido no debe romper el panel');
+
+const historialSinDuplicados = actualizarHistorialPartidos([
+    { id: 230512, homeTeam: 'GEBA' },
+    { id: 277134, homeTeam: 'NOMBRE VIEJO' },
+    { matchId: 277134, homeTeam: 'OTRO DUPLICADO' }
+], {
+    id: 277134,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEP',
+    categoria: 'mayores'
+});
+assert.equal(historialSinDuplicados.length, 2);
+assert.equal(historialSinDuplicados.filter(partido => partido.id === 277134).length, 1);
+assert.equal(historialSinDuplicados.at(-1).homeTeam, 'ATTITUDE');
 
 const pendienteValido = validarConfiguracionPendiente({
     matchId: '277134',

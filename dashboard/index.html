@@ -608,6 +608,29 @@
         }
         .feedback.visible { opacity: 1; }
 
+        .botonera-controles {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+            grid-template-areas:
+                "punto punto"
+                "error error"
+                "fundamentos fundamentos"
+                "deshacer confirmar"
+                "secundarias secundarias";
+            column-gap: 8px;
+        }
+        .botonera-controles .seccion-punto-ganado { grid-area: punto; }
+        .botonera-controles .seccion-error { grid-area: error; }
+        .botonera-controles .accion-confirmar { grid-area: confirmar; margin-top: 12px; }
+        .botonera-controles .seccion-fundamentos { grid-area: fundamentos; }
+        .botonera-controles .accion-deshacer { grid-area: deshacer; margin-top: 12px; }
+        .botonera-controles .acciones-secundarias { grid-area: secundarias; }
+        .botonera-controles .btn-confirmar,
+        .botonera-controles .btn-deshacer {
+            width: 100%;
+            height: 100%;
+        }
+
         @media (max-width: 480px) {
             .jugador { width: 42px; height: 42px; }
             .jugador .numero { font-size: 13px; }
@@ -634,6 +657,17 @@
             .formacion-vacia { min-height: 95px; font-size: 8px; }
 
             /* Anotador móvil: blancos táctiles más cómodos y confirmar prioritario. */
+            .botonera-controles {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "punto"
+                    "error"
+                    "confirmar"
+                    "fundamentos"
+                    "deshacer"
+                    "secundarias";
+                column-gap: 0;
+            }
             .seccion-punto-ganado > .grid,
             .seccion-fundamentos > .grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -652,21 +686,20 @@
             .seccion-error {
                 margin-top: 12px !important;
             }
-            .acciones-principales > .grid {
-                display: flex !important;
-                flex-direction: column;
-                gap: 10px !important;
+            .accion-confirmar {
+                margin-top: 10px !important;
             }
-            .acciones-principales .btn-confirmar {
-                order: 1;
+            .accion-confirmar .btn-confirmar {
                 width: 100%;
                 min-height: 72px;
                 padding: 14px 8px !important;
                 font-size: 16px !important;
                 box-shadow: 0 6px 18px rgba(5, 150, 105, 0.28);
             }
-            .acciones-principales .btn-deshacer {
-                order: 2;
+            .accion-deshacer {
+                margin-top: 10px !important;
+            }
+            .accion-deshacer .btn-deshacer {
                 width: 100%;
                 min-height: 48px;
                 padding: 9px 8px !important;
@@ -1354,6 +1387,7 @@
                 </div>
 
                 <!-- BOTONERA -->
+                <div class="botonera-controles">
                 <div class="seccion-punto-ganado" style="margin-top: 12px; width: 100%;">
                     <div style="text-align: center; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🏆 PUNTO GANADO</div>
                     <div class="grid grid-cols-4 gap-2">
@@ -1383,8 +1417,18 @@
                     </button>
                 </div>
 
-                <div class="seccion-fundamentos" style="margin-top: 10px; width: 100%;">
-                    <div style="text-align: center; color: #9ca3af; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">📊 FUNDAMENTOS (NO suman punto)</div>
+                <div class="accion-confirmar" style="width: 100%;">
+                    <button class="btn-confirmar" id="confirmarBtn" style="padding: 14px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #059669, #047857);">
+                        <span style="font-size: 24px;">✅</span>
+                        <span>CONFIRMAR</span>
+                    </button>
+                </div>
+
+                <div class="seccion-fundamentos" style="margin-top: 12px; width: 100%;">
+                    <div style="text-align: center; margin-bottom: 7px;">
+                        <div style="color: #d1d5db; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px;">📊 FUNDAMENTOS</div>
+                        <div style="color: #9ca3af; font-size: 9px; margin-top: 2px;">No suman puntos</div>
+                    </div>
                     <div class="grid grid-cols-4 gap-2">
                         <button class="btn-accion btn-rec-positiva" data-accion="RECEPCION_POSITIVA" style="padding: 8px 4px; border: none; border-radius: 12px; font-weight: 600; font-size: 9px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 44px; background: linear-gradient(135deg, #d97706, #b45309);">
                             <span style="font-size: 16px;">📥✅</span>
@@ -1405,17 +1449,11 @@
                     </div>
                 </div>
 
-                <div class="acciones-principales" style="margin-top: 12px; width: 100%;">
-                    <div class="grid grid-cols-3 gap-2">
-                        <button class="btn-deshacer" id="deshacerBtn" style="padding: 12px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #dc2626, #991b1b);">
-                            <span style="font-size: 18px;">↩️</span>
-                            <span>DESHACER</span>
-                        </button>
-                        <button class="btn-confirmar" id="confirmarBtn" style="padding: 14px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #059669, #047857); grid-column: span 2;">
-                            <span style="font-size: 24px;">✅</span>
-                            <span>CONFIRMAR</span>
-                        </button>
-                    </div>
+                <div class="accion-deshacer" style="width: 100%;">
+                    <button class="btn-deshacer" id="deshacerBtn" style="padding: 12px 4px; border: none; border-radius: 12px; font-weight: 700; font-size: 11px; color: white; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; gap: 2px; background: linear-gradient(135deg, #dc2626, #991b1b);">
+                        <span style="font-size: 18px;">↩️</span>
+                        <span>DESHACER</span>
+                    </button>
                 </div>
 
                 <div class="acciones-secundarias" style="margin-top: 8px; width: 100%;">
@@ -1429,6 +1467,7 @@
                             <span>MARCAR CLAVE</span>
                         </button>
                     </div>
+                </div>
                 </div>
 
                 <!-- PUNTOS API -->

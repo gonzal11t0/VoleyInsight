@@ -13,6 +13,8 @@ const {
 } = require('./src/core/rotationHistory');
 const {
     normalizarMatchId,
+    obtenerRespaldoPartido,
+    actualizarHistorialPartidos,
     validarConfiguracionPendiente,
     obtenerEstadoCancha,
     obtenerEquipos,
@@ -67,24 +69,6 @@ async function leerJsonOpcional(filePath, fallback = null) {
     } catch (error) {
         return fallback;
     }
-}
-
-function buscarPartidoConfigurado(config, matchId) {
-    return (config?.partidos || []).find(partido => Number(partido.id) === Number(matchId)) || null;
-}
-
-function obtenerRespaldoPartido(config, matchId) {
-    const guardado = buscarPartidoConfigurado(config, matchId);
-    if (guardado) return guardado;
-    if (Number(config?.matchId) === Number(matchId)) {
-        return {
-            id: matchId,
-            homeTeam: config.homeTeam,
-            awayTeam: config.awayTeam,
-            categoria: config.categoria
-        };
-    }
-    return { id: matchId };
 }
 
 async function verificarPartidoMetro(matchId) {
@@ -710,8 +694,6 @@ app.post('/api/config', async (req, res) => {
         config.metroStatus = pendienteMetro ? 'pending' : 'verified';
         if (categoria) config.categoria = categoria;
         else delete config.categoria;
-        config.partidos = Array.isArray(config.partidos) ? config.partidos : [];
-        const indice = config.partidos.findIndex(partido => Number(partido.id) === matchId);
         const partidoActualizado = {
             id: matchId,
             homeTeam,
@@ -719,8 +701,7 @@ app.post('/api/config', async (req, res) => {
             metroStatus: pendienteMetro ? 'pending' : 'verified'
         };
         if (categoria) partidoActualizado.categoria = categoria;
-        if (indice >= 0) config.partidos[indice] = { ...config.partidos[indice], ...partidoActualizado };
-        else config.partidos.push(partidoActualizado);
+        config.partidos = actualizarHistorialPartidos(config.partidos, partidoActualizado);
 
         await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
         res.json({
