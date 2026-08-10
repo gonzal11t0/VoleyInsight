@@ -12,7 +12,7 @@ import {
     rotarFormacion,
     filtrarPuntosPorSet
 } from './rotacionHelper.js';
-import { calcularMetricasRally } from './metricasVoleyHelper.js';
+import { calcularMetricasRally, resumirUltimosPuntos } from './metricasVoleyHelper.js';
 import {
     evaluarEstadoPartido,
     extraerEstadoOficial,
@@ -2235,10 +2235,10 @@ export class VolleyballDashboard {
     updateTimeline() {
         const c = document.getElementById('timeline');
         if (!c) return;
-        const l10 = this.data.slice(-10).filter(s => s.scorer);
-        if (l10.length >= 5) {
-            const h10 = l10.filter(s => s.scorer === 'HOME').length;
-            const a10 = l10.filter(s => s.scorer === 'AWAY').length;
+        const resumenUltimos = resumirUltimosPuntos(this.data, 10);
+        if (resumenUltimos.total >= 5) {
+            const h10 = resumenUltimos.home;
+            const a10 = resumenUltimos.away;
             let em = '',
                 txt = '';
             if (h10 > a10 + 2) { em = '🔥';
@@ -2246,7 +2246,7 @@ export class VolleyballDashboard {
                 txt = `${this.awayTeamName} dominó el cierre`; } else { em = '⚖️';
                 txt = 'Cierre parejo'; }
             c.innerHTML = `<div class="text-center p-3">
-                <div class="text-sm font-semibold mb-2 text-gray-400">ÚLTIMOS 10 PUNTOS</div>
+                <div class="text-sm font-semibold mb-2 text-gray-400">ÚLTIMOS ${resumenUltimos.total} PUNTOS</div>
                 <div class="flex justify-center items-center gap-6">
                     <div class="text-center"><div class="text-3xl font-bold text-primary">${h10}</div><div class="text-xs text-gray-500">${this.homeTeamName}</div></div>
                     <div class="text-2xl">${em}</div>
@@ -2531,10 +2531,10 @@ export class VolleyballDashboard {
             }
             if (!breakPointsHtml) breakPointsHtml = '<div style="text-align:center;padding:30px;color:#6b7280;">No hubo breakpoints ganados con saque propio</div>';
             let timelineHtml = '';
-            const last10points = this.data ? this.data.slice(-10).filter(s => s.scorer) : [];
-            if (last10points.length >= 5) {
-                const homeLast10 = last10points.filter(s => s.scorer === 'HOME').length;
-                const awayLast10 = last10points.filter(s => s.scorer === 'AWAY').length;
+            const resumenUltimos = resumirUltimosPuntos(this.data, 10);
+            if (resumenUltimos.total >= 5) {
+                const homeLast10 = resumenUltimos.home;
+                const awayLast10 = resumenUltimos.away;
                 let emoji = '',
                     text = '';
                 if (homeLast10 > awayLast10 + 2) { emoji = '🔥';
@@ -2542,7 +2542,7 @@ export class VolleyballDashboard {
                     text = `${awayTeam} dominó el cierre`; } else { emoji = '⚖️';
                     text = 'Cierre parejo'; }
                 timelineHtml = `<div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">ÚLTIMOS 10 PUNTOS</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">ÚLTIMOS ${resumenUltimos.total} PUNTOS</div>
                     <div style="display: flex; justify-content: center; align-items: center; gap: 30px;">
                         <div><div style="font-size: 40px; font-weight: bold; color: #667eea;">${homeLast10}</div><div style="font-size: 12px; color: #6b7280;">${homeTeam}</div></div>
                         <div style="font-size: 32px;">${emoji}</div>

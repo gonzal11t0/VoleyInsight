@@ -17,6 +17,28 @@ export function obtenerSaqueAntes(punto) {
     );
 }
 
+export function resumirUltimosPuntos(puntos, limite = 10) {
+    const limiteNumerico = Number(limite);
+    const cantidad = Number.isFinite(limiteNumerico)
+        ? Math.max(0, Math.trunc(limiteNumerico))
+        : 10;
+
+    if (cantidad === 0) {
+        return { total: 0, home: 0, away: 0 };
+    }
+
+    const anotadores = (Array.isArray(puntos) ? puntos : [])
+        .map(obtenerAnotador)
+        .filter(Boolean)
+        .slice(-cantidad);
+
+    return {
+        total: anotadores.length,
+        home: anotadores.filter(equipo => equipo === 'HOME').length,
+        away: anotadores.filter(equipo => equipo === 'AWAY').length
+    };
+}
+
 function porcentaje(exitos, oportunidades) {
     return oportunidades > 0 ? Number((exitos / oportunidades * 100).toFixed(1)) : 0;
 }
