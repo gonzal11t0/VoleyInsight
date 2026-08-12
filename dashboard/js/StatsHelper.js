@@ -7,6 +7,7 @@ export function calcularStatsPorJugador(datos, equipo) {
         const jugador = punto.jugador;
         if (!stats[jugador]) {
             stats[jugador] = { 
+                jugadorNombre: punto.jugadorNombre || punto.nombreJugador || null,
                 puntos: 0,
                 ataques: 0,
                 ataquesConvertidos: 0,
@@ -29,6 +30,9 @@ export function calcularStatsPorJugador(datos, equipo) {
         }
         
         const s = stats[jugador];
+        if (punto.jugadorNombre || punto.nombreJugador) {
+            s.jugadorNombre = punto.jugadorNombre || punto.nombreJugador;
+        }
         
         switch(punto.accion) {
             case 'ATAQUE':
@@ -82,6 +86,7 @@ export function calcularStatsPorJugador(datos, equipo) {
         if (punto.asistencia) {
             if (!stats[punto.asistencia]) {
                 stats[punto.asistencia] = { 
+                    jugadorNombre: punto.asistenciaNombre || null,
                     puntos: 0, ataques: 0, ataquesConvertidos: 0, bloqueos: 0, 
                     aces: 0, erroresAtaque: 0, erroresServicio: 0, asistencias: 0, 
                     acesServicio: 0, totalSaques: 0, puntosPorErrorRival: 0,
@@ -108,6 +113,36 @@ export function calcularStatsPorJugador(datos, equipo) {
     }
     
     return stats;
+}
+
+function esNombreGenerico(nombre) {
+    return /^jugador\s*#?\s*\d+$/i.test(String(nombre || '').trim());
+}
+
+export function fusionarNombresJugadores(jugadoresLocal = {}, jugadoresVisitante = {}, puntos = []) {
+    const resultado = {
+        local: { ...(jugadoresLocal || {}) },
+        visitante: { ...(jugadoresVisitante || {}) }
+    };
+
+    for (const punto of Array.isArray(puntos) ? puntos : []) {
+        const numero = Number(punto?.jugador);
+        const claveEquipo = punto?.equipo === 'LOCAL'
+            ? 'local'
+            : punto?.equipo === 'VISITANTE'
+                ? 'visitante'
+                : null;
+        if (!Number.isInteger(numero) || numero <= 0 || !claveEquipo) continue;
+
+        const nombre = String(
+            punto.jugadorNombre || punto.nombreJugador || `Jugador #${numero}`
+        ).trim();
+        const anterior = resultado[claveEquipo][numero];
+        if (!anterior || esNombreGenerico(anterior) || !esNombreGenerico(nombre)) {
+            resultado[claveEquipo][numero] = nombre;
+        }
+    }
+    return resultado;
 }
 
 export function calcularEficienciaAtaqueJugador(statsJugador) {
@@ -182,13 +217,20 @@ export function actualizarTablaConStats(tid, stats, jugadoresLocal, jugadoresVis
     });
 }
 
-export function renderizarSoloNombres(tid, jugadoresLocal, jugadoresVisitante, equipo) {
+export function renderizarSoloNombres(tid, jugadoresLocal, jugadoresVisitante, equipo, stats = {}) {
     const tb = document.getElementById(tid);
     if (!tb) return;
     const nm = equipo === 'LOCAL' ? jugadoresLocal : jugadoresVisitante;
-    const ordenados = Object.entries(nm)
-        .filter(([num]) => !isNaN(parseInt(num)) && num !== null && num !== 'null')
-        .map(([num, nombre]) => ({ num: parseInt(num), nombre }))
+    const numeros = new Set([...Object.keys(nm || {}), ...Object.keys(stats || {})]);
+    const ordenados = [...numeros]
+        .filter(num => !isNaN(parseInt(num)) && num !== null && num !== 'null')
+        .map(num => {
+            const numero = parseInt(num);
+            return {
+                num: numero,
+                nombre: nm?.[numero] || stats?.[numero]?.jugadorNombre || `Jugador #${numero}`
+            };
+        })
         .sort((a, b) => a.num - b.num);
     
     if (!ordenados.length) { 
@@ -221,12 +263,12 @@ export function renderizarTop5ConNombres(sl, sv, jugadoresLocal, jugadoresVisita
     for (const [num, s] of Object.entries(sl)) {
         if (num === 'null' || num === 'NaN' || isNaN(parseInt(num))) continue;
         const ef = calcularEficienciaAtaqueJugador(s);
-        todos.push({ num: parseInt(num), nombre: nl[num] || `Jugador ${num}`, equipo: 'LOCAL', puntos: s.puntos || 0, eficiencia: ef.toFixed(1), acesServicio: s.acesServicio || 0 });
+        todos.push({ num: parseInt(num), nombre: nl[num] || s.jugadorNombre || `Jugador #${num}`, equipo: 'LOCAL', puntos: s.puntos || 0, eficiencia: ef.toFixed(1), acesServicio: s.acesServicio || 0 });
     }
     for (const [num, s] of Object.entries(sv)) {
         if (num === 'null' || num === 'NaN' || isNaN(parseInt(num))) continue;
         const ef = calcularEficienciaAtaqueJugador(s);
-        todos.push({ num: parseInt(num), nombre: nv[num] || `Jugador ${num}`, equipo: 'VISITANTE', puntos: s.puntos || 0, eficiencia: ef.toFixed(1), acesServicio: s.acesServicio || 0 });
+        todos.push({ num: parseInt(num), nombre: nv[num] || s.jugadorNombre || `Jugador #${num}`, equipo: 'VISITANTE', puntos: s.puntos || 0, eficiencia: ef.toFixed(1), acesServicio: s.acesServicio || 0 });
     }
     const top5 = todos.sort((a, b) =>
         b.puntos - a.puntos || Number(b.eficiencia) - Number(a.eficiencia)
@@ -254,9 +296,16 @@ export function renderizarTop5ConNombres(sl, sv, jugadoresLocal, jugadoresVisita
 export function renderizarTarjetasMoviles(containerId, stats, jugadoresMap) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    const jugadores = Object.entries(jugadoresMap || {})
-        .filter(([numero]) => Number.isFinite(Number(numero)))
-        .map(([numero, nombre]) => ({ numero: Number(numero), nombre }))
+    const numeros = new Set([
+        ...Object.keys(jugadoresMap || {}),
+        ...Object.keys(stats || {})
+    ]);
+    const jugadores = [...numeros]
+        .filter(numero => Number.isFinite(Number(numero)))
+        .map(numero => ({
+            numero: Number(numero),
+            nombre: jugadoresMap?.[numero] || stats?.[numero]?.jugadorNombre || `Jugador #${numero}`
+        }))
         .sort((a, b) => a.numero - b.numero);
 
     if (!jugadores.length) {
@@ -303,7 +352,7 @@ export function renderizarGraficoPuntos(stats, equipo, jugadoresLocal, jugadores
     if (!ctx) return;
     if (chartPuntosJugadores) chartPuntosJugadores.destroy();
     const nm = equipo === 'LOCAL' ? jugadoresLocal : jugadoresVisitante;
-    const jug = Object.entries(stats).map(([num, s]) => ({ num: parseInt(num), nombre: nm[num] || `J${num}`, puntos: s.puntos })).sort((a, b) => b.puntos - a.puntos).slice(0, 8);
+    const jug = Object.entries(stats).map(([num, s]) => ({ num: parseInt(num), nombre: nm[num] || s.jugadorNombre || `J${num}`, puntos: s.puntos })).sort((a, b) => b.puntos - a.puntos).slice(0, 8);
     return new Chart(ctx, {
         type: 'bar',
         data: {
@@ -365,7 +414,7 @@ export function generarTablaHTMLSimple(stats, jugadoresMap) {
         const num = parseInt(numJugador);
         if (isNaN(num)) continue;
         
-        const nombre = jugadoresMap[num] || `Jugador ${num}`;
+        const nombre = jugadoresMap[num] || s.jugadorNombre || `Jugador #${num}`;
         const ataquesTotales = s.ataques || 0;
         const ataquesConvertidos = s.ataquesConvertidos || 0;
         const ataquesTexto = ataquesTotales > 0 ? `${ataquesConvertidos}/${ataquesTotales}` : '0/0';

@@ -23,6 +23,43 @@ function obtenerPartidosConfigurados(config = {}) {
         .filter(Boolean);
 }
 
+function obtenerPartidosPreparados(config = {}) {
+    if (!Array.isArray(config?.partidosPreparados)) return [];
+    const activo = normalizarMatchId(config?.matchId);
+    const vistos = new Set();
+    return config.partidosPreparados
+        .map(normalizarPartidoConfigurado)
+        .filter(partido => {
+            if (!partido || partido.id === activo || vistos.has(partido.id)) return false;
+            vistos.add(partido.id);
+            return true;
+        });
+}
+
+function guardarPartidoPreparado(config = {}, partido = {}) {
+    const preparado = normalizarPartidoConfigurado(partido);
+    if (!preparado) throw new Error('matchId inválido');
+    if (preparado.id === normalizarMatchId(config.matchId)) {
+        throw new Error('Ese partido ya es el partido activo.');
+    }
+    const anteriores = obtenerPartidosPreparados(config)
+        .filter(item => item.id !== preparado.id);
+    return {
+        ...config,
+        partidosPreparados: [...anteriores, preparado]
+    };
+}
+
+function quitarPartidoPreparado(config = {}, matchId) {
+    const id = normalizarMatchId(matchId);
+    if (!id) throw new Error('matchId inválido');
+    return {
+        ...config,
+        partidosPreparados: obtenerPartidosPreparados(config)
+            .filter(partido => partido.id !== id)
+    };
+}
+
 function buscarPartidoConfigurado(config = {}, matchId) {
     const id = normalizarMatchId(matchId);
     if (!id) return null;
@@ -48,7 +85,8 @@ function obtenerRespaldoPartido(config = {}, matchId) {
         };
     }
 
-    return buscarPartidoConfigurado(config, id) || { id };
+    const preparado = obtenerPartidosPreparados(config).find(partido => partido.id === id);
+    return preparado || buscarPartidoConfigurado(config, id) || { id };
 }
 
 function actualizarHistorialPartidos(partidos = [], partidoActualizado = {}) {
@@ -67,7 +105,7 @@ function obtenerClavesCategorias(categoriasPermitidas = []) {
     return [];
 }
 
-function validarConfiguracionPendiente({
+function validarConfiguracionPartido({
     matchId,
     homeTeam,
     awayTeam,
@@ -105,6 +143,41 @@ function validarConfiguracionPendiente({
         awayTeam: visitante,
         categoria: categoriaNormalizada
     };
+}
+
+// Nombre conservado para no romper versiones anteriores del servidor/tests.
+const validarConfiguracionPendiente = validarConfiguracionPartido;
+
+function aplicarPartidoActivo(config = {}, partido = {}) {
+    const matchId = normalizarMatchId(partido.matchId ?? partido.id);
+    if (!matchId) throw new Error('matchId inválido');
+
+    const homeTeam = normalizarNombreEquipo(partido.homeTeam);
+    const awayTeam = normalizarNombreEquipo(partido.awayTeam);
+    const categoria = String(partido.categoria || '').trim();
+    const metroStatus = String(partido.metroStatus || 'unverified').trim();
+    const siguiente = {
+        ...config,
+        matchId,
+        homeTeam,
+        awayTeam,
+        metroStatus
+    };
+
+    if (categoria) siguiente.categoria = categoria;
+    else delete siguiente.categoria;
+
+    const registro = {
+        id: matchId,
+        homeTeam,
+        awayTeam,
+        metroStatus
+    };
+    if (categoria) registro.categoria = categoria;
+    siguiente.partidos = actualizarHistorialPartidos(config.partidos, registro);
+    siguiente.partidosPreparados = obtenerPartidosPreparados(config)
+        .filter(preparado => preparado.id !== matchId);
+    return siguiente;
 }
 
 function obtenerCancha(data = {}) {
@@ -241,10 +314,15 @@ module.exports = {
     normalizarNombreEquipo,
     normalizarPartidoConfigurado,
     obtenerPartidosConfigurados,
+    obtenerPartidosPreparados,
+    guardarPartidoPreparado,
+    quitarPartidoPreparado,
     buscarPartidoConfigurado,
     obtenerRespaldoPartido,
     actualizarHistorialPartidos,
+    validarConfiguracionPartido,
     validarConfiguracionPendiente,
+    aplicarPartidoActivo,
     obtenerCancha,
     obtenerEstadoCancha,
     obtenerEquipos,

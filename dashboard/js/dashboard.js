@@ -4,14 +4,16 @@ import { ReporteGenerator } from './reporteGenerator.js';
 import {
     calcularStatsPorJugador, actualizarTablaConStats, renderizarSoloNombres,
     renderizarTop5ConNombres, renderizarGraficoPuntos, calcularEstadisticasServicio,
-    generarTablaHTMLSimple, resumirPuntosEquipo, renderizarTarjetasMoviles
+    generarTablaHTMLSimple, resumirPuntosEquipo, renderizarTarjetasMoviles,
+    fusionarNombresJugadores
 } from './StatsHelper.js';
 import {
     calcularRotacionesPorEquipo,
     obtenerStatsRotacion as obtenerStatsRotacionHelper,
     rotarFormacion,
     filtrarPuntosPorSet,
-    seleccionarPuntosParaRotaciones
+    seleccionarPuntosParaRotaciones,
+    obtenerCoberturaAnalisis
 } from './rotacionHelper.js';
 import { calcularMetricasRally, resumirUltimosPuntos } from './metricasVoleyHelper.js';
 import {
@@ -64,6 +66,10 @@ export class VolleyballDashboard {
         this.livePanelInterval = null;
         this.socketKeepAliveInterval = null;
         this.keepAliveInterval = null;
+        this.listaPartidos = [];
+        this.partidosPreparados = [];
+        this.partidoActivoConfigurado = null;
+        this.metroStatus = null;
         window.dashboard = this;
 
         this.setupEventListeners();
@@ -166,11 +172,14 @@ export class VolleyballDashboard {
 
     async cargarPuntosJugadores() {
         try {
+            this.cargarDatosGuardadosDelPartido();
             const apiUrl = await this.obtenerUrlApi();
             const response = await fetch(`${apiUrl}/api/puntos/${this.matchId}`);
             if (response.ok) {
                 const data = await response.json();
                 this.puntosJugadores = data.data || [];
+                this.fusionarNombresDesdePuntos();
+                await this.cargarPlantelHistorico();
                 this.actualizarVistaIndividuales();
                 return;
             }
@@ -200,10 +209,83 @@ export class VolleyballDashboard {
             if (response.ok) {
                 const data = await response.json();
                 this.puntosJugadores = data.data || [];
+                this.fusionarNombresDesdePuntos();
                 this.actualizarVistaIndividuales();
             }
         } catch (e) {
             console.log('Error recargando puntos manuales:', e);
+        }
+    }
+
+    esNombreJugadorGenerico(nombre) {
+        return /^jugador\s*#?\s*\d+$/i.test(String(nombre || '').trim());
+    }
+
+    fusionarMapaNombres(base = {}, entrante = {}) {
+        const resultado = { ...(base || {}) };
+        for (const [numero, nombreValor] of Object.entries(entrante || {})) {
+            const dorsal = Number(numero);
+            if (!Number.isInteger(dorsal) || dorsal <= 0) continue;
+            const nombre = String(nombreValor || `Jugador #${dorsal}`).trim();
+            const anterior = resultado[dorsal];
+            if (!anterior || this.esNombreJugadorGenerico(anterior) || !this.esNombreJugadorGenerico(nombre)) {
+                resultado[dorsal] = nombre;
+            }
+        }
+        return resultado;
+    }
+
+    guardarNombresJugadoresEnCache() {
+        if (!this.matchId) return;
+        localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
+        localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
+    }
+
+    fusionarNombresDesdePuntos() {
+        const plantel = fusionarNombresJugadores(
+            this.jugadoresLocal,
+            this.jugadoresVisitante,
+            this.puntosJugadores
+        );
+        this.jugadoresLocal = plantel.local;
+        this.jugadoresVisitante = plantel.visitante;
+        this.guardarNombresJugadoresEnCache();
+    }
+
+    async cargarPlantelHistorico() {
+        if (!this.matchId) return false;
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/plantel/${this.matchId}`);
+            if (!response.ok) return false;
+            const payload = await response.json();
+            const plantel = payload.data || {};
+            this.jugadoresLocal = this.fusionarMapaNombres(this.jugadoresLocal, plantel.local);
+            this.jugadoresVisitante = this.fusionarMapaNombres(this.jugadoresVisitante, plantel.visitante);
+            this.guardarNombresJugadoresEnCache();
+            return true;
+        } catch (error) {
+            console.warn('No se pudo cargar el plantel histórico:', error.message);
+            return false;
+        }
+    }
+
+    async guardarPlantelHistorico() {
+        if (!this.matchId) return false;
+        try {
+            const apiUrl = await this.obtenerUrlApi();
+            const response = await fetch(`${apiUrl}/api/plantel/${this.matchId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    local: this.jugadoresLocal,
+                    visitante: this.jugadoresVisitante
+                })
+            });
+            return response.ok;
+        } catch (error) {
+            console.warn('No se pudo guardar el plantel histórico:', error.message);
+            return false;
         }
     }
 
@@ -288,18 +370,95 @@ export class VolleyballDashboard {
 
     async cargarListaPartidos() {
         try {
-            const response = await fetch('/data/config.json');
+            const response = await fetch(`/api/config?_t=${Date.now()}`, { cache: 'no-store' });
             if (response.ok) {
                 const config = await response.json();
                 this.listaPartidos = config.partidos || [];
+                this.partidosPreparados = Array.isArray(config.partidosPreparados)
+                    ? config.partidosPreparados
+                    : [];
+                this.partidoActivoConfigurado = {
+                    id: Number(config.matchId),
+                    homeTeam: config.homeTeam || 'LOCAL',
+                    awayTeam: config.awayTeam || 'VISITANTE',
+                    categoria: config.categoria || null,
+                    metroStatus: config.metroStatus || null
+                };
+                this.metroStatus = config.metroStatus || null;
                 const selector = document.getElementById('partidoSelector');
-                if (selector && this.listaPartidos.length > 0) {
-                    selector.innerHTML = this.listaPartidos.map(p =>
-                        `<option value="${p.id}" ${p.id == this.matchId ? 'selected' : ''}>${p.id} - ${p.homeTeam} vs ${p.awayTeam}</option>`
-                    ).join('');
+                if (!selector) return;
+                selector.replaceChildren();
+
+                const agregarGrupo = (titulo, partidos, tipo) => {
+                    if (!partidos.length) return;
+                    const grupo = document.createElement('optgroup');
+                    grupo.label = titulo;
+                    partidos.forEach(partido => {
+                        const option = document.createElement('option');
+                        option.value = String(partido.id);
+                        option.dataset.tipo = tipo;
+                        option.textContent = tipo === 'preparado'
+                            ? `${partido.id} - ${partido.homeTeam} vs ${partido.awayTeam} · PREPARADO`
+                            : `${partido.id} - ${partido.homeTeam} vs ${partido.awayTeam}`;
+                        option.selected = Number(partido.id) === Number(this.matchId);
+                        grupo.append(option);
+                    });
+                    selector.append(grupo);
+                };
+
+                const activo = this.partidoActivoConfigurado.id
+                    ? [this.partidoActivoConfigurado]
+                    : [];
+                const idsPreparados = new Set(this.partidosPreparados.map(partido => Number(partido.id)));
+                const historicos = this.listaPartidos.filter(partido =>
+                    Number(partido.id) !== Number(this.partidoActivoConfigurado.id)
+                    && !idsPreparados.has(Number(partido.id))
+                );
+                agregarGrupo('PARTIDO ACTIVO', activo, 'activo');
+                agregarGrupo('PRÓXIMOS PARTIDOS', this.partidosPreparados, 'preparado');
+                agregarGrupo('HISTORIAL', historicos, 'historico');
+
+                if (!selector.options.length) {
+                    selector.add(new Option('No hay partidos disponibles', ''));
                 }
+                selector.value = String(this.matchId || this.partidoActivoConfigurado.id || '');
+                this.actualizarControlesSelectorPartido();
             }
         } catch (e) { console.log('Error cargando lista de partidos'); }
+    }
+
+    obtenerPartidoSeleccionado() {
+        const selector = document.getElementById('partidoSelector');
+        const option = selector?.selectedOptions?.[0];
+        const id = Number(selector?.value);
+        const tipo = option?.dataset?.tipo || null;
+        const coleccion = tipo === 'preparado'
+            ? this.partidosPreparados
+            : tipo === 'activo'
+                ? [this.partidoActivoConfigurado]
+                : this.listaPartidos;
+        return {
+            tipo,
+            partido: coleccion.find(item => Number(item?.id) === id) || null
+        };
+    }
+
+    actualizarControlesSelectorPartido() {
+        const btn = document.getElementById('cargarPartidoBtn');
+        const quitarBtn = document.getElementById('quitarPartidoPreparadoBtn');
+        const selector = document.getElementById('partidoSelector');
+        if (!btn || !quitarBtn || !selector) return;
+        const { tipo } = this.obtenerPartidoSeleccionado();
+        const esActivo = tipo === 'activo' && Number(selector.value) === Number(this.matchId);
+        btn.disabled = esActivo || !selector.value;
+        btn.classList.toggle('opacity-40', btn.disabled);
+        btn.classList.toggle('cursor-not-allowed', btn.disabled);
+        btn.textContent = tipo === 'preparado'
+            ? '✅ ACTIVAR PREPARADO'
+            : esActivo
+                ? '✓ PARTIDO ACTIVO'
+                : '📋 CARGAR PARTIDO';
+        quitarBtn.classList.toggle('hidden', tipo !== 'preparado');
     }
 
     setupPanelMinimizable() {
@@ -336,21 +495,28 @@ export class VolleyballDashboard {
 
     setupSelectorPartido() {
         const btn = document.getElementById('cargarPartidoBtn');
+        const quitarBtn = document.getElementById('quitarPartidoPreparadoBtn');
         const selector = document.getElementById('partidoSelector');
-        if (!btn || !selector) return;
+        if (!btn || !quitarBtn || !selector) return;
+        selector.addEventListener('change', () => this.actualizarControlesSelectorPartido());
         btn.addEventListener('click', async () => {
             const nuevoId = parseInt(selector.value);
             if (!nuevoId || nuevoId == this.matchId) {
                 this.mostrarFeedbackPartido('⚠️ Ya estás en ese partido');
                 return;
             }
-            const partido = this.listaPartidos?.find(p => p.id === nuevoId);
+            const seleccion = this.obtenerPartidoSeleccionado();
+            const partido = seleccion.partido;
+            const esPreparado = seleccion.tipo === 'preparado';
             const descripcion = partido
                 ? `${partido.homeTeam} vs ${partido.awayTeam}`
                 : `Match ID ${nuevoId}`;
-            if (!window.confirm(`¿Cambiar a ${descripcion}?\n\nLos datos del partido actual se conservarán.`)) return;
+            const pregunta = esPreparado
+                ? `¿Activar el partido preparado ${nuevoId}: ${descripcion}?\n\nEl tracker y el dashboard cambiarán a este partido. Los datos actuales se conservarán.`
+                : `¿Cambiar a ${descripcion}?\n\nLos datos del partido actual se conservarán.`;
+            if (!window.confirm(pregunta)) return;
             btn.disabled = true;
-            btn.textContent = '🔎 VERIFICANDO EN METRO…';
+            btn.textContent = esPreparado ? 'ACTIVANDO…' : '🔎 VERIFICANDO EN METRO…';
             try {
                 const apiUrl = await this.obtenerUrlApi();
                 const response = await fetch(`${apiUrl}/api/config`, {
@@ -360,19 +526,43 @@ export class VolleyballDashboard {
                         matchId: nuevoId,
                         homeTeam: partido?.homeTeam,
                         awayTeam: partido?.awayTeam,
-                        categoria: partido?.categoria
+                        categoria: partido?.categoria,
+                        allowPending: esPreparado,
+                        allowUnverified: esPreparado
                     })
                 });
                 const resultado = await response.json();
                 if (!response.ok) throw new Error(resultado.error || 'Error al actualizar config.json');
                 this.mostrarFeedbackPartido(`✅ Cambiando a ${descripcion}. Los datos anteriores se conservaron.`);
-                sessionStorage.removeItem('voleyinsight_acceso_local_v2');
+                if (!esPreparado) sessionStorage.removeItem('voleyinsight_acceso_local_v2');
                 setTimeout(() => window.location.reload(), 700);
             } catch (e) {
                 console.error('Error actualizando config.json:', e);
                 this.mostrarFeedbackPartido(`❌ ${e.message}`);
                 btn.disabled = false;
-                btn.textContent = '📋 CARGAR PARTIDO';
+                this.actualizarControlesSelectorPartido();
+            }
+        });
+
+        quitarBtn.addEventListener('click', async () => {
+            const { tipo, partido } = this.obtenerPartidoSeleccionado();
+            if (tipo !== 'preparado' || !partido) return;
+            if (!window.confirm(`¿Quitar ${partido.id}: ${partido.homeTeam} vs ${partido.awayTeam} de próximos partidos?`)) return;
+            quitarBtn.disabled = true;
+            quitarBtn.textContent = 'QUITANDO…';
+            try {
+                const apiUrl = await this.obtenerUrlApi();
+                const response = await fetch(`${apiUrl}/api/preparation/queue/${partido.id}`, { method: 'DELETE' });
+                const resultado = await response.json();
+                if (!response.ok) throw new Error(resultado.error || 'No se pudo quitar el partido.');
+                this.mostrarFeedbackPartido(`✅ Partido ${partido.id} quitado de próximos.`);
+                await this.cargarListaPartidos();
+            } catch (error) {
+                this.mostrarFeedbackPartido(`❌ ${error.message}`);
+            } finally {
+                quitarBtn.disabled = false;
+                quitarBtn.textContent = '🗑️ QUITAR DE PRÓXIMOS';
+                this.actualizarControlesSelectorPartido();
             }
         });
     }
@@ -874,24 +1064,42 @@ export class VolleyballDashboard {
                         text.textContent = `Último dato: ${Math.round(secondsSinceUpdate)}s`;
                         text.className = 'text-xs text-yellow-400';
                     } else {
-                        led.className = 'w-2 h-2 rounded-full bg-red-500';
-                        text.textContent = 'Tracker inactivo';
-                        text.className = 'text-xs text-red-400';
+                        if (this.metroStatus === 'pending') {
+                            led.className = 'w-2 h-2 rounded-full bg-yellow-500';
+                            text.textContent = 'Esperando a Metro';
+                            text.className = 'text-xs text-yellow-400';
+                        } else {
+                            led.className = 'w-2 h-2 rounded-full bg-red-500';
+                            text.textContent = 'Tracker inactivo';
+                            text.className = 'text-xs text-red-400';
+                        }
                     }
                     return;
                 }
             }
             const led = document.getElementById('connectionLed');
             const text = document.getElementById('connectionText');
-            led.className = 'w-2 h-2 rounded-full bg-red-500';
-            text.textContent = 'Sin conexión';
-            text.className = 'text-xs text-red-400';
+            if (this.metroStatus === 'pending') {
+                led.className = 'w-2 h-2 rounded-full bg-yellow-500';
+                text.textContent = 'Esperando a Metro';
+                text.className = 'text-xs text-yellow-400';
+            } else {
+                led.className = 'w-2 h-2 rounded-full bg-red-500';
+                text.textContent = 'Sin conexión';
+                text.className = 'text-xs text-red-400';
+            }
         } catch (e) {
             const led = document.getElementById('connectionLed');
             const text = document.getElementById('connectionText');
-            led.className = 'w-2 h-2 rounded-full bg-red-500';
-            text.textContent = 'Error de conexión';
-            text.className = 'text-xs text-red-400';
+            if (this.metroStatus === 'pending') {
+                led.className = 'w-2 h-2 rounded-full bg-yellow-500';
+                text.textContent = 'Esperando a Metro';
+                text.className = 'text-xs text-yellow-400';
+            } else {
+                led.className = 'w-2 h-2 rounded-full bg-red-500';
+                text.textContent = 'Error de conexión';
+                text.className = 'text-xs text-red-400';
+            }
         }
     }
 
@@ -1022,6 +1230,7 @@ export class VolleyballDashboard {
                 this.homeTeamName = config.homeTeam || "LOCAL";
                 this.awayTeamName = config.awayTeam || "VISITANTE";
                 this.categoria = config.categoria || null;
+                this.metroStatus = config.metroStatus || null;
                 return true;
             }
         } catch (e) {}
@@ -1163,6 +1372,7 @@ export class VolleyballDashboard {
                     }
                     localStorage.setItem(`jugadores_${this.matchId}_local`, JSON.stringify(this.jugadoresLocal));
                     localStorage.setItem(`jugadores_${this.matchId}_visitante`, JSON.stringify(this.jugadoresVisitante));
+                    await this.guardarPlantelHistorico();
                     this.rotacionesJugadores = {};
                     if (court.home?.positions) {
                         for (const [pos, info] of Object.entries(court.home.positions)) {
@@ -1258,13 +1468,51 @@ export class VolleyballDashboard {
         activo.setAttribute('aria-pressed', 'true');
     }
 
+    obtenerCoberturaActual() {
+        return obtenerCoberturaAnalisis(this.data, this.puntosJugadores);
+    }
+
+    actualizarDisponibilidadFiltros(contenedorId, setsDisponibles, mensajeNoDisponible) {
+        const contenedor = document.getElementById(contenedorId);
+        if (!contenedor) return;
+        const disponibles = new Set((setsDisponibles || []).map(Number));
+        contenedor.querySelectorAll('button[data-set]').forEach(boton => {
+            if (boton.dataset.set === 'all') return;
+            const disponible = disponibles.has(Number(boton.dataset.set));
+            boton.disabled = !disponible;
+            boton.classList.toggle('opacity-40', !disponible);
+            boton.classList.toggle('cursor-not-allowed', !disponible);
+            boton.title = disponible ? '' : mensajeNoDisponible;
+        });
+    }
+
+    actualizarCoberturaIndividuales(cobertura = this.obtenerCoberturaActual()) {
+        this.actualizarDisponibilidadFiltros(
+            'filtrosSetsIndividuales',
+            cobertura.setsManuales,
+            'Este set no tiene acciones manuales registradas'
+        );
+        const elemento = document.getElementById('coberturaIndividuales');
+        if (!elemento) return;
+        if (!cobertura.setsManuales.length) {
+            elemento.textContent = '📋 Sin acciones manuales registradas. Las métricas generales y las rotaciones siguen usando los datos oficiales de Metro.';
+            return;
+        }
+        const detalle = cobertura.detalle
+            .filter(item => item.manuales > 0)
+            .map(item => `Set ${item.set}: ${item.manuales}${item.oficiales ? ` de ${item.oficiales}` : ''} puntos`)
+            .join(' · ');
+        elemento.textContent = `📋 Estadísticas individuales de los sets anotados manualmente · ${detalle}.`;
+    }
+
     actualizarVistaIndividuales() {
-        renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
-        renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
+        this.actualizarCoberturaIndividuales();
         if (this.puntosJugadores && this.puntosJugadores.length > 0) {
             const datosFiltrados = filtrarPuntosPorSet(this.puntosJugadores, this.filtroSet);
             const statsLocal = calcularStatsPorJugador(datosFiltrados, 'LOCAL');
             const statsVisitante = calcularStatsPorJugador(datosFiltrados, 'VISITANTE');
+            renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL', statsLocal);
+            renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE', statsVisitante);
             actualizarTablaConStats('tablaLocalBody', statsLocal, this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
             actualizarTablaConStats('tablaVisitanteBody', statsVisitante, this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
             const resumenLocal = resumirPuntosEquipo(datosFiltrados, 'LOCAL', statsLocal);
@@ -1285,6 +1533,8 @@ export class VolleyballDashboard {
             if (this.chartPuntosJugadores) this.chartPuntosJugadores.destroy();
             this.chartPuntosJugadores = renderizarGraficoPuntos(statsLocal, 'LOCAL', this.jugadoresLocal, this.jugadoresVisitante, this.chartPuntosJugadores);
         } else {
+            renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
+            renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
             document.getElementById('localTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
             document.getElementById('visitanteTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
             document.getElementById('localTotalAces').innerHTML = '🎯 Aces: 0';
@@ -1483,7 +1733,12 @@ export class VolleyballDashboard {
     }
 
     actualizarEstadisticasServicio() {
-        const stats = calcularEstadisticasServicio(this.data, this.puntosJugadores);
+        const cobertura = this.obtenerCoberturaActual();
+        const setsManuales = new Set(cobertura.setsManuales);
+        const puntosOficialesCubiertos = (this.data || []).filter(punto =>
+            setsManuales.has(Number(punto?.set || 1))
+        );
+        const stats = calcularEstadisticasServicio(puntosOficialesCubiertos, this.puntosJugadores);
         document.getElementById('serviceAcesHome').textContent = stats.home.aces;
         document.getElementById('serviceErrorsHome').textContent = stats.home.errores;
         document.getElementById('serviceEfficiencyHome').textContent = `${stats.home.eficiencia}%`;
@@ -1695,13 +1950,35 @@ export class VolleyballDashboard {
         const nombreEquipo = this.obtenerNombreEquipoRotaciones();
         const titulo = document.getElementById('rotacionesTitulo');
         const descripcion = document.getElementById('rotacionesDescripcion');
+        const cobertura = this.obtenerCoberturaActual();
+        const setsConRotaciones = [...new Set([...cobertura.setsOficiales, ...cobertura.setsManuales])];
+        this.actualizarDisponibilidadFiltros(
+            'filtrosSetsRotaciones',
+            setsConRotaciones,
+            'Este set no se disputó o todavía no tiene puntos'
+        );
         const alcance = this.filtroRotaciones === 'all' ? 'Acumulado del partido' : `Set ${this.filtroRotaciones}`;
         if (titulo) titulo.textContent = `🔄 EFICIENCIA POR ROTACIÓN · ${nombreEquipo} · ${alcance}`;
-        if (descripcion) descripcion.textContent = `Puntos a favor y en contra de ${nombreEquipo}. ${alcance}.`;
+        if (descripcion) descripcion.textContent = `Puntos a favor y en contra de ${nombreEquipo}. ${alcance}. Fuente principal: datos oficiales de Metro.`;
         if (!tabla) return;
         const datos = this.calcularRotaciones();
         if (!datos) {
-            tabla.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500">No hay suficientes datos para calcular rotaciones</td></tr>';
+            if (this.chartRotaciones) {
+                this.chartRotaciones.destroy();
+                this.chartRotaciones = null;
+            }
+            if (chartCanvas) {
+                const contexto = chartCanvas.getContext('2d');
+                contexto?.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            }
+            const setNoDisputado = this.filtroRotaciones !== 'all' &&
+                !setsConRotaciones.includes(Number(this.filtroRotaciones));
+            const mensaje = setNoDisputado
+                ? `El Set ${this.filtroRotaciones} no se disputó o todavía no tiene puntos.`
+                : 'No hay suficientes datos para calcular rotaciones.';
+            tabla.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">${mensaje}</td></tr>`;
+            if (insights) insights.innerHTML = `<div class="text-gray-400 text-sm">${mensaje}</div>`;
+            if (descripcion && setNoDisputado) descripcion.textContent = mensaje;
             return;
         }
         let html = '';
@@ -1768,7 +2045,7 @@ export class VolleyballDashboard {
         if (!insightsHtml) {
             insightsHtml = `<div class="text-gray-400 text-sm">No hay suficientes datos para generar insights de rotaciones.</div>`;
         }
-        insights.innerHTML = insightsHtml;
+        if (insights) insights.innerHTML = insightsHtml;
         if (chartCanvas) {
             if (this.chartRotaciones) {
                 this.chartRotaciones.destroy();
@@ -2627,7 +2904,12 @@ export class VolleyballDashboard {
             }
             const resumenLocal = resumirPuntosEquipo(puntosJugadoresRaw || [], 'LOCAL', statsLocalCalculadas || {});
             const resumenVisitante = resumirPuntosEquipo(puntosJugadoresRaw || [], 'VISITANTE', statsVisitanteCalculadas || {});
-            const servicioReporte = calcularEstadisticasServicio(this.data, puntosJugadoresRaw || []);
+            const coberturaAnalisis = obtenerCoberturaAnalisis(this.data, puntosJugadoresRaw || []);
+            const setsManualesReporte = new Set(coberturaAnalisis.setsManuales);
+            const puntosOficialesCubiertos = (this.data || []).filter(punto =>
+                setsManualesReporte.has(Number(punto?.set || 1))
+            );
+            const servicioReporte = calcularEstadisticasServicio(puntosOficialesCubiertos, puntosJugadoresRaw || []);
             const leerMarcas = (clave) => {
                 try { return JSON.parse(localStorage.getItem(clave) || '[]'); }
                 catch { return []; }
@@ -2676,6 +2958,7 @@ export class VolleyballDashboard {
                 visitantePorSet: visitantePorSet,
                 resumenLocal,
                 resumenVisitante,
+                coberturaAnalisis,
                 marcasManualHtml,
                 rotacionesHtml: this.generarRotacionesHTML(),
                 logoDataUrl,
@@ -2688,6 +2971,7 @@ export class VolleyballDashboard {
                     homeSets: estadoReporte.setsGanadosLocal,
                     awaySets: estadoReporte.setsGanadosVisitante,
                     sets: setsReporte,
+                    coverage: coberturaAnalisis,
                     metrics: {
                         home: {
                             efficiency: { percentage: Number(homeEfficiency), successes: homePoints, attempts: total },

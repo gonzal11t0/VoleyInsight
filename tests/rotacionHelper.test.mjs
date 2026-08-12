@@ -12,7 +12,8 @@ const {
     rotarFormacion,
     reconstruirFormacionInicial,
     filtrarPuntosPorSet,
-    seleccionarPuntosParaRotaciones
+    seleccionarPuntosParaRotaciones,
+    obtenerCoberturaAnalisis
 } = await import(`data:text/javascript;base64,${Buffer.from(helperSource).toString('base64')}`);
 
 const fixtureUrl = new URL('./fixtures/rotaciones_258880.json', import.meta.url);
@@ -136,6 +137,33 @@ assert.deepEqual(
     'el acumulado debe usar respaldo manual solo en los sets sin datos oficiales'
 );
 
+const coberturaParcial = obtenerCoberturaAnalisis(
+    [
+        { set: 1, homeScore: 0, awayScore: 0 },
+        { set: 1, scorer: 'HOME' },
+        { set: 1, scorer: 'AWAY' },
+        { set: 2, homeScore: 0, awayScore: 0 },
+        { set: 2, scorer: 'HOME' },
+        { set: 2, scorer: 'AWAY' }
+    ],
+    [
+        { set: 2, equipoAnota: 'LOCAL' },
+        { set: 2, equipoAnota: 'VISITANTE' },
+        { set: 2, equipo: 'LOCAL', accion: 'RECEPCION_POSITIVA' }
+    ]
+);
+assert.deepEqual(coberturaParcial.setsOficiales, [1, 2]);
+assert.deepEqual(coberturaParcial.setsManuales, [2]);
+assert.equal(coberturaParcial.puntosOficiales, 4, 'los snapshots 0-0 no deben contar como puntos');
+assert.equal(coberturaParcial.puntosManuales, 2, 'los fundamentos sin punto no deben inflar la cobertura');
+assert.deepEqual(
+    coberturaParcial.detalle,
+    [
+        { set: 1, oficiales: 2, manuales: 0, manualCompleta: false },
+        { set: 2, oficiales: 2, manuales: 2, manualCompleta: true }
+    ]
+);
+
 const dashboardSource = readFileSync(
     fileURLToPath(new URL('../dashboard/js/dashboard.js', import.meta.url)),
     'utf8'
@@ -144,6 +172,11 @@ assert.equal(
     dashboardSource.match(/seleccionarPuntosParaRotaciones\(/g)?.length,
     2,
     'la tabla y el detalle de rotación deben usar la misma fuente oficial'
+);
+assert.match(
+    dashboardSource,
+    /this\.chartRotaciones\.destroy\(\);[\s\S]*this\.chartRotaciones = null;/,
+    'al elegir un set inexistente debe eliminarse el gráfico anterior'
 );
 
 console.log('rotacionHelper: tests OK');

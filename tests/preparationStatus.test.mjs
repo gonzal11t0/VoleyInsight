@@ -6,8 +6,13 @@ const {
     normalizarMatchId,
     buscarPartidoConfigurado,
     obtenerRespaldoPartido,
+    obtenerPartidosPreparados,
+    guardarPartidoPreparado,
+    quitarPartidoPreparado,
     actualizarHistorialPartidos,
+    validarConfiguracionPartido,
     validarConfiguracionPendiente,
+    aplicarPartidoActivo,
     obtenerEstadoCancha,
     evaluarPreparacion
 } = require('../src/core/preparationStatus.js');
@@ -79,6 +84,84 @@ const pendienteInvalido = validarConfiguracionPendiente({
 assert.equal(pendienteInvalido.valida, false);
 assert.match(pendienteInvalido.errores.join(' '), /equipo local/i);
 assert.match(pendienteInvalido.errores.join(' '), /categoría/i);
+
+const configuracionDesdePanel = validarConfiguracionPartido({
+    matchId: '299999',
+    homeTeam: '  ATTITUDE  ',
+    awayTeam: ' CEP ',
+    categoria: 'mayores',
+    categoriasPermitidas: { mayores: { nombre: 'Mayores' } }
+});
+assert.equal(configuracionDesdePanel.valida, true);
+assert.equal(configuracionDesdePanel.homeTeam, 'ATTITUDE');
+
+const activadaDesdePanel = aplicarPartidoActivo(configConHistorialViejo, {
+    matchId: 299999,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEP',
+    categoria: 'mayores',
+    metroStatus: 'pending'
+});
+assert.equal(activadaDesdePanel.matchId, 299999);
+assert.equal(activadaDesdePanel.homeTeam, 'ATTITUDE');
+assert.equal(activadaDesdePanel.metroStatus, 'pending');
+assert.equal(activadaDesdePanel.partidos.at(-1).id, 299999);
+assert.equal(activadaDesdePanel.partidos.filter(partido => partido.id === 277134).length, 1,
+    'activar un partido nuevo no debe borrar ni duplicar el historial anterior');
+assert.equal(configConHistorialViejo.matchId, 277134,
+    'la construcción de la configuración no debe mutar el objeto anterior');
+
+const conPrimerPreparado = guardarPartidoPreparado(configConHistorialViejo, {
+    id: 277500,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEDEN',
+    categoria: 'mayores',
+    metroStatus: 'pending'
+});
+assert.equal(conPrimerPreparado.matchId, 277134,
+    'agregar un partido preparado no debe cambiar el partido activo');
+assert.equal(conPrimerPreparado.partidosPreparados.length, 1);
+assert.equal(conPrimerPreparado.partidosPreparados[0].id, 277500);
+assert.equal(configConHistorialViejo.partidosPreparados, undefined,
+    'agregar un partido preparado no debe mutar la configuración anterior');
+
+const conDosPreparados = guardarPartidoPreparado(conPrimerPreparado, {
+    id: 277501,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'AC D',
+    categoria: 'mayores',
+    metroStatus: 'pending'
+});
+assert.deepEqual(obtenerPartidosPreparados(conDosPreparados).map(partido => partido.id), [277500, 277501]);
+
+const preparadoActualizado = guardarPartidoPreparado(conDosPreparados, {
+    id: 277500,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEDEN ACTUALIZADO',
+    categoria: 'mayores',
+    metroStatus: 'verified'
+});
+assert.equal(obtenerPartidosPreparados(preparadoActualizado).length, 2,
+    'volver a preparar el mismo ID debe actualizarlo sin duplicarlo');
+assert.equal(obtenerPartidosPreparados(preparadoActualizado).at(-1).awayTeam, 'CEDEN ACTUALIZADO');
+
+const activadoDesdePreparados = aplicarPartidoActivo(conDosPreparados, {
+    id: 277500,
+    homeTeam: 'ATTITUDE',
+    awayTeam: 'CEDEN',
+    categoria: 'mayores',
+    metroStatus: 'verified'
+});
+assert.equal(activadoDesdePreparados.matchId, 277500);
+assert.deepEqual(obtenerPartidosPreparados(activadoDesdePreparados).map(partido => partido.id), [277501],
+    'activar un partido debe quitar solo ese partido de la lista de preparados');
+
+const sinSegundoPreparado = quitarPartidoPreparado(conDosPreparados, 277501);
+assert.deepEqual(obtenerPartidosPreparados(sinSegundoPreparado).map(partido => partido.id), [277500]);
+assert.throws(
+    () => guardarPartidoPreparado(configConHistorialViejo, { id: 277134 }),
+    /ya es el partido activo/i
+);
 assert.deepEqual(obtenerEstadoCancha(courtCompleta), {
     disponible: true,
     local: 6,

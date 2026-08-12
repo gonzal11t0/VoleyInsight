@@ -12,10 +12,17 @@ const {
     enriquecerSnapshotsOficiales
 } = require('./src/core/rotationHistory');
 const {
+    fusionarPlanteles,
+    plantelDesdePuntos
+} = require('./src/core/rosterHistory');
+const {
     normalizarMatchId,
     obtenerRespaldoPartido,
-    actualizarHistorialPartidos,
-    validarConfiguracionPendiente,
+    obtenerPartidosPreparados,
+    guardarPartidoPreparado,
+    quitarPartidoPreparado,
+    validarConfiguracionPartido,
+    aplicarPartidoActivo,
     obtenerEstadoCancha,
     obtenerEquipos,
     evaluarPreparacion
@@ -68,6 +75,19 @@ async function leerJsonOpcional(filePath, fallback = null) {
         return JSON.parse(await fs.readFile(filePath, 'utf-8'));
     } catch (error) {
         return fallback;
+    }
+}
+
+async function escribirJsonSeguro(filePath, data) {
+    const temporal = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+    const contenido = `${JSON.stringify(data, null, 2)}\n`;
+    await fs.writeFile(temporal, contenido, 'utf-8');
+    try {
+        await fs.rename(temporal, filePath);
+    } catch (error) {
+        // En algunas versiones de Windows rename no reemplaza un archivo abierto.
+        await fs.writeFile(filePath, contenido, 'utf-8');
+        await fs.unlink(temporal).catch(() => {});
     }
 }
 
@@ -200,6 +220,32 @@ async function leerPuntosManuales(matchId) {
     }
 }
 
+function rutaPlantelHistorico(matchId) {
+    return path.join(__dirname, 'data', `plantel_${matchId}.json`);
+}
+
+async function leerPlantelHistorico(matchId) {
+    const guardado = await leerJsonOpcional(rutaPlantelHistorico(matchId), {});
+    const puntos = await leerPuntosManuales(matchId);
+    return fusionarPlanteles(guardado, plantelDesdePuntos(puntos));
+}
+
+async function guardarPlantelHistorico(matchId, plantel = {}) {
+    const existente = await leerPlantelHistorico(matchId);
+    const fusionado = fusionarPlanteles(existente, plantel);
+    const documento = {
+        matchId: Number(matchId),
+        updatedAt: new Date().toISOString(),
+        ...fusionado
+    };
+    await fs.writeFile(
+        rutaPlantelHistorico(matchId),
+        JSON.stringify(documento, null, 2),
+        'utf-8'
+    );
+    return documento;
+}
+
 async function leerPuntosOficiales(matchId) {
     try {
         const filePath = path.join(__dirname, 'data', `match_${matchId}.json`);
@@ -244,6 +290,11 @@ app.post('/api/puntos', async (req, res) => {
         if (resultado.cambios === 0) {
             await guardarPuntosManuales(matchId, resultado.puntos);
         }
+        try {
+            await guardarPlantelHistorico(matchId, plantelDesdePuntos([puntoGuardado]));
+        } catch (errorPlantel) {
+            console.warn('⚠️ El punto se guardó, pero no se pudo actualizar el plantel histórico:', errorPlantel.message);
+        }
 
         emitPuntoManual(matchId, puntoGuardado);
 
@@ -257,6 +308,32 @@ app.post('/api/puntos', async (req, res) => {
         });
     } catch (e) {
         console.error('Error en POST /api/puntos:', e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.get('/api/plantel/:matchId', async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
+        const plantel = await leerPlantelHistorico(matchId);
+        res.json({ success: true, data: plantel });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/plantel/:matchId', async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
+        const plantel = await guardarPlantelHistorico(matchId, req.body || {});
+        res.json({ success: true, data: plantel });
+    } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
 });
@@ -572,7 +649,7 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify'] });
+    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id'] });
 });
 
 app.get('/api/config', async (req, res) => {
@@ -596,7 +673,9 @@ app.get('/api/preparation', async (req, res) => {
             success: true,
             version: APP_VERSION,
             configuredMatchId: normalizarMatchId(config.matchId),
+            partidoActivo: obtenerRespaldoPartido(config, config.matchId),
             partidos: config.partidos || [],
+            partidosPreparados: obtenerPartidosPreparados(config),
             ...resumen
         });
     } catch (error) {
@@ -642,6 +721,107 @@ app.post('/api/preparation/verify', async (req, res) => {
     }
 });
 
+app.post('/api/preparation/queue', async (req, res) => {
+    const matchId = normalizarMatchId(req.body?.matchId);
+    if (!matchId) {
+        return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
+    }
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const activeMatchId = normalizarMatchId(config.matchId);
+        if (matchId === activeMatchId) {
+            return res.status(409).json({
+                success: false,
+                error: `El partido ${matchId} ya es el partido activo.`
+            });
+        }
+
+        let verificacion = null;
+        let pendienteMetro = false;
+        let sinVerificar = false;
+        let avisoMetro = null;
+        try {
+            verificacion = await verificarPartidoMetro(matchId);
+        } catch (error) {
+            pendienteMetro = esPartidoPendienteMetro(error);
+            sinVerificar = !pendienteMetro;
+            avisoMetro = pendienteMetro
+                ? 'Metro todavía no habilitó la planilla; el partido quedó preparado.'
+                : `No se pudo comprobar Metro en este momento: ${error.message}`;
+        }
+
+        const respaldo = obtenerRespaldoPartido(config, matchId);
+        const equiposMetro = verificacion
+            ? obtenerEquipos(verificacion.datos, respaldo)
+            : obtenerEquipos({}, respaldo);
+        const reglamento = await leerJsonOpcional(REGLAMENTO_PATH, {});
+        const validacion = validarConfiguracionPartido({
+            matchId,
+            homeTeam: req.body?.homeTeam || equiposMetro.homeTeam,
+            awayTeam: req.body?.awayTeam || equiposMetro.awayTeam,
+            categoria: req.body?.categoria || respaldo.categoria,
+            categoriasPermitidas: reglamento?.reglamento?.categorias || {}
+        });
+        if (!validacion.valida) {
+            return res.status(400).json({ success: false, error: validacion.errores.join(' ') });
+        }
+
+        const metroStatus = verificacion
+            ? 'verified'
+            : pendienteMetro
+                ? 'pending'
+                : sinVerificar
+                    ? 'unverified'
+                    : 'unverified';
+        const partido = {
+            id: validacion.matchId,
+            homeTeam: validacion.homeTeam,
+            awayTeam: validacion.awayTeam,
+            categoria: validacion.categoria,
+            metroStatus
+        };
+        const configActualizada = guardarPartidoPreparado(config, partido);
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+
+        res.json({
+            success: true,
+            partido,
+            activeMatchId,
+            partidosPreparados: obtenerPartidosPreparados(configActualizada),
+            warning: avisoMetro,
+            trackerChanged: false
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.delete('/api/preparation/queue/:id', async (req, res) => {
+    const matchId = normalizarMatchId(req.params.id);
+    if (!matchId) {
+        return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
+    }
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const estabaPreparado = obtenerPartidosPreparados(config)
+            .some(partido => partido.id === matchId);
+        if (!estabaPreparado) {
+            return res.status(404).json({ success: false, error: 'Ese partido no está en la lista de preparados.' });
+        }
+        const configActualizada = quitarPartidoPreparado(config, matchId);
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+        res.json({
+            success: true,
+            removedMatchId: matchId,
+            activeMatchId: normalizarMatchId(config.matchId),
+            partidosPreparados: obtenerPartidosPreparados(configActualizada),
+            trackerChanged: false
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 app.post('/api/config', async (req, res) => {
     const matchId = normalizarMatchId(req.body?.matchId);
     if (!matchId) {
@@ -649,16 +829,23 @@ app.post('/api/config', async (req, res) => {
     }
     try {
         const config = await leerJsonOpcional(CONFIG_PATH, {});
-        const permitirPendiente = req.body?.allowPending === true;
+        const permitirSinVerificar = req.body?.allowUnverified === true
+            || req.body?.allowPending === true;
         const anteriorMatchId = normalizarMatchId(config.matchId);
         let verificacion = null;
         let pendienteMetro = false;
-        if (anteriorMatchId !== matchId) {
+        let sinVerificar = false;
+        let avisoMetro = null;
+        if (anteriorMatchId !== matchId || config.metroStatus !== 'verified') {
             try {
                 verificacion = await verificarPartidoMetro(matchId);
             } catch (error) {
-                if (!permitirPendiente || !esPartidoPendienteMetro(error)) throw error;
-                pendienteMetro = true;
+                if (!permitirSinVerificar) throw error;
+                pendienteMetro = esPartidoPendienteMetro(error);
+                sinVerificar = !pendienteMetro;
+                avisoMetro = pendienteMetro
+                    ? 'Metro todavía no habilitó la planilla; el partido quedó preparado.'
+                    : `No se pudo comprobar Metro en este momento: ${error.message}`;
             }
         }
         const respaldo = obtenerRespaldoPartido(config, matchId);
@@ -669,41 +856,42 @@ app.post('/api/config', async (req, res) => {
         let awayTeam = String(req.body.awayTeam || equiposMetro.awayTeam || 'VISITANTE').trim();
         let categoria = String(req.body.categoria || respaldo.categoria || '').trim();
 
-        if (pendienteMetro) {
-            const reglamento = await leerJsonOpcional(REGLAMENTO_PATH, {});
-            const validacion = validarConfiguracionPendiente({
-                matchId,
-                homeTeam,
-                awayTeam,
-                categoria,
-                categoriasPermitidas: reglamento?.reglamento?.categorias || {}
-            });
-            if (!validacion.valida) {
-                return res.status(400).json({
-                    success: false,
-                    pendingMetro: true,
-                    error: validacion.errores.join(' ')
-                });
-            }
-            ({ homeTeam, awayTeam, categoria } = validacion);
-        }
-
-        config.matchId = matchId;
-        config.homeTeam = homeTeam;
-        config.awayTeam = awayTeam;
-        config.metroStatus = pendienteMetro ? 'pending' : 'verified';
-        if (categoria) config.categoria = categoria;
-        else delete config.categoria;
-        const partidoActualizado = {
-            id: matchId,
+        const reglamento = await leerJsonOpcional(REGLAMENTO_PATH, {});
+        const validacion = validarConfiguracionPartido({
+            matchId,
             homeTeam,
             awayTeam,
-            metroStatus: pendienteMetro ? 'pending' : 'verified'
-        };
-        if (categoria) partidoActualizado.categoria = categoria;
-        config.partidos = actualizarHistorialPartidos(config.partidos, partidoActualizado);
+            categoria,
+            categoriasPermitidas: reglamento?.reglamento?.categorias || {}
+        });
+        if (!validacion.valida) {
+            return res.status(400).json({
+                success: false,
+                pendingMetro: pendienteMetro,
+                error: validacion.errores.join(' ')
+            });
+        }
+        ({ homeTeam, awayTeam, categoria } = validacion);
 
-        await fs.writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), 'utf-8');
+        const metroStatus = verificacion
+            ? 'verified'
+            : pendienteMetro
+                ? 'pending'
+                : sinVerificar
+                    ? 'unverified'
+                    : config.metroStatus || 'unverified';
+        const configActualizada = aplicarPartidoActivo(config, {
+            matchId,
+            homeTeam,
+            awayTeam,
+            categoria,
+            metroStatus
+        });
+
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+        if (anteriorMatchId !== matchId) {
+            io.emit('cambiar_partido', { matchId, source: 'preparation-panel' });
+        }
         res.json({
             success: true,
             matchId,
@@ -711,8 +899,12 @@ app.post('/api/config', async (req, res) => {
             homeTeam,
             awayTeam,
             categoria: categoria || null,
-            verified: !pendienteMetro,
+            verified: metroStatus === 'verified',
             pendingMetro: pendienteMetro,
+            unverified: metroStatus === 'unverified',
+            metroStatus,
+            warning: avisoMetro,
+            trackerNotified: anteriorMatchId !== matchId,
             preservedPreviousData: true
         });
     } catch(error) {

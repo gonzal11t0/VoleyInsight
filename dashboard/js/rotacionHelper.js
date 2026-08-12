@@ -1,5 +1,24 @@
 const EQUIPOS_VALIDOS = new Set(['LOCAL', 'VISITANTE']);
 
+function esPuntoOficial(punto) {
+    return punto?.scorer === 'HOME' || punto?.scorer === 'AWAY';
+}
+
+function esPuntoManual(punto) {
+    return EQUIPOS_VALIDOS.has(punto?.equipoAnota);
+}
+
+function contarPuntosPorSet(puntos, esPunto) {
+    const conteo = new Map();
+    for (const punto of Array.isArray(puntos) ? puntos : []) {
+        if (!esPunto(punto)) continue;
+        const set = Number(punto?.set || 1);
+        if (!Number.isInteger(set) || set < 1) continue;
+        conteo.set(set, (conteo.get(set) || 0) + 1);
+    }
+    return conteo;
+}
+
 export function normalizarEquipo(equipo) {
     return EQUIPOS_VALIDOS.has(equipo) ? equipo : 'LOCAL';
 }
@@ -51,6 +70,31 @@ export function filtrarPuntosPorSet(puntos, setSeleccionado = 'all') {
     }
     const setNumero = Number(setSeleccionado);
     return (Array.isArray(puntos) ? puntos : []).filter(punto => Number(punto?.set || 1) === setNumero);
+}
+
+export function obtenerCoberturaAnalisis(puntosOficiales, puntosManuales) {
+    const oficialesPorSet = contarPuntosPorSet(puntosOficiales, esPuntoOficial);
+    const manualesPorSet = contarPuntosPorSet(puntosManuales, esPuntoManual);
+    const sets = [...new Set([...oficialesPorSet.keys(), ...manualesPorSet.keys()])]
+        .sort((a, b) => a - b);
+    const detalle = sets.map(set => {
+        const oficiales = oficialesPorSet.get(set) || 0;
+        const manuales = manualesPorSet.get(set) || 0;
+        return {
+            set,
+            oficiales,
+            manuales,
+            manualCompleta: oficiales > 0 && manuales === oficiales
+        };
+    });
+
+    return {
+        setsOficiales: [...oficialesPorSet.keys()].sort((a, b) => a - b),
+        setsManuales: [...manualesPorSet.keys()].sort((a, b) => a - b),
+        puntosOficiales: [...oficialesPorSet.values()].reduce((total, valor) => total + valor, 0),
+        puntosManuales: [...manualesPorSet.values()].reduce((total, valor) => total + valor, 0),
+        detalle
+    };
 }
 
 function equipoAnotadorOficial(punto) {

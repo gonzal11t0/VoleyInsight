@@ -17,6 +17,7 @@ export class ReporteGenerator {
             visitantePorSet = {},
             resumenLocal = {},
             resumenVisitante = {},
+            coberturaAnalisis = {},
             marcasManualHtml = '',
             rotacionesHtml = '',
             logoDataUrl = '',
@@ -61,12 +62,29 @@ export class ReporteGenerator {
                 awaySets: reportMetadata.awaySets ?? null
             },
             sets: Array.isArray(reportMetadata.sets) ? reportMetadata.sets : [],
+            coverage: reportMetadata.coverage || coberturaAnalisis || null,
             metrics: {
                 home: { ...metricasBase.home, ...(reportMetadata.metrics?.home || {}) },
                 away: { ...metricasBase.away, ...(reportMetadata.metrics?.away || {}) }
             }
         };
         const metadataJson = JSON.stringify(metadataReporte).replace(/</g, '\\u003c');
+
+        const cobertura = reportMetadata.coverage || coberturaAnalisis || {};
+        const setsOficiales = Array.isArray(cobertura.setsOficiales) ? cobertura.setsOficiales : [];
+        const setsManuales = Array.isArray(cobertura.setsManuales) ? cobertura.setsManuales : [];
+        const detalleManual = Array.isArray(cobertura.detalle)
+            ? cobertura.detalle.filter(item => Number(item?.manuales) > 0)
+            : [];
+        const textoSetsOficiales = setsOficiales.length
+            ? setsOficiales.map(set => `Set ${set}`).join(', ')
+            : 'sin sets oficiales';
+        const textoManual = detalleManual.length
+            ? detalleManual.map(item => `Set ${item.set}: ${item.manuales}${item.oficiales ? ` de ${item.oficiales}` : ''} puntos`).join(' · ')
+            : 'sin acciones manuales registradas';
+        const alcanceIndividuales = setsManuales.length
+            ? `Sets analizados: ${setsManuales.join(', ')}`
+            : 'Sin análisis manual';
 
         const encabezadoIndividuales = `<thead><tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>📥 REC</th><th>REC%</th><th>🛡️ DEF</th><th>DEF%</th><th>🏐 SAQUE</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr></thead>`;
         const setsConIndividuales = [...new Set([
@@ -108,6 +126,7 @@ export class ReporteGenerator {
     .save-banner{background:#1a1f2e;margin:20px;padding:16px;border-radius:16px;border-left:4px solid #10b981;text-align:center;}
     .save-banner p{color:#e5e7eb;font-size:14px;margin-bottom:8px;}
     .save-banner kbd{background:#2d3748;padding:4px 8px;border-radius:6px;font-family:monospace;font-size:12px;margin:0 4px;}
+    .coverage-banner{background:rgba(102,126,234,0.10);margin:20px;padding:16px;border-radius:16px;border-left:4px solid #667eea;color:#e5e7eb;font-size:13px;line-height:1.6;}
     .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;padding:24px;background:#0f1119;}
     .stat-card{background:#1a1f2e;border-radius:20px;padding:16px 12px;text-align:center;border:1px solid #2d3748;position:relative;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
     .stat-number{position:absolute;top:8px;right:12px;font-size:10px;font-weight:700;color:#667eea;background:rgba(102,126,234,0.15);padding:2px 6px;border-radius:20px;}
@@ -212,6 +231,11 @@ export class ReporteGenerator {
             <p class="mobile-save">📌 En celular: tocá los tres puntos <kbd>⋯</kbd> → <kbd>Descargar</kbd> o <kbd>Guardar página</kbd></p>
             <p style="font-size:12px;margin-top:8px;color:#9ca3af;">✅ El archivo se guardará en tu dispositivo y podrás verlo cuando quieras</p>
         </div>
+        <div class="coverage-banner">
+            <strong>📋 Cobertura del análisis</strong><br>
+            Métricas generales y rotaciones: ${textoSetsOficiales} (datos oficiales de Metro).<br>
+            Acciones, individuales y servicio: ${textoManual}.
+        </div>
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeam}</div></div>
             <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeam}</div></div>
@@ -284,7 +308,7 @@ export class ReporteGenerator {
         <div class="section"><div class="section-title">🎯 Qué cambiar para el próximo partido</div><div>${recommendationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
         <div class="section">
-            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (Acumulado)</div>
+            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
             <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenLocal.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenLocal.puntosAtribuidos || 0} · Sin atribuir: ${resumenLocal.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
@@ -313,7 +337,7 @@ export class ReporteGenerator {
             </div>
         </div>
         <div class="section">
-            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (Acumulado)</div>
+            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
             <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenVisitante.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenVisitante.puntosAtribuidos || 0} · Sin atribuir: ${resumenVisitante.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">

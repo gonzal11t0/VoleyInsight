@@ -3,6 +3,12 @@ const path = require('path');
 const logger = require('../utils/logger');
 
 class DataRepository {
+    static contarPuntosReales(snapshots) {
+        return (Array.isArray(snapshots) ? snapshots : [])
+            .filter(snapshot => snapshot?.scorer === 'HOME' || snapshot?.scorer === 'AWAY')
+            .length;
+    }
+
     constructor(matchId, outputDir = './data') {
         this.matchId = matchId;
         this.outputDir = outputDir;
@@ -99,7 +105,7 @@ class DataRepository {
             const filename = path.join(this.outputDir, `analysis_${this.matchId}.json`);
             const analysis = {
                 matchId: this.matchId,
-                totalPoints: this.snapshots.length,
+                totalPoints: DataRepository.contarPuntosReales(this.snapshots),
                 lastUpdate: new Date().toISOString()
             };
             await fs.writeFile(filename, JSON.stringify(analysis, null, 2), 'utf-8');
