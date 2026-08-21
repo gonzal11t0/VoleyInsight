@@ -1,0 +1,21 @@
+VOLEYINSIGHT v3.1.2 - CREDENCIALES PRIVADAS
+
+IMPORTANTE: hacé el paso 1 antes de extraer esta actualización.
+
+1. Con VoleyInsight v3.1.1 todavía instalado, abrí CMD en la carpeta del proyecto:
+   copy .env.example .env
+
+   Esto conserva tus contraseñas actuales en un archivo local que Git ignora.
+
+2. Cerrá por completo VoleyInsight, el tracker y Cloudflare.
+3. Extraé el ZIP dentro de C:\Users\User\Desktop\VoleyInsight y reemplazá archivos.
+4. Ejecutá:
+   npm test
+5. Iniciá el sistema y comprobá el ingreso como Operador.
+
+CAMBIOS
+- Las contraseñas reales se leen exclusivamente desde .env.
+- Git continúa ignorando .env.
+- .env.example ya no contiene credenciales reales.
+- El servidor bloquea el inicio con un mensaje claro si falta alguna contraseña.
+- Se mantiene la sesión de 30 días y la separación Operador/Público.

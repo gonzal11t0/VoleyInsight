@@ -11,6 +11,7 @@ const ActivityStatus = require('./activityStatus');
 const fs = require('fs').promises;
 const path = require('path');
 const io = require('socket.io-client');
+const { writeJsonAtomic } = require('../utils/atomicFile');
 
 class MatchTracker {
     constructor(matchId, pollInterval = 3000) {
@@ -20,6 +21,7 @@ class MatchTracker {
         this.repository = new DataRepository(matchId);
         this.ws = null;
         this.isRunning = false;
+        this.isPaused = false;
         this.pollInterval = null;
         this.saveInterval = null;
         this.statsInterval = null;
@@ -54,7 +56,8 @@ class MatchTracker {
         try {
             this.socket = io(config.server.localUrl, {
                 transports: ['polling', 'websocket'],
-                reconnection: true
+                reconnection: true,
+                auth: { internalTracker: true }
             });
             this.socket.on('connect', () => {
                 logger.info('🔌 WebSocket conectado al servidor');
@@ -72,6 +75,11 @@ class MatchTracker {
                     await this.cambiarPartido(data.matchId);
                 }
             });
+            this.socket.on('pausar_partido', async (data = {}) => {
+                if (!data.matchId || Number(data.matchId) === Number(this.matchId)) {
+                    await this.pausarPartido();
+                }
+            });
         } catch (e) {
             logger.error('Error conectando WebSocket:', e.message);
         }
@@ -84,12 +92,14 @@ class MatchTracker {
             logger.info(`💾 Datos del partido ${this.matchId} guardados`);
         }
         this.matchId = nuevoMatchId;
+        this.isPaused = false;
         this.api = new MetroVoleyAPI(this.matchId);
         this.repository = new DataRepository(this.matchId);
         this.processor.reset();
         this.activityStatus.reset();
         await this.crearArchivoPartidoVacio(this.matchId);
-        this.repository.snapshots = [];
+        await this.repository.loadJSON();
+        this.processor.rebuildFromSnapshots(this.repository.getSnapshots());
         if (this.socket && this.socket.connected) {
             this.socket.emit('unsubscribe');
             this.socket.emit('subscribe', this.matchId);
@@ -99,6 +109,33 @@ class MatchTracker {
         this.reconnectDelay = 1000;
         setTimeout(() => this.fetchAndProcess(), 1000);
         logger.info(`✅ Partido cambiado a ${nuevoMatchId}`);
+    }
+
+    async pausarPartido() {
+        if (this.isPaused) return;
+        this.isPaused = true;
+        try {
+            if (this.repository.snapshots.length > 0) {
+                await this.repository.saveJSON();
+                await this.repository.saveCSV();
+            }
+        } catch (error) {
+            logger.warn('No se pudo guardar al pausar el partido', { error: error.message });
+        }
+        logger.info(`⏸️ Partido ${this.matchId} finalizado. Tracker en espera; los datos se conservaron.`);
+    }
+
+    async reanudarPartido(matchId) {
+        if (Number(matchId) !== Number(this.matchId)) {
+            await this.cambiarPartido(matchId);
+            return;
+        }
+        if (!this.isPaused) return;
+        this.isPaused = false;
+        this.activityStatus.reset();
+        this.consecutiveErrors = 0;
+        logger.info(`▶️ Tracker reanudado para el partido ${matchId}`);
+        await this.fetchAndProcess();
     }
 
     async crearArchivoPartidoVacio(matchId) {
@@ -121,12 +158,12 @@ class MatchTracker {
                     "phase": "EARLY",
                     "event": "INICIO"
                 }];
-                await fs.writeFile(filePath, JSON.stringify(estructuraInicial, null, 2), 'utf-8');
+                await writeJsonAtomic(filePath, estructuraInicial, { backup: false, validate: Array.isArray });
                 logger.info(`📄 Archivo creado para partido ${matchId}`);
                 const fullPath = path.join('./data', `full_${matchId}.json`);
                 const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
                 if (!fullExiste) {
-                    await fs.writeFile(fullPath, JSON.stringify({ matchId, liveState: { court: null } }, null, 2), 'utf-8');
+                    await writeJsonAtomic(fullPath, { matchId, liveState: { court: null } }, { backup: false });
                 }
             }
         } catch (e) {
@@ -141,14 +178,20 @@ class MatchTracker {
                 const configPath = path.join('./data', 'config.json');
                 const configData = await fs.readFile(configPath, 'utf-8');
                 const configFile = JSON.parse(configData);
-                if (configFile.matchId && configFile.matchId !== ultimoMatchId) {
-                    logger.info(`📋 [MONITOR] config.json cambió: ${ultimoMatchId} -> ${configFile.matchId}`);
-                    ultimoMatchId = configFile.matchId;
-                    if (configFile.matchId !== this.matchId) {
-                        await this.cambiarPartido(configFile.matchId);
-                        if (configFile.homeTeam && configFile.awayTeam) {
-                            logger.info(`📋 Equipos: ${configFile.homeTeam} vs ${configFile.awayTeam}`);
-                        }
+                const nuevoMatchId = Number.isInteger(Number(configFile.matchId)) && Number(configFile.matchId) > 0
+                    ? Number(configFile.matchId)
+                    : null;
+                if (!nuevoMatchId) {
+                    if (ultimoMatchId !== null || !this.isPaused) await this.pausarPartido();
+                    ultimoMatchId = null;
+                    return;
+                }
+                if (nuevoMatchId !== ultimoMatchId || this.isPaused) {
+                    logger.info(`📋 [MONITOR] config.json cambió: ${ultimoMatchId ?? 'sin activo'} -> ${nuevoMatchId}`);
+                    ultimoMatchId = nuevoMatchId;
+                    await this.reanudarPartido(nuevoMatchId);
+                    if (configFile.homeTeam && configFile.awayTeam) {
+                        logger.info(`📋 Equipos: ${configFile.homeTeam} vs ${configFile.awayTeam}`);
                     }
                 }
             } catch (e) {}
@@ -156,6 +199,7 @@ class MatchTracker {
     }
 
     async fetchAndProcess() {
+        if (this.isPaused) return;
         if (this.isReconnecting) {
             logger.debug('Already reconnecting, skipping fetch');
             return;
@@ -184,6 +228,8 @@ class MatchTracker {
                         corrections: correctionResult.applied.map(item => item.correction)
                     });
                 }
+                await this.repository.saveJSON();
+                await this.repository.saveCSV();
             }
             const snapshots = this.processor.processUpdates(data);
             if (snapshots.length) {
@@ -218,10 +264,10 @@ class MatchTracker {
             }
             try {
                 const fullDataPath = path.join('./data', `full_${this.matchId}.json`);
-                await fs.writeFile(fullDataPath, JSON.stringify(data, null, 2), 'utf-8');
+                await writeJsonAtomic(fullDataPath, data);
                 if (data.court) {
                     const courtPath = path.join('./data', `court_${this.matchId}.json`);
-                    await fs.writeFile(courtPath, JSON.stringify(data.court, null, 2), 'utf-8');
+                    await writeJsonAtomic(courtPath, data.court);
                 } else {
                     console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
                 }
@@ -260,7 +306,7 @@ class MatchTracker {
                 nextRetrySeconds: Math.round(delay / 1000)
             };
             const statusPath = path.join('./data', `tracker_status_${this.matchId}.json`);
-            await fs.writeFile(statusPath, JSON.stringify(status, null, 2), 'utf-8');
+            await writeJsonAtomic(statusPath, status);
         } catch (e) {
             logger.debug('Could not write tracker status', { error: e.message });
         }
@@ -274,7 +320,7 @@ class MatchTracker {
                 consecutiveErrors: 0
             };
             const statusPath = path.join('./data', `tracker_status_${this.matchId}.json`);
-            await fs.writeFile(statusPath, JSON.stringify(status, null, 2), 'utf-8');
+            await writeJsonAtomic(statusPath, status);
             setTimeout(async () => {
                 try { await fs.unlink(statusPath); } catch (e) {}
             }, 5000);
@@ -373,6 +419,8 @@ class MatchTracker {
         this.isRunning = true;
         logger.info(`🚀 Iniciando tracker para partido ${this.matchId} con reconexión automática`);
         await this.crearArchivoPartidoVacio(this.matchId);
+        await this.repository.loadJSON();
+        this.processor.rebuildFromSnapshots(this.repository.getSnapshots());
         await this.iniciarMonitoreoConfig();
         await this.fetchAndProcess();
         this.pollInterval = setInterval(async () => {
@@ -389,7 +437,7 @@ class MatchTracker {
         const analyzer = new PerformanceAnalyzer(this.repository.snapshots);
         const report = analyzer.exportForDashboard();
         const reportPath = path.join('./data', `analysis_${this.matchId}.json`);
-        await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
+        await writeJsonAtomic(reportPath, report);
         logger.info('📊 Análisis avanzado generado', {
             path: reportPath,
             insights: report.insights?.length || 0,
@@ -409,7 +457,7 @@ class MatchTracker {
         const analyzer = new PerformanceAnalyzer(this.repository.snapshots);
         const report = analyzer.generateFullReport();
         const reportPath = path.join('./data', `analysis_${this.matchId}.json`);
-        await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
+        await writeJsonAtomic(reportPath, report);
         const htmlExporter = new HTMLExporter(this.matchId, this.repository.snapshots);
         const htmlPath = await htmlExporter.generateHTML();
         logger.info('Reports generated', { json: reportPath, html: htmlPath });

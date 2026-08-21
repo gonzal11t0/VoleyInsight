@@ -835,6 +835,17 @@
         .acceso-campo input:focus,
         .acceso-campo select:focus { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.18); }
         .acceso-entrar:disabled { opacity: 0.45; cursor: not-allowed; }
+        body:not(.rol-verificado) .solo-operador,
+        body:not(.rol-verificado) #tabEvolucion,
+        body:not(.rol-verificado) #tabAnotador,
+        body:not(.rol-verificado) #saveHTMLBtn,
+        body:not(.rol-verificado) #saveHTMLBtnMobile,
+        body.modo-publico .solo-operador,
+        body.modo-publico #tabEvolucion,
+        body.modo-publico #tabAnotador,
+        body.modo-publico #saveHTMLBtn,
+        body.modo-publico #saveHTMLBtnMobile { display: none !important; }
+        .sesion-activa { display: none; }
         @media (max-width: 640px) {
             .acceso-card { padding: 18px; border-radius: 20px; }
             .acceso-logo { height: 40px; max-width: 230px; }
@@ -871,7 +882,7 @@
                 </div>
             </div>
 
-            <section class="acceso-preparacion" aria-labelledby="preparacionPartidoTitulo">
+            <section class="acceso-preparacion solo-operador" aria-labelledby="preparacionPartidoTitulo">
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <div>
                         <h2 id="preparacionPartidoTitulo" class="text-sm font-bold">📋 Partido a analizar</h2>
@@ -911,6 +922,26 @@
                 </div>
             </section>
 
+            <details id="perfilClubPanel" class="acceso-preparacion solo-operador mt-4">
+                <summary class="text-xs font-semibold cursor-pointer">🏐 Perfil principal del club</summary>
+                <p class="text-[10px] text-gray-500 mt-1 mb-3">Define qué equipo sigue automáticamente la comparación.</p>
+                <div class="acceso-partido-grid">
+                    <div class="acceso-campo">
+                        <label for="perfilEquipoPrincipal">Equipo principal</label>
+                        <input id="perfilEquipoPrincipal" autocomplete="off" placeholder="ATTITUDE">
+                    </div>
+                    <div class="acceso-campo">
+                        <label for="perfilNombreClub">Nombre del club</label>
+                        <input id="perfilNombreClub" autocomplete="off" placeholder="ATTITUDE">
+                    </div>
+                    <div class="acceso-campo md:col-span-2">
+                        <label for="perfilLogoUrl">Logo (URL opcional)</label>
+                        <input id="perfilLogoUrl" autocomplete="off" placeholder="/dashboard/logo-horizontal.png">
+                    </div>
+                </div>
+                <button id="guardarPerfilClubBtn" type="button" class="mt-3 w-full bg-blue-700 hover:bg-blue-600 px-4 py-2.5 rounded-xl text-xs font-semibold">💾 Guardar perfil</button>
+            </details>
+
             <div id="accesoAvisoDatos" class="acceso-aviso" role="status"></div>
 
             <div class="acceso-url">
@@ -918,26 +949,29 @@
                 <button id="copiarAccesoUrlBtn" type="button" class="bg-green-700 hover:bg-green-600 px-3 py-1.5 rounded-lg text-[10px] font-semibold">Copiar URL</button>
             </div>
 
-            <div class="acceso-campos mb-4">
+            <div id="accesoAuthCampos" class="acceso-campos mb-4">
                 <div class="acceso-campo">
-                    <label for="accesoUsuario">Usuario</label>
-                    <input id="accesoUsuario" name="usuario" value="operador" autocomplete="username" required>
+                    <label for="accesoRol">Tipo de acceso</label>
+                    <select id="accesoRol" name="rol" autocomplete="off">
+                        <option value="operator">Operador</option>
+                        <option value="public">Público</option>
+                    </select>
                 </div>
                 <div class="acceso-campo">
                     <label for="accesoClave">Contraseña</label>
-                    <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required placeholder="Ingresá cualquier contraseña">
+                    <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required placeholder="Ingresá la contraseña">
                 </div>
             </div>
 
-            <p class="text-[11px] text-amber-200/80 mb-4">
-                🔒 Acceso local de preparación: esta versión todavía no valida credenciales ni reemplaza una seguridad real.
+            <p id="accesoSeguridadTexto" class="text-[11px] text-green-200/80 mb-4">
+                🔒 Acceso protegido. La sesión se conserva 30 días en este dispositivo.
             </p>
             <div id="accesoMensaje" class="hidden text-xs text-red-300 mb-3" role="alert"></div>
             <div class="grid grid-cols-[auto_1fr] gap-2">
                 <button id="revisarAccesoBtn" type="button" class="bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-xl text-sm font-semibold">↻ Revisar</button>
                 <button id="entrarAccesoBtn" type="submit" class="acceso-entrar bg-gradient-to-r from-primary to-secondary px-4 py-3 rounded-xl text-sm font-bold" disabled>INGRESAR A VOLEYINSIGHT</button>
             </div>
-            <p class="text-[10px] text-gray-500 text-center mt-3">El acceso se mantiene mientras esta pestaña permanezca abierta.</p>
+            <p class="text-[10px] text-gray-500 text-center mt-3">Podés cerrar la sesión desde el panel flotante.</p>
         </form>
     </div>
 
@@ -988,6 +1022,19 @@
             </div>
             <div class="flex justify-center mt-2"><div id="servingBadgeDashboard" class="hidden"></div></div>
             <div class="mt-3 pt-2 border-t border-white/10"><div class="text-xs text-gray-400 text-center mb-1">📊 SETS</div><div id="setsList" class="flex flex-wrap gap-1 justify-center"><div class="text-gray-500 text-xs">Cargando sets...</div></div></div>
+        </div>
+
+        <div id="resumenUltimoSet" class="hidden bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-2xl p-4 mb-4 md:mb-6 border border-primary/30">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                <div>
+                    <h2 id="resumenSetTitulo" class="text-sm font-bold text-primary">Resumen automático</h2>
+                    <p id="resumenSetMarcador" class="text-base font-semibold"></p>
+                </div>
+                <div class="text-xs text-gray-300 md:text-right">
+                    <p id="resumenSetFigura"></p>
+                    <p id="resumenSetCobertura" class="text-gray-400"></p>
+                </div>
+            </div>
         </div>
 
         <!-- PESTAÑAS -->
@@ -1217,13 +1264,13 @@
         <div id="vistaEvolucion" class="hidden space-y-4 md:space-y-6">
             <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                 <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📂 COMPARAR INFORMES</h3>
-                <p class="text-sm text-gray-400 mb-3">Cargá al menos dos informes del mismo equipo. VoleyInsight detectará el equipo y ordenará los partidos.</p>
+                <p class="text-sm text-gray-400 mb-3">Cargá de 2 a 5 informes. VoleyInsight seguirá a ATTITUDE como local o visitante; si no participa, analizará al equipo local.</p>
                 <div class="border-2 border-dashed border-gray-600 rounded-xl p-6 text-center hover:border-primary transition-colors cursor-pointer" id="uploadArea">
                     <input type="file" id="reportFilesInput" multiple accept=".html" class="hidden" />
                     <div class="flex flex-col items-center gap-2">
                         <span class="text-3xl">📁</span>
                         <span class="text-sm text-gray-400">Hacé clic o arrastrá archivos HTML</span>
-                        <span class="text-xs text-gray-500">Los partidos parciales se excluyen automáticamente</span>
+                        <span class="text-xs text-gray-500">Máximo 5 · los partidos parciales y ajenos se excluyen automáticamente</span>
                     </div>
                 </div>
                 <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
@@ -1419,6 +1466,16 @@
                 </div>
 
                 <!-- BOTONERA -->
+                <div id="recuperacionPendiente" class="hidden mt-3 w-full rounded-xl border border-amber-400/40 bg-amber-500/10 p-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <strong id="recuperacionPendienteTitulo" class="block text-xs text-amber-200">⏱️ Hay puntos sin registrar</strong>
+                            <span id="recuperacionPendienteTexto" class="text-[10px] text-gray-300"></span>
+                        </div>
+                        <button id="recuperarPuntosBtn" type="button" class="shrink-0 bg-amber-600 hover:bg-amber-500 px-3 py-2 rounded-lg text-[10px] font-bold">RECUPERAR</button>
+                    </div>
+                </div>
+
                 <div class="botonera-controles">
                 <div class="seccion-punto-ganado" style="margin-top: 12px; width: 100%;">
                     <div style="text-align: center; color: #9ca3af; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">🏆 PUNTO GANADO</div>
@@ -1518,7 +1575,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | VoleyInsight v3.0.6 · Preparación anticipada de partidos</p>
+            <p>Datos en tiempo real | VoleyInsight v3.1.2 · Credenciales privadas y persistencia protegida</p>
         </div>
     </div>
 
@@ -1540,13 +1597,18 @@
             </div>
             <div id="alertaColapso" class="hidden mb-3 p-2 rounded-lg border-l-4 transition-all"></div>
             <button id="refreshBtn" class="w-full bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔄 Actualizar</button>
-            <div class="mt-3 pt-2 border-t border-gray-700">
+            <div class="solo-operador mt-3 pt-2 border-t border-gray-700">
                 <div class="text-xs text-gray-400 mb-1">📅 CAMBIAR PARTIDO</div>
                 <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
                 <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
                 <button id="quitarPartidoPreparadoBtn" class="hidden w-full mt-1 bg-red-900/80 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🗑️ QUITAR DE PRÓXIMOS</button>
+                <button id="finalizarPartidoActivoBtn" class="hidden w-full mt-1 bg-amber-800 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🏁 FINALIZAR ACTIVO</button>
             </div>
             <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
+            <div class="mt-2 pt-2 border-t border-gray-700 flex items-center justify-between gap-2">
+                <span id="sessionRoleBadge" class="text-[10px] text-gray-400">Sesión</span>
+                <button id="logoutBtn" class="bg-red-900/70 hover:bg-red-800 text-white px-2 py-1 rounded text-[10px]">Cerrar sesión</button>
+            </div>
         </div>
     </div>
 
@@ -1559,6 +1621,36 @@
             </div>
             <div id="modalRotacionContenido" class="p-4"></div>
         </div>
+    </div>
+
+    <div id="modalEditarPunto" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <form id="formEditarPunto" class="bg-[#0f1119] rounded-2xl max-w-sm w-full border border-white/10 shadow-2xl p-5">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-base font-bold text-primary">✏️ Corregir punto</h3>
+                    <p id="editarPuntoMarcador" class="text-[10px] text-gray-400"></p>
+                </div>
+                <button id="cerrarEditarPunto" type="button" class="text-gray-400 hover:text-white text-xl">✕</button>
+            </div>
+            <input id="editarPuntoEventId" type="hidden">
+            <div class="acceso-campo mb-3">
+                <label for="editarPuntoEquipo">Equipo que anotó</label>
+                <select id="editarPuntoEquipo"><option value="LOCAL">Local</option><option value="VISITANTE">Visitante</option></select>
+            </div>
+            <div class="acceso-campo mb-3">
+                <label for="editarPuntoAccion">Acción</label>
+                <select id="editarPuntoAccion">
+                    <option value="EQUIPO">Punto de equipo</option><option value="ATAQUE">Ataque</option>
+                    <option value="BLOQUEO">Bloqueo</option><option value="ACE">Saque / Ace</option>
+                    <option value="ERROR">Error rival</option><option value="ERROR_SAQUE">Saque malo rival</option>
+                </select>
+            </div>
+            <div class="acceso-campo mb-4">
+                <label for="editarPuntoJugador">Dorsal (opcional)</label>
+                <input id="editarPuntoJugador" inputmode="numeric" type="number" min="1" placeholder="Sin atribuir">
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-secondary px-4 py-3 rounded-xl text-sm font-bold">GUARDAR CORRECCIÓN</button>
+        </form>
     </div>
 
     <script type="module">
@@ -1592,11 +1684,77 @@
             const partidoConfiguradoTexto = document.getElementById('partidoConfiguradoTexto');
             const accesoUrlActual = document.getElementById('accesoUrlActual');
             const copiarAccesoUrlBtn = document.getElementById('copiarAccesoUrlBtn');
-            const accesoSessionKey = 'voleyinsight_acceso_local_v2';
+            const accesoRol = document.getElementById('accesoRol');
+            const accesoClave = document.getElementById('accesoClave');
+            const accesoAuthCampos = document.getElementById('accesoAuthCampos');
+            const accesoPreparacion = document.querySelector('.acceso-preparacion');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const sessionRoleBadge = document.getElementById('sessionRoleBadge');
+            const perfilEquipoPrincipal = document.getElementById('perfilEquipoPrincipal');
+            const perfilNombreClub = document.getElementById('perfilNombreClub');
+            const perfilLogoUrl = document.getElementById('perfilLogoUrl');
+            const guardarPerfilClubBtn = document.getElementById('guardarPerfilClubBtn');
             let servidorDisponible = false;
+            let sesionActual = null;
             let matchIdConfigurado = null;
             let matchIdVerificado = null;
             let matchIdPendiente = null;
+
+            function inicializarDashboard() {
+                if (!window.dashboard) window.dashboard = new VolleyballDashboard();
+            }
+
+            function configurarCamposAutenticacion(requiereCredenciales) {
+                accesoRol.disabled = !requiereCredenciales;
+                accesoClave.disabled = !requiereCredenciales;
+                accesoClave.required = requiereCredenciales;
+            }
+
+            function aplicarRol(role) {
+                const esPublico = role === 'public';
+                document.body.classList.toggle('modo-publico', esPublico);
+                document.body.classList.add('rol-verificado');
+                window.VOLEY_AUTH = { authenticated: true, role };
+                if (sessionRoleBadge) {
+                    sessionRoleBadge.textContent = esPublico ? '👁️ Modo público' : '🔐 Operador';
+                }
+            }
+
+            const rolSolicitado = new URLSearchParams(window.location.search).get('rol');
+            if (rolSolicitado === 'public' || rolSolicitado === 'operator') accesoRol.value = rolSolicitado;
+
+            async function cargarPerfilClub() {
+                const response = await fetch('/api/club-profile', { cache: 'no-store' });
+                if (!response.ok) return;
+                const payload = await response.json();
+                const perfil = payload.data || payload;
+                perfilEquipoPrincipal.value = perfil.mainTeam || 'ATTITUDE';
+                perfilNombreClub.value = perfil.clubName || 'ATTITUDE';
+                perfilLogoUrl.value = perfil.logoUrl || '/dashboard/logo-horizontal.png';
+            }
+
+            guardarPerfilClubBtn?.addEventListener('click', async () => {
+                guardarPerfilClubBtn.disabled = true;
+                try {
+                    const response = await fetch('/api/club-profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            mainTeam: perfilEquipoPrincipal.value,
+                            clubName: perfilNombreClub.value,
+                            logoUrl: perfilLogoUrl.value
+                        })
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) throw new Error(payload.error || 'No se pudo guardar el perfil.');
+                    mostrarMensajeAcceso('Perfil del club guardado.', 'ok');
+                    if (window.dashboard) window.dashboard.clubProfile = payload.data;
+                } catch (error) {
+                    mostrarMensajeAcceso(error.message);
+                } finally {
+                    guardarPerfilClubBtn.disabled = false;
+                }
+            });
 
             function actualizarTarjetaAcceso(id, estadoTarjeta, titulo, detalle) {
                 const tarjeta = document.getElementById(id);
@@ -1647,9 +1805,13 @@
 
             function actualizarBotonIngreso(nivel = 'waiting') {
                 entrarAccesoBtn.disabled = !servidorDisponible;
-                entrarAccesoBtn.textContent = nivel === 'ready'
-                    ? 'INGRESAR A VOLEYINSIGHT'
-                    : 'INGRESAR IGUALMENTE';
+                if (!sesionActual) {
+                    entrarAccesoBtn.textContent = 'INICIAR SESIÓN';
+                } else {
+                    entrarAccesoBtn.textContent = nivel === 'ready'
+                        ? 'INGRESAR A VOLEYINSIGHT'
+                        : 'INGRESAR IGUALMENTE';
+                }
             }
 
             function formularioPartidoCompleto() {
@@ -1698,9 +1860,9 @@
                 datos.append(titulo, estado);
                 fila.append(datos);
 
+                const botones = document.createElement('div');
+                botones.className = 'acceso-proximo-botones';
                 if (!activo) {
-                    const botones = document.createElement('div');
-                    botones.className = 'acceso-proximo-botones';
                     const activar = document.createElement('button');
                     activar.type = 'button';
                     activar.className = 'bg-purple-700 hover:bg-purple-600';
@@ -1715,8 +1877,15 @@
                     quitar.textContent = 'Quitar';
                     quitar.addEventListener('click', () => quitarPartidoDePreparados(partido));
                     botones.append(activar, quitar);
-                    fila.append(botones);
+                } else {
+                    const finalizar = document.createElement('button');
+                    finalizar.type = 'button';
+                    finalizar.className = 'bg-amber-800 hover:bg-amber-700';
+                    finalizar.textContent = 'Finalizar';
+                    finalizar.addEventListener('click', finalizarPartidoActivoDesdePanel);
+                    botones.append(finalizar);
                 }
+                fila.append(botones);
                 return fila;
             }
 
@@ -1819,7 +1988,7 @@
                     if (!statusResponse.ok) throw new Error('Servidor no disponible');
                     const status = await statusResponse.json();
                     servidorDisponible = true;
-                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.0.6'}`);
+                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.1.2'}`);
                     actualizarBotonIngreso();
                     actualizarBotonCambio();
 
@@ -1943,7 +2112,6 @@
                     });
                     const resultado = await response.json();
                     if (!response.ok) throw new Error(resultado.error || 'No se pudo cambiar el partido.');
-                    sessionStorage.removeItem(accesoSessionKey);
                     mostrarMensajeAcceso(
                         resultado.pendingMetro
                             ? 'Partido preparado. El tracker se sincronizará cuando Metro habilite los datos en vivo.'
@@ -2016,6 +2184,23 @@
                 }
             }
 
+            async function finalizarPartidoActivoDesdePanel() {
+                if (!matchIdConfigurado) return;
+                const confirmado = window.confirm(
+                    `¿Finalizar el partido activo ${matchIdConfigurado}?\n\nEl tracker quedará en espera. Los datos y el informe no se borrarán.`
+                );
+                if (!confirmado) return;
+                try {
+                    const response = await fetch('/api/preparation/active', { method: 'DELETE' });
+                    const resultado = await response.json();
+                    if (!response.ok) throw new Error(resultado.error || 'No se pudo finalizar el partido activo.');
+                    mostrarMensajeAcceso('Partido finalizado. El tracker quedó en espera y los datos se conservaron.', 'ok');
+                    setTimeout(() => window.location.reload(), 700);
+                } catch (error) {
+                    mostrarMensajeAcceso(error.message);
+                }
+            }
+
             const esTunelCloudflare = window.location.hostname.includes('trycloudflare.com');
             accesoUrlActual.textContent = `${esTunelCloudflare ? '🌐 URL pública de Cloudflare' : '🏠 Acceso local'}: ${window.location.href.split('?')[0]}`;
             copiarAccesoUrlBtn?.addEventListener('click', async () => {
@@ -2046,14 +2231,57 @@
             agregarPreparadoBtn?.addEventListener('click', agregarPartidoPreparado);
             cambiarMatchBtn?.addEventListener('click', cambiarPartidoPreparado);
 
-            cargarCategoriasAcceso().finally(() => {
-                if (sessionStorage.getItem(accesoSessionKey) === 'ok') {
-                    pantallaAcceso.classList.add('oculta');
-                } else {
-                    revisarPreparacion();
+            async function iniciarAcceso() {
+                try {
+                    const statusResponse = await fetch(`/api/status?_t=${Date.now()}`, { cache: 'no-store' });
+                    servidorDisponible = statusResponse.ok;
+                } catch (error) {
+                    servidorDisponible = false;
                 }
+
+                let sessionResponse = null;
+                try {
+                    sessionResponse = await fetch(`/api/auth/session?_t=${Date.now()}`, { cache: 'no-store' });
+                } catch (error) {}
+
+                if (sessionResponse?.ok) {
+                    sesionActual = await sessionResponse.json();
+                    aplicarRol(sesionActual.role);
+                    inicializarDashboard();
+                    configurarCamposAutenticacion(false);
+                    accesoAuthCampos.style.display = 'none';
+                    if (sesionActual.role === 'public') {
+                        pantallaAcceso.classList.add('oculta');
+                        return;
+                    }
+                    accesoPreparacion.style.display = '';
+                    await cargarCategoriasAcceso();
+                    await cargarPerfilClub();
+                    await revisarPreparacion();
+                    return;
+                }
+
+                sesionActual = null;
+                window.VOLEY_AUTH = { authenticated: false, role: null };
+                configurarCamposAutenticacion(true);
+                accesoPreparacion.style.display = 'none';
+                document.querySelectorAll('.acceso-grid .acceso-estado').forEach((card, index) => {
+                    if (index === 0) return;
+                    card.style.display = 'none';
+                });
+                actualizarTarjetaAcceso(
+                    'accesoEstadoServidor',
+                    servidorDisponible ? 'ok' : 'error',
+                    servidorDisponible ? '🟢 Servidor conectado' : '🔴 Servidor sin conexión',
+                    servidorDisponible ? 'Ingresá para continuar.' : 'Iniciá el sistema y volvé a intentar.'
+                );
+                actualizarBotonIngreso();
+            }
+
+            revisarAccesoBtn?.addEventListener('click', () => {
+                if (sesionActual?.role === 'operator') revisarPreparacion();
+                else iniciarAcceso();
             });
-            revisarAccesoBtn?.addEventListener('click', revisarPreparacion);
             formAcceso?.addEventListener('submit', async event => {
                 event.preventDefault();
                 if (entrarAccesoBtn.disabled) {
@@ -2061,12 +2289,37 @@
                     accesoMensaje.classList.remove('hidden');
                     return;
                 }
-                sessionStorage.setItem(accesoSessionKey, 'ok');
-                await window.dashboard?.cargarListaPartidos?.();
-                pantallaAcceso.classList.add('oculta');
+                if (sesionActual) {
+                    pantallaAcceso.classList.add('oculta');
+                    window.dashboard?.cargarListaPartidos?.().catch(error => {
+                        console.warn('No se pudo actualizar la lista de partidos al ingresar.', error);
+                    });
+                    return;
+                }
+                entrarAccesoBtn.disabled = true;
+                entrarAccesoBtn.textContent = 'VALIDANDO…';
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ role: accesoRol.value, password: accesoClave.value })
+                    });
+                    const result = await response.json();
+                    if (!response.ok) throw new Error(result.error || 'No se pudo iniciar sesión.');
+                    window.location.reload();
+                } catch (error) {
+                    mostrarMensajeAcceso(error.message);
+                    entrarAccesoBtn.disabled = false;
+                    entrarAccesoBtn.textContent = 'INICIAR SESIÓN';
+                }
             });
 
-            window.dashboard = new VolleyballDashboard();
+            logoutBtn?.addEventListener('click', async () => {
+                await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+                window.location.reload();
+            });
+
+            iniciarAcceso();
 
             const menuBtn = document.getElementById('menuHamburguesaBtn');
             const menuDesplegable = document.getElementById('menuDesplegable');
@@ -2192,6 +2445,8 @@
                 let firmaFormacion = '';
                 let sincronizacionFormacionInterval = null;
                 let fallosFormacionConsecutivos = 0;
+                let guardandoPunto = false;
+                let recuperacionActual = null;
                 const UMBRAL_FALLOS_FORMACION = 2;
 
                 function obtenerUrlApi() {
@@ -2394,7 +2649,7 @@
 
                 async function cargarConfiguracion() {
                     try {
-                        const response = await fetch('/data/config.json');
+                        const response = await fetch('/api/config');
                         if (response.ok) {
                             const config = await response.json();
                             estado.matchId = config.matchId;
@@ -2436,6 +2691,7 @@
                             renderizarHistorial();
                             renderizarPuntosApi();
                             estado.puntosCargados = true;
+                            await revisarRecuperacion();
                         }
                     } catch (e) {
                         console.log('Error cargando puntos:', e);
@@ -2450,13 +2706,85 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ matchId: estado.matchId, punto: punto })
                         });
-                        if (!response.ok) throw new Error('Error al guardar el punto');
                         const resultado = await response.json();
+                        if (!response.ok) throw new Error(resultado.error || 'Error al guardar el punto');
                         return resultado;
                     } catch (e) {
                         console.error('Error guardando punto:', e);
                         mostrarFeedback('❌ Error al guardar el punto', true);
                         return null;
+                    }
+                }
+
+                async function revisarRecuperacion() {
+                    if (!estado.matchId || window.VOLEY_AUTH?.role !== 'operator') return;
+                    try {
+                        const response = await fetch(`/api/puntos/${estado.matchId}/recovery?set=${estado.set}&_t=${Date.now()}`, { cache: 'no-store' });
+                        if (!response.ok) return;
+                        const payload = await response.json();
+                        recuperacionActual = payload.data;
+                        const banner = document.getElementById('recuperacionPendiente');
+                        const texto = document.getElementById('recuperacionPendienteTexto');
+                        const titulo = document.getElementById('recuperacionPendienteTitulo');
+                        if (!banner || !texto) return;
+                        const botonRecuperar = document.getElementById('recuperarPuntosBtn');
+                        if (recuperacionActual?.reason === 'official-unavailable') {
+                            if (titulo) titulo.textContent = '🕐 Metro todavía no publicó el historial';
+                            texto.textContent = `No hay una secuencia oficial utilizable para el Set ${estado.set}. La anotación manual no se modificará.`;
+                            banner.classList.remove('hidden');
+                            botonRecuperar?.classList.add('hidden');
+                        } else if (recuperacionActual?.reason === 'official-incomplete') {
+                            if (titulo) titulo.textContent = '⚠️ Historial oficial incompleto';
+                            texto.textContent = `Metro muestra ${recuperacionActual.officialScore.home}-${recuperacionActual.officialScore.away}, pero faltan rallies en su historial local. La recuperación automática quedó bloqueada para no inventar puntos.`;
+                            banner.classList.remove('hidden');
+                            botonRecuperar?.classList.add('hidden');
+                        } else if (recuperacionActual?.conflict) {
+                            if (titulo) titulo.textContent = '⚠️ Marcadores en conflicto';
+                            texto.textContent = recuperacionActual.conflictDetails?.scoreAhead
+                                ? `El anotador quedó por delante de Metro (${recuperacionActual.manualScore.home}-${recuperacionActual.manualScore.away} vs ${recuperacionActual.officialScore.home}-${recuperacionActual.officialScore.away}). Corregí o anulá el último punto; no se agregarán eventos automáticamente.`
+                                : 'Hay eventos manuales duplicados o que no coinciden con el equipo oficial. Revisá el historial; no se agregarán puntos automáticamente.';
+                            banner.classList.remove('hidden');
+                            botonRecuperar?.classList.add('hidden');
+                        } else if (Number(recuperacionActual?.missing) >= 1) {
+                            if (titulo) titulo.textContent = '⏱️ Hay puntos sin registrar';
+                            texto.textContent = `${recuperacionActual.missing} de ${recuperacionActual.officialCount} rallies oficiales no tienen un evento manual. Metro permitió reconstruirlos en su marcador exacto; se guardarán sin jugador.`;
+                            banner.classList.remove('hidden');
+                            botonRecuperar?.classList.remove('hidden');
+                        } else {
+                            banner.classList.add('hidden');
+                            botonRecuperar?.classList.remove('hidden');
+                        }
+                    } catch (error) {}
+                }
+
+                async function recuperarPuntosPendientes() {
+                    if (!recuperacionActual || recuperacionActual.missing < 1) return;
+                    const confirmado = window.confirm(
+                        `¿Recuperar ${recuperacionActual.missing} puntos usando el marcador oficial exacto de Metro?\n\nSe guardarán como puntos de equipo sin jugador. Podrás completar la atribución tocando cada punto del historial.`
+                    );
+                    if (!confirmado) return;
+                    const boton = document.getElementById('recuperarPuntosBtn');
+                    boton.disabled = true;
+                    boton.textContent = 'RECUPERANDO…';
+                    try {
+                        const response = await fetch(`/api/puntos/${estado.matchId}/recovery`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                set: estado.set,
+                                rotacionLocal: estado.rotacionLocal,
+                                rotacionVisitante: estado.rotacionVisitante
+                            })
+                        });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'No se pudieron recuperar los puntos.');
+                        await cargarPuntosDesdeAPI();
+                        mostrarFeedback(`✅ ${result.created} puntos recuperados`);
+                    } catch (error) {
+                        mostrarFeedback(`❌ ${error.message}`, true);
+                    } finally {
+                        boton.disabled = false;
+                        boton.textContent = 'RECUPERAR';
                     }
                 }
 
@@ -2565,6 +2893,30 @@
                     if (setActual) setActual.textContent = estado.set;
                 }
 
+                function abrirEditorPunto(punto) {
+                    if (!punto?.eventId || window.VOLEY_AUTH?.role !== 'operator' || !punto.equipoAnota) return;
+                    document.getElementById('editarPuntoEventId').value = punto.eventId;
+                    document.getElementById('editarPuntoMarcador').textContent = `Set ${punto.set} · ${punto.marcadorDespues}`;
+                    document.getElementById('editarPuntoEquipo').value = punto.equipoAnota;
+                    const acciones = document.getElementById('editarPuntoAccion');
+                    const accion = punto.accion || 'EQUIPO';
+                    if (![...acciones.options].some(option => option.value === accion)) {
+                        acciones.add(new Option(accion, accion));
+                    }
+                    acciones.value = accion;
+                    document.getElementById('editarPuntoJugador').value = punto.jugador || '';
+                    const modal = document.getElementById('modalEditarPunto');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+
+                function hacerPuntoEditable(item, punto) {
+                    if (!punto?.eventId || window.VOLEY_AUTH?.role !== 'operator' || !punto.equipoAnota) return;
+                    item.style.cursor = 'pointer';
+                    item.title = 'Tocá para corregir acción o jugador';
+                    item.addEventListener('click', () => abrirEditorPunto(punto));
+                }
+
                 function renderizarHistorial() {
                     const container = document.getElementById('historial');
                     if (!container) return;
@@ -2586,6 +2938,7 @@
                             <span style="color:#9ca3af;">${p.accion}</span>
                             <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
                         `;
+                        hacerPuntoEditable(item, p);
                         container.appendChild(item);
                     });
                 }
@@ -2611,6 +2964,7 @@
                             <span style="color:#9ca3af;">${p.accion}</span>
                             <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
                         `;
+                        hacerPuntoEditable(item, p);
                         container.appendChild(item);
                     });
                 }
@@ -2633,6 +2987,7 @@
                 const confirmarBtn = document.getElementById('confirmarBtn');
                 if (confirmarBtn) {
                     confirmarBtn.onclick = async () => {
+                        if (guardandoPunto) return;
                         if (!estado.accion) {
                             mostrarFeedback('❌ Seleccioná una ACCIÓN', true);
                             return;
@@ -2641,6 +2996,12 @@
                             mostrarFeedback('❌ Seleccioná un JUGADOR', true);
                             return;
                         }
+
+                        guardandoPunto = true;
+                        confirmarBtn.disabled = true;
+                        const confirmarLabel = confirmarBtn.querySelector('span:last-child');
+                        const confirmarTextoOriginal = confirmarLabel?.textContent || 'CONFIRMAR';
+                        if (confirmarLabel) confirmarLabel.textContent = 'GUARDANDO…';
 
                         const accionesPunto = ['ATAQUE', 'BLOQUEO', 'ACE'];
                         const esPunto = accionesPunto.includes(estado.accion);
@@ -2683,6 +3044,18 @@
                         if (!resultadoGuardado) {
                             if (equipoAnota === 'LOCAL') estado.local.score--;
                             if (equipoAnota === 'VISITANTE') estado.visitante.score--;
+                            guardandoPunto = false;
+                            confirmarBtn.disabled = false;
+                            if (confirmarLabel) confirmarLabel.textContent = confirmarTextoOriginal;
+                            return;
+                        }
+
+                        if (resultadoGuardado.duplicate) {
+                            await cargarPuntosDesdeAPI();
+                            mostrarFeedback('✅ El punto ya estaba guardado · no se duplicó');
+                            guardandoPunto = false;
+                            confirmarBtn.disabled = false;
+                            if (confirmarLabel) confirmarLabel.textContent = confirmarTextoOriginal;
                             return;
                         }
 
@@ -2715,6 +3088,9 @@
                         estado.jugador = null;
                         document.querySelectorAll('.btn-accion').forEach(b => b.classList.remove('seleccionado'));
                         document.querySelectorAll('.jugador').forEach(b => b.classList.remove('seleccionado', 'visitante-seleccionado'));
+                        guardandoPunto = false;
+                        confirmarBtn.disabled = false;
+                        if (confirmarLabel) confirmarLabel.textContent = confirmarTextoOriginal;
                     };
                 }
 
@@ -2728,28 +3104,19 @@
                             mostrarFeedback('⚠️ No hay puntos para deshacer', true);
                             return;
                         }
-                        const ultimo = estado.historial.pop();
-                        estado.puntosApi.pop();
+                        const ultimo = [...estado.historial].reverse().find(punto => punto?.eventId);
                         if (!ultimo) return;
-                        if (ultimo.equipoAnota === 'LOCAL') {
-                            estado.local.score--;
-                        } else if (ultimo.equipoAnota === 'VISITANTE') {
-                            estado.visitante.score--;
-                        }
-                        estado.punto--;
                         try {
                             const apiUrl = obtenerUrlApi();
-                            await fetch(`${apiUrl}/api/puntos/${estado.matchId}`, { method: 'DELETE' });
+                            const response = await fetch(`${apiUrl}/api/puntos/${estado.matchId}/${ultimo.eventId}`, { method: 'DELETE' });
+                            const result = await response.json();
+                            if (!response.ok) throw new Error(result.error || 'No se pudo deshacer el registro.');
                             await cargarPuntosDesdeAPI();
                         } catch (e) {
-                            const puntosKey = `puntos_${estado.matchId}`;
-                            localStorage.setItem(puntosKey, JSON.stringify(estado.puntosApi));
+                            mostrarFeedback(`❌ ${e.message}`, true);
+                            return;
                         }
-                        actualizarMarcador();
-                        renderizarHistorial();
-                        renderizarPuntosApi();
-                        renderizarCancha();
-                        mostrarFeedback('↩️ Deshecho');
+                        mostrarFeedback('↩️ Último registro anulado');
                     };
                 }
 
@@ -2816,11 +3183,56 @@
                             marcador: `${estado.local.score}-${estado.visitante.score}`
                         };
                         let timeoutsGuardados = JSON.parse(localStorage.getItem(`timeouts_${estado.matchId}`) || '[]');
+                        const duplicado = timeoutsGuardados.some(item =>
+                            Number(item.set || 1) === Number(timeout.set)
+                            && item.equipo === timeout.equipo
+                            && item.marcador === timeout.marcador
+                            && Math.abs(Date.parse(item.timestamp || 0) - Date.parse(timeout.timestamp)) <= 2500
+                        );
+                        if (duplicado) {
+                            mostrarFeedback('⏸️ Timeout ya registrado');
+                            return;
+                        }
                         timeoutsGuardados.push(timeout);
                         localStorage.setItem(`timeouts_${estado.matchId}`, JSON.stringify(timeoutsGuardados));
                         mostrarFeedback(`⏸️ TIMEOUT - ${estado.equipo === 'LOCAL' ? estado.homeTeamName : estado.awayTeamName}`);
                     };
                 }
+
+                document.getElementById('recuperarPuntosBtn')?.addEventListener('click', recuperarPuntosPendientes);
+
+                const modalEditarPunto = document.getElementById('modalEditarPunto');
+                const cerrarEditorPunto = () => {
+                    modalEditarPunto?.classList.add('hidden');
+                    modalEditarPunto?.classList.remove('flex');
+                };
+                document.getElementById('cerrarEditarPunto')?.addEventListener('click', cerrarEditorPunto);
+                modalEditarPunto?.addEventListener('click', event => {
+                    if (event.target === modalEditarPunto) cerrarEditorPunto();
+                });
+                document.getElementById('formEditarPunto')?.addEventListener('submit', async event => {
+                    event.preventDefault();
+                    const eventId = document.getElementById('editarPuntoEventId').value;
+                    const jugadorValor = Number(document.getElementById('editarPuntoJugador').value);
+                    try {
+                        const response = await fetch(`/api/puntos/${estado.matchId}/${encodeURIComponent(eventId)}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                equipoAnota: document.getElementById('editarPuntoEquipo').value,
+                                accion: document.getElementById('editarPuntoAccion').value,
+                                jugador: jugadorValor > 0 ? jugadorValor : null
+                            })
+                        });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'No se pudo corregir el punto.');
+                        cerrarEditorPunto();
+                        await cargarPuntosDesdeAPI();
+                        mostrarFeedback('✅ Punto corregido');
+                    } catch (error) {
+                        mostrarFeedback(`❌ ${error.message}`, true);
+                    }
+                });
 
                 // ============================================================
                 // SELECTOR DE SET
@@ -2891,7 +3303,6 @@
                     if (key === '9') document.querySelector('.btn-error')?.click();
                     if (key === 'enter') document.getElementById('confirmarBtn')?.click();
                     if (key === 'z') document.getElementById('deshacerBtn')?.click();
-                    if (key === 'b') document.getElementById('btnBreak')?.click();
                     if (key === 't') document.getElementById('btnTimeout')?.click();
                 });
 
@@ -2916,6 +3327,7 @@
                 sincronizacionFormacionInterval = setInterval(() => {
                     cargarJugadoresDesdeAPI();
                 }, 3000);
+                setInterval(revisarRecuperacion, 5000);
             }
 
             window.inicializarCancha = inicializarCancha;

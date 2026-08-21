@@ -1,0 +1,32 @@
+VOLEYINSIGHT v3.1.1 - CONFIABILIDAD DE DATOS
+
+INSTALACION
+1. Cerrá las ventanas del servidor, tracker y Cloudflare.
+2. Conservá tu ZIP de respaldo actual.
+3. Copiá el contenido de esta actualización sobre C:\Users\User\Desktop\VoleyInsight.
+4. Aceptá reemplazar los archivos existentes.
+5. Ejecutá: npm test
+6. Iniciá el sistema con iniciar-partido.bat.
+
+CAMBIOS PRINCIPALES
+- Los JSON se escriben de forma atómica: primero se valida un archivo temporal y recién después se reemplaza el original.
+- Cada reemplazo conserva un respaldo .bak válido.
+- Una lectura dañada ya no se interpreta como un partido vacío ni puede borrar la anotación siguiente.
+- Los puntos de un mismo partido se guardan en orden para evitar que dos solicitudes simultáneas se pisen.
+- El tracker recarga el historial oficial al reiniciarse y preserva prefijos disponibles en el CSV.
+- La recuperación compara rallies reales por marcador, no solamente el resultado final.
+- Puede detectar huecos anteriores o internos aunque Manual y Metro terminen con el mismo marcador.
+- Solo recupera cuando Metro permite conocer el orden exacto. Nunca inventa rallies ni rotaciones.
+- Distingue entre historial no publicado, historial incompleto, conflicto real y puntos recuperables.
+
+PRUEBA RAPIDA
+1. Ingresá como Operador con la contraseña configurada en tu archivo .env.
+2. Abrí Anotador en un partido con datos oficiales.
+3. Confirmá que no aparezca una advertencia de recuperación si los eventos están completos.
+4. Anotá 10 puntos y verificá que Manual y Metro coincidan.
+5. Cerrá y reiniciá el sistema; los puntos y rotaciones deben continuar sin reiniciarse.
+
+NOTAS
+- Los archivos .bak se crean automáticamente dentro de data. No hace falta abrirlos ni editarlos.
+- Si Metro no conserva el historial del set, VoleyInsight avisará y no modificará la anotación.
+- La advertencia del test sobre el salto 1-1 a 2-2 es una prueba intencional.

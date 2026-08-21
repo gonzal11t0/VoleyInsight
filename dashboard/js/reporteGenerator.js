@@ -48,7 +48,7 @@ export class ReporteGenerator {
         const metadataReporte = {
             type: 'voleyinsight-report',
             schema: 'comparison-v1',
-            version: '3.0.6',
+            version: '3.1.2',
             generatedAt: reportMetadata.generatedAt || new Date().toISOString(),
             displayDate: reportMetadata.displayDate || fechaHora || '',
             matchId: reportMetadata.matchId ?? null,
@@ -210,7 +210,7 @@ export class ReporteGenerator {
 </head>
 <body>
     <script id="voleyInsightReportData" type="application/json">${metadataJson}</script>
-    <div class="container" data-version="3.0.6" data-metric-schema="standard-v1" data-sideout-home="${sideoutHome}" data-sideout-away="${sideoutAway}" data-breakpoint-home="${breakpointHome}" data-breakpoint-away="${breakpointAway}" data-service-home="${serviceEfficiencyHome}" data-service-away="${serviceEfficiencyAway}">
+    <div class="container" data-version="3.1.2" data-metric-schema="standard-v1" data-sideout-home="${sideoutHome}" data-sideout-away="${sideoutAway}" data-breakpoint-home="${breakpointHome}" data-breakpoint-away="${breakpointAway}" data-service-home="${serviceEfficiencyHome}" data-service-away="${serviceEfficiencyAway}">
         <div style="text-align:center;margin:20px 0;">
             <button id="btnDescargarPDF" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:60px;padding:12px 24px;font-size:16px;font-weight:bold;cursor:pointer;">📄 DESCARGAR REPORTE EN PDF</button>
         </div>
@@ -472,7 +472,7 @@ export class ReporteGenerator {
                 </div>
             </div>
         </div>
-        <div class="footer">VoleyInsight v3.0.6 · Preparación anticipada de partidos · Informe generado ${fechaHora}</div>
+        <div class="footer">VoleyInsight v3.1.2 · Credenciales privadas y persistencia protegida · Informe generado ${fechaHora}</div>
     </div>
     <script>
         const eficienciaData = ${JSON.stringify(eficienciaPorSet)};

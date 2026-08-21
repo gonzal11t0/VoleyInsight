@@ -13,6 +13,7 @@ const {
     validarConfiguracionPartido,
     validarConfiguracionPendiente,
     aplicarPartidoActivo,
+    finalizarPartidoActivo,
     obtenerEstadoCancha,
     evaluarPreparacion
 } = require('../src/core/preparationStatus.js');
@@ -158,6 +159,16 @@ assert.deepEqual(obtenerPartidosPreparados(activadoDesdePreparados).map(partido 
 
 const sinSegundoPreparado = quitarPartidoPreparado(conDosPreparados, 277501);
 assert.deepEqual(obtenerPartidosPreparados(sinSegundoPreparado).map(partido => partido.id), [277500]);
+
+const sinPartidoActivo = finalizarPartidoActivo(conDosPreparados);
+assert.equal(sinPartidoActivo.matchId, undefined, 'finalizar debe dejar el sistema sin partido activo');
+assert.equal(sinPartidoActivo.homeTeam, undefined);
+assert.equal(sinPartidoActivo.partidos.at(-1).id, 277134,
+    'el partido finalizado debe conservarse en el historial');
+assert.equal(sinPartidoActivo.partidos.at(-1).estado, 'finalizado');
+assert.deepEqual(obtenerPartidosPreparados(sinPartidoActivo).map(partido => partido.id), [277500, 277501],
+    'finalizar el activo no debe borrar los próximos partidos');
+assert.throws(() => finalizarPartidoActivo({}), /no hay un partido activo/i);
 assert.throws(
     () => guardarPartidoPreparado(configConHistorialViejo, { id: 277134 }),
     /ya es el partido activo/i

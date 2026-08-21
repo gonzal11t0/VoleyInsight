@@ -17,7 +17,11 @@ tracker.log
 # Datos generados por partidos y por el tracker
 data/*.json
 data/*.csv
+data/*.bak
+data/*.tmp
+data/*.old
 data/api_url.txt
+data/.auth_secret
 voleyinsight-*.json
 
 # Reportes e informes locales generados en la raiz

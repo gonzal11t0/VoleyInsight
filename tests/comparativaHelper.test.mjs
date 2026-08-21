@@ -10,7 +10,8 @@ const {
     extraerFechaReporte,
     generarConclusiones,
     prepararComparativa,
-    reporteDesdeMetadata
+    reporteDesdeMetadata,
+    seleccionarEquipoObjetivo
 } = helper;
 
 assert.equal(
@@ -95,14 +96,25 @@ const mismoCruce = [
     legacy({ archivo: 'reporte_AB_2026-08-01T20-00-00.html', home: 'A', away: 'B' }),
     legacy({ archivo: 'reporte_AB_2026-08-02T20-00-00.html', home: 'A', away: 'B' })
 ];
-assert.equal(prepararComparativa(mismoCruce).codigo, 'team-required');
+assert.equal(prepararComparativa(mismoCruce).equipo, 'A', 'sin ATTITUDE se debe seguir al equipo local del primer informe');
 assert.equal(prepararComparativa(mismoCruce, 'B').serie[0].lado, 'away');
 
 const categoriasDistintas = prepararComparativa([
     legacy({ archivo: 'reporte_1_2026-08-01T20-00-00.html', home: 'ACQUA', away: 'A', categoria: 'sub_14' }),
     legacy({ archivo: 'reporte_2_2026-08-02T20-00-00.html', home: 'ACQUA', away: 'B', categoria: 'sub_16' })
 ]);
-assert.equal(categoriasDistintas.codigo, 'category-mismatch');
+assert.equal(categoriasDistintas.ok, true);
+assert.match(categoriasDistintas.advertencias.join(' '), /categorías diferentes|mezclaron categorías/i);
+
+const attitudeLocal = legacy({ archivo: 'attitude_local.html', home: 'ATTITUDE', away: 'A' });
+const attitudeVisitante = legacy({ archivo: 'attitude_visitante.html', home: 'B', away: 'Attitude' });
+const informeAjeno = legacy({ archivo: 'ajeno.html', home: 'C', away: 'D' });
+assert.equal(seleccionarEquipoObjetivo([attitudeLocal, attitudeVisitante, informeAjeno]), 'ATTITUDE');
+const comparativaAttitude = prepararComparativa([attitudeLocal, informeAjeno, attitudeVisitante]);
+assert.equal(comparativaAttitude.ok, true);
+assert.equal(comparativaAttitude.serie.length, 2);
+assert.equal(comparativaAttitude.serie[1].lado, 'away');
+assert.ok(comparativaAttitude.descartados.includes(informeAjeno));
 
 const duplicadoViejo = legacy({ archivo: 'reporte_1_2026-08-01T20-00-00.html', home: 'ACQUA', away: 'A', matchId: 123 });
 const duplicadoNuevo = legacy({ archivo: 'reporte_1_2026-08-02T20-00-00.html', home: 'ACQUA', away: 'A', matchId: 123 });

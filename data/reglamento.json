@@ -7,6 +7,7 @@
       "sub_13": { "nombre": "Sub-13", "max_sets": 3, "puntos_por_set": 15, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
       "sub_14": { "nombre": "Sub-14", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
       "sub_15": { "nombre": "Sub-15", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
+      "sub_16": { "nombre": "Sub-16", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
       "sub_17": { "nombre": "Sub-17", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },
       "sub_18": { "nombre": "Sub-18", "max_sets": 5, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 3 },
       "sub_19": { "nombre": "Sub-19", "max_sets": 3, "puntos_por_set": 25, "set_decisivo_puntos": 15, "sets_para_ganar": 2 },

@@ -125,7 +125,7 @@ export class AnotadorManager {
 
     async cargarConfiguracion() {
         try {
-            const response = await fetch('/data/config.json');
+            const response = await fetch('/api/config');
             if (response.ok) {
                 const configData = await response.json();
                 this.matchIdActual = configData.matchId;

@@ -1,5 +1,5 @@
 // Service Worker para recursos estáticos y funcionamiento offline.
-const CACHE_NAME = 'voleyinsight-v3.0.6-panel-flotante-partidos';
+const CACHE_NAME = 'voleyinsight-v3.1.2-seguridad';
 const STATIC_ASSETS = [
     '/dashboard/index.html',
     '/dashboard/css/styles.css',
@@ -9,6 +9,8 @@ const STATIC_ASSETS = [
     '/dashboard/js/metricasVoleyHelper.js',
     '/dashboard/js/partidoHelper.js',
     '/dashboard/js/comparativaHelper.js',
+    '/dashboard/js/setSummaryHelper.js',
+    '/dashboard/js/timeoutHelper.js',
     '/dashboard/js/reporteGenerator.js',
     '/dashboard/js/StatsHelper.js',
     '/dashboard/js/utils.js',

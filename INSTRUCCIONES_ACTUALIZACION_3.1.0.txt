@@ -1,0 +1,26 @@
+VOLEYINSIGHT v3.1.0 - ACTUALIZACION PROFESIONAL
+
+1. Cerrá las ventanas del servidor, tracker y Cloudflare.
+2. Conservá tu ZIP de respaldo actual.
+3. Copiá el contenido de esta actualización sobre C:\Users\User\Desktop\VoleyInsight.
+4. Ejecutá: npm test
+5. Iniciá el sistema con iniciar-partido.bat.
+6. Entrá como Operador o Público con la contraseña configurada en tu archivo .env.
+
+CAMBIOS PRINCIPALES
+- Sesiones reales firmadas por 30 días y cierre de sesión.
+- Roles Operador y Público. El público no ve Anotador, Comparar, Guardar ni administración.
+- Motor de eventos con ID, control de duplicados, corrección y anulación individual.
+- Recuperación automática de puntos omitidos usando la secuencia oficial de Metro.
+- Comparación de hasta 5 informes, siguiendo ATTITUDE aunque juegue de visitante.
+- Resumen automático al finalizar cada set.
+- Perfil del club configurable desde el panel.
+- Finalización segura del partido activo: conserva datos y deja el tracker en espera.
+- Duplicados de timeout filtrados.
+- Mejor cobertura de pruebas automáticas.
+
+NOTAS
+- La contraseña distingue mayúsculas y minúsculas.
+- Las contraseñas pueden cambiarse con las variables del archivo .env.example.
+- No borres data/config.json ni los archivos de partidos.
+- La advertencia del test sobre el salto 1-1 a 2-2 es una prueba intencional.

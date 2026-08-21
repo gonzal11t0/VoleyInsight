@@ -162,6 +162,30 @@ export function detectarEquiposComunes(reportes) {
     return [...comunes];
 }
 
+export function contarPresenciasEquipos(reportes = []) {
+    const presencias = new Map();
+    reportes.forEach(reporte => {
+        [reporte?.homeTeam, reporte?.awayTeam]
+            .map(normalizarNombreEquipo)
+            .filter(Boolean)
+            .forEach(equipo => presencias.set(equipo, (presencias.get(equipo) || 0) + 1));
+    });
+    return presencias;
+}
+
+export function seleccionarEquipoObjetivo(reportes = [], equipoPreferido = 'ATTITUDE') {
+    const presencias = contarPresenciasEquipos(reportes);
+    const preferido = normalizarNombreEquipo(equipoPreferido);
+    if (preferido && (presencias.get(preferido) || 0) >= 2) return preferido;
+
+    const localPrimero = normalizarNombreEquipo(reportes[0]?.homeTeam);
+    if (localPrimero && (presencias.get(localPrimero) || 0) >= 2) return localPrimero;
+
+    return [...presencias.entries()]
+        .filter(([, cantidad]) => cantidad >= 2)
+        .sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+}
+
 function claveReporte(reporte) {
     if (reporte.matchId) return `match:${reporte.matchId}`;
     return [
@@ -198,9 +222,10 @@ function orientarReporte(reporte, equipoNormalizado) {
 }
 
 export function prepararComparativa(reportes, equipoPreferido = null) {
-    const descartados = reportes.filter(reporte => !reporte.metricasCompatibles || reporte.estado === 'partial');
+    const limite = Array.isArray(reportes) ? reportes.slice(0, 5) : [];
+    const descartados = limite.filter(reporte => !reporte.metricasCompatibles || reporte.estado === 'partial');
     const elegibles = deduplicarReportes(
-        reportes.filter(reporte => reporte.metricasCompatibles && reporte.estado !== 'partial')
+        limite.filter(reporte => reporte.metricasCompatibles && reporte.estado !== 'partial')
     );
     if (elegibles.length < 2) {
         return {
@@ -211,42 +236,27 @@ export function prepararComparativa(reportes, equipoPreferido = null) {
             equiposComunes: detectarEquiposComunes(elegibles)
         };
     }
-    const equiposComunes = detectarEquiposComunes(elegibles);
-    if (!equiposComunes.length) {
-        return {
-            ok: false,
-            codigo: 'no-common-team',
-            mensaje: 'Los informes no tienen un equipo en común.',
-            descartados,
-            equiposComunes
-        };
-    }
+    const presencias = contarPresenciasEquipos(elegibles);
+    const equiposComunes = [...presencias.entries()]
+        .filter(([, cantidad]) => cantidad >= 2)
+        .map(([equipo]) => equipo);
     const preferido = normalizarNombreEquipo(equipoPreferido);
-    const equipo = equiposComunes.includes(preferido)
-        ? preferido
-        : equiposComunes.length === 1
-            ? equiposComunes[0]
-            : null;
+    const equipo = seleccionarEquipoObjetivo(elegibles, preferido || 'ATTITUDE');
     if (!equipo) {
         return {
             ok: false,
-            codigo: 'team-required',
-            mensaje: 'Elegí cuál de los dos equipos querés comparar.',
+            codigo: 'no-common-team',
+            mensaje: 'No hay un mismo equipo presente en al menos dos informes.',
             descartados,
             equiposComunes
         };
     }
-    const categorias = [...new Set(elegibles.map(reporte => reporte.categoria).filter(Boolean))];
-    if (categorias.length > 1) {
-        return {
-            ok: false,
-            codigo: 'category-mismatch',
-            mensaje: `Hay categorías diferentes: ${categorias.join(', ')}.`,
-            descartados,
-            equiposComunes
-        };
-    }
-    const serie = elegibles
+    const relacionados = elegibles.filter(reporte => [reporte.homeTeam, reporte.awayTeam]
+        .map(normalizarNombreEquipo)
+        .includes(equipo));
+    descartados.push(...elegibles.filter(reporte => !relacionados.includes(reporte)));
+    const categorias = [...new Set(relacionados.map(reporte => reporte.categoria).filter(Boolean))];
+    const serie = relacionados
         .map(reporte => orientarReporte(reporte, equipo))
         .sort((a, b) => {
             const fechaA = Date.parse(a.generatedAt || '');
@@ -263,12 +273,18 @@ export function prepararComparativa(reportes, equipoPreferido = null) {
     if (serie.some(reporte => !reporte.categoria)) {
         advertencias.push('Algunos informes anteriores no incluyen categoría.');
     }
+    if (categorias.length > 1) {
+        advertencias.push(`Se mezclaron categorías (${categorias.join(', ')}); interpretá la tendencia con cautela.`);
+    }
+    if (Array.isArray(reportes) && reportes.length > 5) {
+        advertencias.push('Se analizaron los primeros 5 informes seleccionados.');
+    }
     return {
         ok: true,
         serie,
         equipo,
         equipoNombre: serie[0].equipo,
-        categoria: categorias[0] || null,
+        categoria: categorias.length === 1 ? categorias[0] : null,
         descartados,
         equiposComunes,
         advertencias

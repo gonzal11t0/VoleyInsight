@@ -115,7 +115,7 @@ const metadataMatch = html.match(/<script id="voleyInsightReportData" type="appl
 assert.ok(metadataMatch, 'el informe debe incluir metadatos estables para comparación');
 const metadata = JSON.parse(metadataMatch[1]);
 assert.equal(metadata.schema, 'comparison-v1');
-assert.equal(metadata.version, '3.0.6');
+assert.equal(metadata.version, '3.1.2');
 assert.equal(metadata.status, 'final');
 assert.equal(metadata.matchId, 230512);
 assert.equal(metadata.category, 'sub_14');

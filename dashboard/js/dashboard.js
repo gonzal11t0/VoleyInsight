@@ -29,6 +29,8 @@ import {
     prepararComparativa,
     reporteDesdeMetadata
 } from './comparativaHelper.js';
+import { buildSetSummary } from './setSummaryHelper.js';
+import { deduplicateTimeouts } from './timeoutHelper.js';
 
 export class VolleyballDashboard {
     constructor() {
@@ -54,6 +56,7 @@ export class VolleyballDashboard {
         this.jugadoresVisitante = {};
         this.formacionInicialPorSet = {};
         this.reportesCargados = [];
+        this.clubProfile = { mainTeam: 'ATTITUDE', clubName: 'ATTITUDE' };
         this.chartEvolucion = null;
         this.refreshInterval = null;
         this.ultimoPuntoSonido = null;
@@ -446,8 +449,9 @@ export class VolleyballDashboard {
     actualizarControlesSelectorPartido() {
         const btn = document.getElementById('cargarPartidoBtn');
         const quitarBtn = document.getElementById('quitarPartidoPreparadoBtn');
+        const finalizarBtn = document.getElementById('finalizarPartidoActivoBtn');
         const selector = document.getElementById('partidoSelector');
-        if (!btn || !quitarBtn || !selector) return;
+        if (!btn || !quitarBtn || !finalizarBtn || !selector) return;
         const { tipo } = this.obtenerPartidoSeleccionado();
         const esActivo = tipo === 'activo' && Number(selector.value) === Number(this.matchId);
         btn.disabled = esActivo || !selector.value;
@@ -459,6 +463,7 @@ export class VolleyballDashboard {
                 ? '✓ PARTIDO ACTIVO'
                 : '📋 CARGAR PARTIDO';
         quitarBtn.classList.toggle('hidden', tipo !== 'preparado');
+        finalizarBtn.classList.toggle('hidden', tipo !== 'activo');
     }
 
     setupPanelMinimizable() {
@@ -496,8 +501,9 @@ export class VolleyballDashboard {
     setupSelectorPartido() {
         const btn = document.getElementById('cargarPartidoBtn');
         const quitarBtn = document.getElementById('quitarPartidoPreparadoBtn');
+        const finalizarBtn = document.getElementById('finalizarPartidoActivoBtn');
         const selector = document.getElementById('partidoSelector');
-        if (!btn || !quitarBtn || !selector) return;
+        if (!btn || !quitarBtn || !finalizarBtn || !selector) return;
         selector.addEventListener('change', () => this.actualizarControlesSelectorPartido());
         btn.addEventListener('click', async () => {
             const nuevoId = parseInt(selector.value);
@@ -565,6 +571,26 @@ export class VolleyballDashboard {
                 this.actualizarControlesSelectorPartido();
             }
         });
+
+        finalizarBtn.addEventListener('click', async () => {
+            const { tipo, partido } = this.obtenerPartidoSeleccionado();
+            if (tipo !== 'activo' || !partido) return;
+            if (!window.confirm(`¿Finalizar ${partido.id}: ${partido.homeTeam} vs ${partido.awayTeam}?\n\nEl tracker quedará en espera y los datos se conservarán.`)) return;
+            finalizarBtn.disabled = true;
+            finalizarBtn.textContent = 'FINALIZANDO…';
+            try {
+                const apiUrl = await this.obtenerUrlApi();
+                const response = await fetch(`${apiUrl}/api/preparation/active`, { method: 'DELETE' });
+                const resultado = await response.json();
+                if (!response.ok) throw new Error(resultado.error || 'No se pudo finalizar el partido activo.');
+                this.mostrarFeedbackPartido('✅ Partido finalizado. Tracker en espera.');
+                setTimeout(() => window.location.reload(), 700);
+            } catch (error) {
+                this.mostrarFeedbackPartido(`❌ ${error.message}`);
+                finalizarBtn.disabled = false;
+                finalizarBtn.textContent = '🏁 FINALIZAR ACTIVO';
+            }
+        });
     }
 
     setupReportUpload() {
@@ -604,7 +630,14 @@ export class VolleyballDashboard {
             vacio.textContent = 'Seleccioná archivos HTML de informes VoleyInsight.';
             reportList.appendChild(vacio);
         }
-        for (const file of files) {
+        const seleccionados = files.slice(0, 5);
+        if (files.length > 5) {
+            const aviso = document.createElement('div');
+            aviso.className = 'text-xs text-amber-300 rounded-lg bg-amber-900/20 p-2';
+            aviso.textContent = 'Se usarán los primeros 5 informes seleccionados.';
+            reportList.appendChild(aviso);
+        }
+        for (const file of seleccionados) {
             try {
                 const text = await file.text();
                 const parser = new DOMParser();
@@ -749,7 +782,8 @@ export class VolleyballDashboard {
         const selectorContenedor = document.getElementById('equipoCompararContenedor');
         const selector = document.getElementById('equipoCompararSelector');
         if (!analizarBtn || !estadoElem || !selector || !selectorContenedor) return;
-        let comparativa = prepararComparativa(this.reportesCargados, selector.value || null);
+        const preferido = selector.value || this.clubProfile?.mainTeam || 'ATTITUDE';
+        let comparativa = prepararComparativa(this.reportesCargados, preferido);
         const opcionesAnteriores = Array.from(selector.options).map(opcion => opcion.value).filter(Boolean);
         if (comparativa.equiposComunes?.length > 1) {
             selectorContenedor.classList.remove('hidden');
@@ -758,8 +792,9 @@ export class VolleyballDashboard {
             if (debenActualizarse) {
                 selector.replaceChildren(new Option('Elegí un equipo', ''));
                 comparativa.equiposComunes.forEach(equipo => selector.add(new Option(equipo, equipo)));
+                if (comparativa.equipo) selector.value = comparativa.equipo;
             }
-            comparativa = prepararComparativa(this.reportesCargados, selector.value || null);
+            comparativa = prepararComparativa(this.reportesCargados, selector.value || preferido);
         } else {
             selectorContenedor.classList.add('hidden');
             selector.replaceChildren(new Option('', ''));
@@ -782,7 +817,10 @@ export class VolleyballDashboard {
         const equipoSelector = document.getElementById('equipoCompararSelector');
         if (!resultados || this.reportesCargados.length === 0) return;
         resultados.classList.remove('hidden');
-        const comparativa = prepararComparativa(this.reportesCargados, equipoSelector?.value || null);
+        const comparativa = prepararComparativa(
+            this.reportesCargados,
+            equipoSelector?.value || this.clubProfile?.mainTeam || 'ATTITUDE'
+        );
         if (!comparativa.ok) {
             resumenElem.textContent = comparativa.mensaje;
             fortalezasElem.replaceChildren();
@@ -952,7 +990,8 @@ export class VolleyballDashboard {
     async cargarTimeouts() {
         const timeoutsKey = `timeouts_${this.matchId}`;
         const timeoutsGuardados = localStorage.getItem(timeoutsKey);
-        this.timeouts = timeoutsGuardados ? JSON.parse(timeoutsGuardados) : [];
+        this.timeouts = deduplicateTimeouts(timeoutsGuardados ? JSON.parse(timeoutsGuardados) : []);
+        localStorage.setItem(timeoutsKey, JSON.stringify(this.timeouts));
         this.actualizarVistaTimeouts();
     }
 
@@ -1136,6 +1175,7 @@ export class VolleyballDashboard {
         if (!datosParaSets?.length && this.puntosJugadores?.length) datosParaSets = this.puntosJugadores;
         if (!datosParaSets?.length) {
             container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>';
+            document.getElementById('resumenUltimoSet')?.classList.add('hidden');
             return;
         }
         const setsMap = new Map();
@@ -1159,6 +1199,7 @@ export class VolleyballDashboard {
         }
         if (!hasValidData) {
             container.innerHTML = '<div class="text-gray-500 text-xs">Esperando datos del partido...</div>';
+            document.getElementById('resumenUltimoSet')?.classList.add('hidden');
             return;
         }
         const setsArray = Array.from(setsMap.keys()).sort((a, b) => a - b);
@@ -1199,9 +1240,36 @@ export class VolleyballDashboard {
                 <div class="text-white font-bold text-base md:text-lg">${campeon} Ganador</div>
                 <div class="text-gray-400 text-xs">Sets: ${marcadorSets}</div>
             </div>`;
+            this.actualizarResumenUltimoSet();
             return;
         }
         container.innerHTML = setsHtml || '<div class="text-gray-500 text-xs">No hay datos de sets</div>';
+        this.actualizarResumenUltimoSet();
+    }
+
+    actualizarResumenUltimoSet() {
+        const card = document.getElementById('resumenUltimoSet');
+        if (!card) return;
+        const summary = buildSetSummary({
+            officialPoints: this.data,
+            manualPoints: this.puntosJugadores,
+            config: this.configSets,
+            homeTeam: this.homeTeamName,
+            awayTeam: this.awayTeamName,
+            homeNames: this.jugadoresLocal,
+            awayNames: this.jugadoresVisitante
+        });
+        if (!summary) {
+            card.classList.add('hidden');
+            return;
+        }
+        card.classList.remove('hidden');
+        document.getElementById('resumenSetTitulo').textContent = `Resumen automático · Set ${summary.set}`;
+        document.getElementById('resumenSetMarcador').textContent = `${summary.winner} ganó ${summary.home}-${summary.away}`;
+        document.getElementById('resumenSetFigura').textContent = summary.topScorer
+            ? `Figura registrada: ${summary.topScorer.name} · ${summary.topScorer.points} pts`
+            : 'Sin puntos atribuidos a una jugadora o jugador.';
+        document.getElementById('resumenSetCobertura').textContent = `Cobertura manual: ${summary.manualPoints}/${summary.expectedPoints} (${summary.coverage}%)`;
     }
 
     calcularSetsGanados(setsMap) {
@@ -1223,7 +1291,16 @@ export class VolleyballDashboard {
 
     async cargarConfiguracion() {
         try {
-            const response = await fetch('/data/config.json');
+            const [response, profileResponse] = await Promise.all([
+                fetch('/api/config'),
+                fetch('/api/club-profile').catch(() => null)
+            ]);
+            if (profileResponse?.ok) {
+                const profilePayload = await profileResponse.json();
+                this.clubProfile = profilePayload.data || profilePayload;
+                document.documentElement.style.setProperty('--club-primary', this.clubProfile.primaryColor || '#2563eb');
+                document.documentElement.style.setProperty('--club-secondary', this.clubProfile.secondaryColor || '#7c3aed');
+            }
             if (response.ok) {
                 const config = await response.json();
                 this.matchId = config.matchId;

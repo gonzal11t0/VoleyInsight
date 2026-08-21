@@ -180,6 +180,33 @@ function aplicarPartidoActivo(config = {}, partido = {}) {
     return siguiente;
 }
 
+function finalizarPartidoActivo(config = {}) {
+    const matchId = normalizarMatchId(config.matchId);
+    if (!matchId) throw new Error('No hay un partido activo para finalizar.');
+
+    const registro = {
+        id: matchId,
+        homeTeam: normalizarNombreEquipo(config.homeTeam) || 'LOCAL',
+        awayTeam: normalizarNombreEquipo(config.awayTeam) || 'VISITANTE',
+        metroStatus: String(config.metroStatus || 'unverified').trim(),
+        estado: 'finalizado'
+    };
+    const categoria = String(config.categoria || '').trim();
+    if (categoria) registro.categoria = categoria;
+
+    const siguiente = {
+        ...config,
+        partidos: actualizarHistorialPartidos(config.partidos, registro),
+        partidosPreparados: obtenerPartidosPreparados(config)
+    };
+    delete siguiente.matchId;
+    delete siguiente.homeTeam;
+    delete siguiente.awayTeam;
+    delete siguiente.categoria;
+    delete siguiente.metroStatus;
+    return siguiente;
+}
+
 function obtenerCancha(data = {}) {
     return data?.court || data?.liveState?.court || null;
 }
@@ -323,6 +350,7 @@ module.exports = {
     validarConfiguracionPartido,
     validarConfiguracionPendiente,
     aplicarPartidoActivo,
+    finalizarPartidoActivo,
     obtenerCancha,
     obtenerEstadoCancha,
     obtenerEquipos,

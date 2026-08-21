@@ -3,6 +3,7 @@ const MatchTracker = require('./src/core/tracker');
 const logger = require('./src/utils/logger');
 const fs = require('fs');
 const path = require('path');
+const { obtenerMatchIdActivo } = require('./src/core/trackerActiveState');
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
@@ -12,25 +13,42 @@ process.on('uncaughtException', (error) => {
     console.error('❌ Uncaught Exception:', error);
 });
 
-let matchId = 257929;
-try {
+function leerMatchIdActivo() {
+  try {
     const configPath = path.join(__dirname, 'data', 'config.json');
     if (fs.existsSync(configPath)) {
         const configData = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-        matchId = configData.matchId;
-        console.log(`📌 Tracker usando matchId: ${matchId} (desde config.json)`);
-    } else {
-        console.log('⚠️ No se encontró data/config.json, usando ID por defecto: 257929');
+        return obtenerMatchIdActivo(configData);
     }
-} catch(e) {
-    console.log('⚠️ Error leyendo config.json, usando ID por defecto');
+  } catch (error) {
+    logger.warn('No se pudo leer data/config.json', { error: error.message });
+  }
+  return null;
 }
 
-const tracker = new MatchTracker(matchId);
+let tracker = null;
+let esperandoAvisado = false;
+
+async function iniciarCuandoHayaPartido() {
+    while (!tracker) {
+        const matchId = leerMatchIdActivo();
+        if (matchId) {
+            console.log(`📌 Tracker usando matchId: ${matchId} (desde config.json)`);
+            tracker = new MatchTracker(matchId);
+            await tracker.start();
+            return;
+        }
+        if (!esperandoAvisado) {
+            logger.info('⏸️ No hay partido activo. Tracker en espera hasta que se active uno desde el panel.');
+            esperandoAvisado = true;
+        }
+        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+}
 
 const shutdown = async (signal) => {
     logger.info(`Received ${signal}, shutting down...`);
-    await tracker.stop();
+    if (tracker) await tracker.stop();
     process.exit(0);
 };
 
@@ -38,4 +56,4 @@ process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 logger.info('🚀 Starting Metro Vóley Tracker...');
-tracker.start();
+iniciarCuandoHayaPartido();

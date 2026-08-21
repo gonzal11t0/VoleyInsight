@@ -1,12 +1,20 @@
 // server-api.js - Servidor Express con API REST + WebSocket
+require('dotenv').config();
+
 const cors = require('cors');
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
 const http = require('http');
 const socketIo = require('socket.io');
+const crypto = require('crypto');
 const { version: APP_VERSION } = require('./package.json');
 const MetroVoleyAPI = require('./src/services/api');
+const DataRepository = require('./src/repositories/dataRepository');
+const {
+    readJsonRecoverable,
+    writeJsonAtomic
+} = require('./src/utils/atomicFile');
 const {
     enriquecerPuntosManuales,
     enriquecerSnapshotsOficiales
@@ -23,10 +31,30 @@ const {
     quitarPartidoPreparado,
     validarConfiguracionPartido,
     aplicarPartidoActivo,
+    finalizarPartidoActivo,
     obtenerEstadoCancha,
     obtenerEquipos,
     evaluarPreparacion
 } = require('./src/core/preparationStatus');
+const {
+    createSessionToken,
+    validatePassword,
+    serializeSessionCookie,
+    serializeExpiredCookie,
+    readSessionFromRequest
+} = require('./src/core/auth');
+const { LoginGuard } = require('./src/core/loginGuard');
+const { loadAuthPasswords } = require('./src/core/authConfig');
+const {
+    activeEvents,
+    normalizeLegacyEvents,
+    appendEvent,
+    updateEvent,
+    voidEvent,
+    recoveryStatus,
+    createRecoveryEvents,
+    coverageBySet
+} = require('./src/core/eventEngine');
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('❌ Unhandled Rejection:', reason);
@@ -39,7 +67,7 @@ process.on('uncaughtException', (error) => {
 const app = express();
 const corsOptions = {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 };
@@ -69,25 +97,136 @@ const PORT = process.env.PORT || 5501;
 const connectedClients = new Map();
 const CONFIG_PATH = path.join(__dirname, 'data', 'config.json');
 const REGLAMENTO_PATH = path.join(__dirname, 'data', 'reglamento.json');
+const AUTH_SECRET_PATH = path.join(__dirname, 'data', '.auth_secret');
+const CLUB_PROFILE_PATH = path.join(__dirname, 'data', 'club-profile.json');
+const AUTH_PASSWORDS = loadAuthPasswords(process.env);
+let authSecretPromise = null;
+const loginGuard = new LoginGuard();
+const puntosLocks = new Map();
+
+async function obtenerSecretoAuth() {
+    if (!authSecretPromise) {
+        authSecretPromise = (async () => {
+            if (process.env.VOLEY_SESSION_SECRET) return process.env.VOLEY_SESSION_SECRET;
+            const existente = await fs.readFile(AUTH_SECRET_PATH, 'utf-8').catch(() => '');
+            if (existente.trim()) return existente.trim();
+            const generado = crypto.randomBytes(48).toString('hex');
+            await fs.mkdir(path.dirname(AUTH_SECRET_PATH), { recursive: true });
+            await fs.writeFile(AUTH_SECRET_PATH, `${generado}\n`, { encoding: 'utf-8', mode: 0o600 });
+            return generado;
+        })();
+    }
+    return authSecretPromise;
+}
+
+function esConexionSegura(req) {
+    return req.secure || String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https';
+}
+
+function esDireccionLocal(value) {
+    const address = String(value || '').toLowerCase();
+    return address === '127.0.0.1'
+        || address === '::1'
+        || address === '::ffff:127.0.0.1';
+}
+
+function esSolicitudDirectaLocal({ address, headers = {} } = {}) {
+    return esDireccionLocal(address)
+        && !headers['cf-connecting-ip']
+        && !headers['x-forwarded-for'];
+}
+
+async function cargarSesion(req) {
+    return readSessionFromRequest(req, await obtenerSecretoAuth());
+}
+
+async function requireAuthenticated(req, res, next) {
+    const session = await cargarSesion(req);
+    if (!session) return res.status(401).json({ success: false, error: 'Iniciá sesión para continuar.' });
+    req.session = session;
+    next();
+}
+
+async function requireOperator(req, res, next) {
+    const session = await cargarSesion(req);
+    if (!session) return res.status(401).json({ success: false, error: 'Iniciá sesión como operador.' });
+    if (session.role !== 'operator') {
+        return res.status(403).json({ success: false, error: 'Esta acción requiere acceso de operador.' });
+    }
+    req.session = session;
+    next();
+}
+
+app.post('/api/auth/login', async (req, res) => {
+    const clientKey = String(
+        req.headers['cf-connecting-ip']
+        || req.headers['x-forwarded-for']
+        || req.ip
+        || req.socket?.remoteAddress
+        || 'unknown'
+    ).split(',')[0].trim();
+    const guardStatus = loginGuard.status(clientKey);
+    if (guardStatus.blocked) {
+        const retrySeconds = Math.max(1, Math.ceil(guardStatus.retryAfterMs / 1000));
+        res.setHeader('Retry-After', String(retrySeconds));
+        return res.status(429).json({ success: false, error: `Demasiados intentos. Volvé a probar en ${Math.ceil(retrySeconds / 60)} minutos.` });
+    }
+    const role = String(req.body?.role || '').trim().toLowerCase();
+    const password = String(req.body?.password || '');
+    if (!validatePassword(role, password, AUTH_PASSWORDS)) {
+        loginGuard.failure(clientKey);
+        return res.status(401).json({ success: false, error: 'Rol o contraseña incorrectos.' });
+    }
+    loginGuard.success(clientKey);
+    const token = createSessionToken({ role }, await obtenerSecretoAuth());
+    res.setHeader('Set-Cookie', serializeSessionCookie(token, { secure: esConexionSegura(req) }));
+    res.json({ success: true, role, expiresInDays: 30 });
+});
+
+app.get('/api/auth/session', async (req, res) => {
+    const session = await cargarSesion(req);
+    if (!session) return res.status(401).json({ success: false, authenticated: false });
+    res.json({
+        success: true,
+        authenticated: true,
+        role: session.role,
+        expiresAt: new Date(session.expiresAt).toISOString()
+    });
+});
+
+app.post('/api/auth/logout', (req, res) => {
+    res.setHeader('Set-Cookie', serializeExpiredCookie({ secure: esConexionSegura(req) }));
+    res.json({ success: true });
+});
+
+app.use('/api', (req, res, next) => {
+    if (req.path === '/status' || req.path.startsWith('/auth/') || req.path === '/webhook/point') {
+        return next();
+    }
+    return requireAuthenticated(req, res, next);
+});
 
 async function leerJsonOpcional(filePath, fallback = null) {
-    try {
-        return JSON.parse(await fs.readFile(filePath, 'utf-8'));
-    } catch (error) {
-        return fallback;
-    }
+    const resultado = await readJsonRecoverable(filePath, { fallback });
+    return resultado.data;
 }
 
 async function escribirJsonSeguro(filePath, data) {
-    const temporal = `${filePath}.${process.pid}.${Date.now()}.tmp`;
-    const contenido = `${JSON.stringify(data, null, 2)}\n`;
-    await fs.writeFile(temporal, contenido, 'utf-8');
+    await writeJsonAtomic(filePath, data);
+}
+
+async function conBloqueoPuntos(matchId, tarea) {
+    const key = String(matchId);
+    const anterior = puntosLocks.get(key) || Promise.resolve();
+    let liberar;
+    const turno = new Promise(resolve => { liberar = resolve; });
+    puntosLocks.set(key, turno);
+    await anterior.catch(() => {});
     try {
-        await fs.rename(temporal, filePath);
-    } catch (error) {
-        // En algunas versiones de Windows rename no reemplaza un archivo abierto.
-        await fs.writeFile(filePath, contenido, 'utf-8');
-        await fs.unlink(temporal).catch(() => {});
+        return await tarea();
+    } finally {
+        liberar();
+        if (puntosLocks.get(key) === turno) puntosLocks.delete(key);
     }
 }
 
@@ -200,24 +339,21 @@ async function obtenerEstadoPartido(matchId) {
 
 
 async function guardarPuntosManuales(matchId, puntos) {
-    try {
-        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
-        await fs.writeFile(filePath, JSON.stringify(puntos, null, 2), 'utf-8');
-        return true;
-    } catch (e) {
-        console.error('Error guardando puntos manuales:', e.message);
-        return false;
-    }
+    const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+    await writeJsonAtomic(filePath, puntos, { validate: Array.isArray });
+    return true;
 }
 
 async function leerPuntosManuales(matchId) {
-    try {
-        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
-        const data = await fs.readFile(filePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (e) {
-        return [];
+    const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
+    const resultado = await readJsonRecoverable(filePath, {
+        fallback: [],
+        validate: Array.isArray
+    });
+    if (resultado.recovered) {
+        console.warn(`⚠️ Se recuperó puntos_manuales_${matchId}.json desde su respaldo .bak`);
     }
+    return resultado.data;
 }
 
 function rutaPlantelHistorico(matchId) {
@@ -238,31 +374,30 @@ async function guardarPlantelHistorico(matchId, plantel = {}) {
         updatedAt: new Date().toISOString(),
         ...fusionado
     };
-    await fs.writeFile(
-        rutaPlantelHistorico(matchId),
-        JSON.stringify(documento, null, 2),
-        'utf-8'
-    );
+    await writeJsonAtomic(rutaPlantelHistorico(matchId), documento);
     return documento;
 }
 
 async function leerPuntosOficiales(matchId) {
-    try {
-        const filePath = path.join(__dirname, 'data', `match_${matchId}.json`);
-        const data = await fs.readFile(filePath, 'utf-8');
-        return JSON.parse(data);
-    } catch (e) {
-        return [];
-    }
+    const repository = new DataRepository(matchId, path.join(__dirname, 'data'));
+    return repository.loadJSON();
 }
 
-async function reconciliarPuntosManuales(matchId, puntos) {
-    const oficiales = await leerPuntosOficiales(matchId);
-    const resultado = enriquecerPuntosManuales(puntos, oficiales);
-    if (resultado.cambios > 0) {
-        await guardarPuntosManuales(matchId, resultado.puntos);
-    }
-    return resultado;
+async function reconciliarPuntosManuales(matchId, puntos, { persistir = true, oficiales = null } = {}) {
+    const historialOficial = oficiales || await leerPuntosOficiales(matchId);
+    const normalizados = normalizeLegacyEvents(puntos, { matchId });
+    const activos = activeEvents(normalizados);
+    const resultado = enriquecerPuntosManuales(activos, historialOficial);
+    const enriquecidos = new Map(resultado.puntos.map(punto => [punto.eventId, punto]));
+    const todos = normalizados.map(punto => enriquecidos.get(punto.eventId) || punto);
+    const requierePersistencia = resultado.cambios > 0
+        || normalizados.some((punto, index) => punto.eventId !== puntos[index]?.eventId);
+    if (persistir && requierePersistencia) await guardarPuntosManuales(matchId, todos);
+    return {
+        ...resultado,
+        puntos: activeEvents(todos),
+        todos
+    };
 }
 
 function emitPuntoManual(matchId, punto) {
@@ -276,20 +411,35 @@ function emitPuntoManual(matchId, punto) {
 }
 
 
-app.post('/api/puntos', async (req, res) => {
+app.post('/api/puntos', requireOperator, async (req, res) => {
     try {
         const { matchId, punto } = req.body;
         if (!matchId || !punto) {
             return res.status(400).json({ success: false, error: 'Faltan datos: matchId y punto son requeridos' });
         }
 
-        const puntos = await leerPuntosManuales(matchId);
-        puntos.push(punto);
-        const resultado = await reconciliarPuntosManuales(matchId, puntos);
-        const puntoGuardado = resultado.puntos[resultado.puntos.length - 1];
-        if (resultado.cambios === 0) {
-            await guardarPuntosManuales(matchId, resultado.puntos);
+        const operacion = await conBloqueoPuntos(matchId, async () => {
+            const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
+            const agregado = appendEvent(puntos, punto, { matchId, source: 'manual' });
+            if (agregado.duplicate) return { agregado, duplicate: true };
+            const oficiales = await leerPuntosOficiales(matchId);
+            const resultado = await reconciliarPuntosManuales(matchId, agregado.events, {
+                persistir: false,
+                oficiales
+            });
+            await guardarPuntosManuales(matchId, resultado.todos);
+            const puntoGuardado = resultado.todos.find(item => item.eventId === agregado.event.eventId) || agregado.event;
+            return { agregado, resultado, puntoGuardado, duplicate: false };
+        });
+        if (operacion.duplicate) {
+            return res.status(200).json({
+                success: true,
+                duplicate: true,
+                message: 'El punto ya estaba guardado; no se duplicó.',
+                data: operacion.agregado.event
+            });
         }
+        const puntoGuardado = operacion.puntoGuardado;
         try {
             await guardarPlantelHistorico(matchId, plantelDesdePuntos([puntoGuardado]));
         } catch (errorPlantel) {
@@ -325,7 +475,7 @@ app.get('/api/plantel/:matchId', async (req, res) => {
     }
 });
 
-app.post('/api/plantel/:matchId', async (req, res) => {
+app.post('/api/plantel/:matchId', requireOperator, async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId, 10);
         if (!Number.isInteger(matchId) || matchId <= 0) {
@@ -341,8 +491,10 @@ app.post('/api/plantel/:matchId', async (req, res) => {
 app.get('/api/puntos/:matchId', async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId);
-        const puntos = await leerPuntosManuales(matchId);
-        const resultado = await reconciliarPuntosManuales(matchId, puntos);
+        const resultado = await conBloqueoPuntos(matchId, async () => {
+            const puntos = await leerPuntosManuales(matchId);
+            return reconciliarPuntosManuales(matchId, puntos);
+        });
         res.json({
             success: true,
             count: resultado.puntos.length,
@@ -357,23 +509,142 @@ app.get('/api/puntos/:matchId', async (req, res) => {
     }
 });
 
-app.delete('/api/puntos/:matchId', async (req, res) => {
+app.get('/api/puntos/:matchId/recovery', async (req, res) => {
     try {
-        const matchId = parseInt(req.params.matchId);
-        const filePath = path.join(__dirname, 'data', `puntos_manuales_${matchId}.json`);
-        await fs.unlink(filePath).catch(() => {});
-        res.json({ success: true, message: 'Puntos eliminados' });
+        const matchId = parseInt(req.params.matchId, 10);
+        const set = Math.max(1, parseInt(req.query.set, 10) || 1);
+        const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
+        const oficiales = await leerPuntosOficiales(matchId);
+        res.json({
+            success: true,
+            data: recoveryStatus(puntos, oficiales, set),
+            coverage: coverageBySet(puntos, oficiales)
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/puntos/:matchId/recovery', requireOperator, async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId, 10);
+        const set = Math.max(1, Number(req.body?.set) || 1);
+        const operacion = await conBloqueoPuntos(matchId, async () => {
+            const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
+            const oficiales = await leerPuntosOficiales(matchId);
+            const recuperacion = createRecoveryEvents(puntos, oficiales, {
+                matchId,
+                set,
+                homeRotation: req.body?.rotacionLocal,
+                awayRotation: req.body?.rotacionVisitante
+            });
+            if (!recuperacion.created.length) return { recuperacion, oficiales, reconciliado: null };
+            const reconciliado = await reconciliarPuntosManuales(matchId, recuperacion.events, {
+                persistir: false,
+                oficiales
+            });
+            await guardarPuntosManuales(matchId, reconciliado.todos);
+            return { recuperacion, oficiales, reconciliado };
+        });
+        const { recuperacion, oficiales, reconciliado } = operacion;
+        if (!recuperacion.created.length) {
+            return res.json({ success: true, created: 0, data: recuperacion.status });
+        }
+        recuperacion.created.forEach(event => emitPuntoManual(matchId, event));
+        res.json({
+            success: true,
+            created: recuperacion.created.length,
+            data: recoveryStatus(reconciliado.todos, oficiales, set),
+            points: recuperacion.created
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.patch('/api/puntos/:matchId/:eventId', requireOperator, async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId, 10);
+        const camposPermitidos = [
+            'equipo',
+            'equipoAnota',
+            'accion',
+            'jugador',
+            'jugadorNombre'
+        ];
+        const cambiosSeguros = Object.fromEntries(
+            Object.entries(req.body || {}).filter(([campo]) => camposPermitidos.includes(campo))
+        );
+        const operacion = await conBloqueoPuntos(matchId, async () => {
+            const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
+            const resultado = updateEvent(puntos, req.params.eventId, cambiosSeguros, { actor: 'operator' });
+            if (!resultado.found) return { found: false };
+            const oficiales = await leerPuntosOficiales(matchId);
+            const reconciliado = await reconciliarPuntosManuales(matchId, resultado.events, {
+                persistir: false,
+                oficiales
+            });
+            await guardarPuntosManuales(matchId, reconciliado.todos);
+            const actualizado = reconciliado.todos.find(item => item.eventId === req.params.eventId) || resultado.event;
+            return { found: true, actualizado };
+        });
+        if (!operacion.found) return res.status(404).json({ success: false, error: 'Punto no encontrado.' });
+        const actualizado = operacion.actualizado;
+        io.to(`match:${matchId}`).emit('punto_actualizado', actualizado);
+        res.json({ success: true, data: actualizado });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+app.delete('/api/puntos/:matchId/:eventId', requireOperator, async (req, res) => {
+    try {
+        const matchId = parseInt(req.params.matchId, 10);
+        const operacion = await conBloqueoPuntos(matchId, async () => {
+            const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
+            const resultado = voidEvent(puntos, req.params.eventId, { actor: 'operator' });
+            if (!resultado.found) return { found: false };
+            await guardarPuntosManuales(matchId, resultado.events);
+            return { found: true };
+        });
+        if (!operacion.found) return res.status(404).json({ success: false, error: 'Punto no encontrado.' });
+        io.to(`match:${matchId}`).emit('punto_anulado', { eventId: req.params.eventId });
+        res.json({ success: true, message: 'Punto anulado sin afectar el resto del partido.' });
     } catch (e) {
         res.status(500).json({ success: false, error: e.message });
     }
 });
 
 
+io.use(async (socket, next) => {
+    try {
+        if (esSolicitudDirectaLocal({ address: socket.handshake.address, headers: socket.handshake.headers })
+            && socket.handshake.auth?.internalTracker === true) {
+            socket.data.session = { role: 'tracker', local: true };
+            return next();
+        }
+        const session = readSessionFromRequest(
+            { headers: { cookie: socket.handshake.headers.cookie || '' } },
+            await obtenerSecretoAuth()
+        );
+        if (!session) return next(new Error('UNAUTHORIZED'));
+        socket.data.session = session;
+        next();
+    } catch (error) {
+        next(new Error('UNAUTHORIZED'));
+    }
+});
+
 io.on('connection', (socket) => {
     console.log('🔌 Cliente conectado:', socket.id);
     
     socket.on('subscribe', async (matchId) => {
+        if (socket.matchId && connectedClients.has(socket.matchId)) {
+            connectedClients.get(socket.matchId).delete(socket);
+            socket.leave(`match:${socket.matchId}`);
+        }
         socket.matchId = matchId;
+        socket.join(`match:${matchId}`);
         if (!connectedClients.has(matchId)) {
             connectedClients.set(matchId, new Set());
         }
@@ -389,18 +660,22 @@ io.on('connection', (socket) => {
     });
     
     socket.on('unsubscribe', (matchId) => {
-        if (connectedClients.has(matchId)) {
-            connectedClients.get(matchId).delete(socket);
-            if (connectedClients.get(matchId).size === 0) {
-                connectedClients.delete(matchId);
+        const targetMatchId = matchId || socket.matchId;
+        if (connectedClients.has(targetMatchId)) {
+            connectedClients.get(targetMatchId).delete(socket);
+            if (connectedClients.get(targetMatchId).size === 0) {
+                connectedClients.delete(targetMatchId);
             }
         }
-        console.log(`📡 Cliente ${socket.id} desuscrito de partido ${matchId}`);
+        if (targetMatchId) socket.leave(`match:${targetMatchId}`);
+        if (!matchId || Number(matchId) === Number(socket.matchId)) socket.matchId = null;
+        console.log(`📡 Cliente ${socket.id} desuscrito de partido ${targetMatchId}`);
     });
     
     socket.on('ping_keepalive', () => {});
 
     socket.on('partido_sin_actividad', (estado) => {
+        if (!['operator', 'tracker'].includes(socket.data.session?.role)) return;
         const matchId = estado?.matchId;
         if (!matchId || !connectedClients.has(matchId)) return;
         connectedClients.get(matchId).forEach(client => {
@@ -427,6 +702,9 @@ function emitNewPoint(matchId, pointData) {
 }
 
 app.post('/api/webhook/point', (req, res) => {
+    if (!esSolicitudDirectaLocal({ address: req.socket?.remoteAddress, headers: req.headers })) {
+        return res.status(403).json({ success: false, error: 'Webhook disponible solo para el tracker local.' });
+    }
     const { matchId, point } = req.body;
     if (matchId && point) {
         emitNewPoint(matchId, point);
@@ -649,7 +927,7 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id'] });
+    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id', 'DELETE /api/preparation/active'] });
 });
 
 app.get('/api/config', async (req, res) => {
@@ -661,7 +939,7 @@ app.get('/api/config', async (req, res) => {
     }
 });
 
-app.get('/api/preparation', async (req, res) => {
+app.get('/api/preparation', requireOperator, async (req, res) => {
     try {
         const config = await leerJsonOpcional(CONFIG_PATH, {});
         const matchId = normalizarMatchId(req.query.matchId || config.matchId);
@@ -683,7 +961,7 @@ app.get('/api/preparation', async (req, res) => {
     }
 });
 
-app.post('/api/preparation/verify', async (req, res) => {
+app.post('/api/preparation/verify', requireOperator, async (req, res) => {
     const matchId = normalizarMatchId(req.body?.matchId);
     if (!matchId) {
         return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
@@ -721,7 +999,7 @@ app.post('/api/preparation/verify', async (req, res) => {
     }
 });
 
-app.post('/api/preparation/queue', async (req, res) => {
+app.post('/api/preparation/queue', requireOperator, async (req, res) => {
     const matchId = normalizarMatchId(req.body?.matchId);
     if (!matchId) {
         return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
@@ -796,7 +1074,7 @@ app.post('/api/preparation/queue', async (req, res) => {
     }
 });
 
-app.delete('/api/preparation/queue/:id', async (req, res) => {
+app.delete('/api/preparation/queue/:id', requireOperator, async (req, res) => {
     const matchId = normalizarMatchId(req.params.id);
     if (!matchId) {
         return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
@@ -822,7 +1100,30 @@ app.delete('/api/preparation/queue/:id', async (req, res) => {
     }
 });
 
-app.post('/api/config', async (req, res) => {
+app.delete('/api/preparation/active', requireOperator, async (req, res) => {
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const matchId = normalizarMatchId(config.matchId);
+        if (!matchId) {
+            return res.status(404).json({ success: false, error: 'No hay un partido activo para finalizar.' });
+        }
+        const configActualizada = finalizarPartidoActivo(config);
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+        io.emit('pausar_partido', { matchId, source: 'preparation-panel' });
+        res.json({
+            success: true,
+            finalizedMatchId: matchId,
+            activeMatchId: null,
+            partidosPreparados: obtenerPartidosPreparados(configActualizada),
+            preservedPreviousData: true,
+            trackerPaused: true
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/config', requireOperator, async (req, res) => {
     const matchId = normalizarMatchId(req.body?.matchId);
     if (!matchId) {
         return res.status(400).json({ success: false, error: 'matchId inválido' });
@@ -917,7 +1218,36 @@ app.post('/api/config', async (req, res) => {
         });
     }
 });
-app.use(express.static('./'));
+
+app.get('/api/club-profile', async (req, res) => {
+    const profile = await leerJsonOpcional(CLUB_PROFILE_PATH, {});
+    res.json({
+        success: true,
+        data: {
+            clubName: String(profile.clubName || 'VoleyInsight'),
+            mainTeam: String(profile.mainTeam || 'ATTITUDE'),
+            logoUrl: String(profile.logoUrl || '/dashboard/logo-horizontal.png'),
+            primaryColor: String(profile.primaryColor || '#5b6ee1'),
+            secondaryColor: String(profile.secondaryColor || '#7c3aed')
+        }
+    });
+});
+
+app.put('/api/club-profile', requireOperator, async (req, res) => {
+    const cleanColor = value => /^#[0-9a-f]{6}$/i.test(String(value || '')) ? String(value) : null;
+    const profile = {
+        clubName: String(req.body?.clubName || 'VoleyInsight').trim().slice(0, 80),
+        mainTeam: String(req.body?.mainTeam || 'ATTITUDE').trim().slice(0, 80),
+        logoUrl: String(req.body?.logoUrl || '/dashboard/logo-horizontal.png').trim().slice(0, 500),
+        primaryColor: cleanColor(req.body?.primaryColor) || '#5b6ee1',
+        secondaryColor: cleanColor(req.body?.secondaryColor) || '#7c3aed',
+        updatedAt: new Date().toISOString()
+    };
+    await escribirJsonSeguro(CLUB_PROFILE_PATH, profile);
+    res.json({ success: true, data: profile });
+});
+
+app.use('/data', requireAuthenticated, express.static('./data', { dotfiles: 'deny' }));
 
 app.use('/dashboard', express.static('./dashboard'));
 

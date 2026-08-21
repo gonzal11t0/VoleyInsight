@@ -18,13 +18,18 @@ Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido
 - Servicio: aces, errores y eficiencia real, sin confundir errores de ataque.
 - Reporte HTML/PDF con gráficos, tablas por set y acumulado, rotaciones y glosario.
 - Sincronización entre dispositivos y acceso remoto mediante Cloudflare.
+- Acceso protegido por contraseña con roles Operador y Público y sesión de 30 días.
+- Recuperación exacta de puntos omitidos, corrección individual y protección contra duplicados.
+- Persistencia atómica con respaldo automático para puntos manuales e historial oficial.
+- Comparación de hasta cinco informes siguiendo automáticamente al equipo principal.
+- Gestión de partidos activos y próximos sin editar archivos JSON.
 - Soporte offline para recursos ya cargados.
 
 ## Uso operativo
 
 La instalación, configuración de Node.js, puertos, Cloudflare y archivos técnicos forman parte de la preparación del sistema y pueden quedar a cargo del operador de VoleyInsight. El entrenador o club no necesita editar código para usar el servicio durante un partido.
 
-El dashboard puede abrirse desde notebook o celular. La vista para espectadores es opcional; el foco principal es la captura y el análisis técnico.
+El dashboard puede abrirse desde notebook o celular. El modo Público muestra el análisis completo, pero oculta el anotador, la comparación, la descarga y la administración del partido.
 
 ## Inicio técnico
 
@@ -39,6 +44,11 @@ Luego se ejecuta `iniciar-partido.bat`. La pantalla inicial permite verificar y
 seleccionar el partido sin editar `data/config.json`. Si Metro todavía no habilitó
 la planilla en vivo, el partido puede prepararse anticipadamente ingresando el ID,
 los dos equipos y una categoría válida.
+
+Antes del primer inicio, copiá `.env.example` como `.env` y configurá allí las
+contraseñas privadas de Operador y Público. El archivo `.env` queda únicamente en
+el equipo de trabajo y Git no lo publica. Las claves distinguen mayúsculas de
+minúsculas.
 
 ## Reportes
 
@@ -57,7 +67,7 @@ Al finalizar, el botón **Guardar** genera un archivo independiente que conserva
 npm test
 ```
 
-Las pruebas cubren formaciones, filtros por set, rotaciones, definiciones estándar de Sideout/Breakpoint y reconstrucción de un partido real.
+Las pruebas cubren autenticación, eventos, persistencia y respaldos, recuperación, comparativas, resúmenes de set, formaciones, filtros, rotaciones, Sideout/Breakpoint y reconstrucción de saltos de marcador.
 
 ## Contacto
 
