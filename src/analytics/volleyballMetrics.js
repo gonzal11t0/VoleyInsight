@@ -93,12 +93,12 @@ class VolleyballMetrics {
         const awayC = clutch.filter(c => c.scorer === 'AWAY').length;
         const critical = clutch.filter(c => (c.homeScore >= 24 && c.homeScore > c.awayScore) || (c.awayScore >= 24 && c.awayScore > c.homeScore) || c.lead === 0);
         const homeCrit = critical.filter(c => c.scorer === 'HOME').length;
-        const awayCrit = critical.filter(c => c.scorer === 'AWAY').length;
+        const awayCrit = critical.filter(c => c.scorer  === 'AWAY').length;
         const homeEff = total > 0 ? (homeC / total * 100).toFixed(1) : 0;
         const awayEff = total > 0 ? (awayC / total * 100).toFixed(1) : 0;
         let interp = "📊 Rendimiento equilibrado bajo presión.";
         if (homeEff > 65 && awayEff < 35) interp = `🏆 ${this.homeTeam} es un equipo CLUTCH! Convierte ${homeEff}% de puntos críticos.`;
-        else if (awayEff > 65 && homeEff < 35) interp = `🏆 ${this.awayTeam} es un equipo CLUTCH! Convierte ${awayEff}% de puntos críticos.`;
+        else if (awayEff > 65 && homeEff < 35) interp = `🏆 ${this .awayTeam} es un equipo CLUTCH! Convierte ${awayEff}% de puntos críticos.`;
         else if (homeEff > 60 && awayEff > 60) interp = "💎 Ambos equipos demuestran fortaleza bajo presión.";
         else if (homeEff < 35 && awayEff < 35) interp = "⚠️ Problemas críticos: ambos equipos muestran debilidad en momentos de presión.";
         else if (critical.length > 0 && homeCrit > awayCrit + 2) interp = `🎯 ${this.homeTeam} brilla en los momentos más críticos (${homeCrit}/${critical.length} puntos clave).`;
@@ -112,7 +112,7 @@ class VolleyballMetrics {
         };
     }
 
-    calculatePhaseEfficiency() {
+       calculatePhaseEfficiency() {
         const phases = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
         this.snapshots.forEach(s => {
             if (s.scorer && phases[s.phase]) {

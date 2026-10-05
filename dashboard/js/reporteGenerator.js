@@ -309,7 +309,6 @@ export class ReporteGenerator {
         <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
         <div class="section">
             <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
-            <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenLocal.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenLocal.puntosAtribuidos || 0} · Sin atribuir: ${resumenLocal.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
@@ -338,7 +337,6 @@ export class ReporteGenerator {
         </div>
         <div class="section">
             <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
-            <p style="color:#9ca3af;margin-bottom:12px;">Equipo: ${resumenVisitante.puntosEquipo || 0} · Atribuidos a jugadoras/es: ${resumenVisitante.puntosAtribuidos || 0} · Sin atribuir: ${resumenVisitante.sinAtribuir || 0}</p>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
