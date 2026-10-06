@@ -1,5 +1,12 @@
 // dashboard/js/statsHelper.js
 
+// Convierte caracteres especiales en texto inofensivo antes de insertar
+// nombres (equipos, jugadoras) dentro de HTML.
+const REEMPLAZOS_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+export function escaparHtml(valor) {
+    return String(valor ?? '').replace(/[&<>"']/g, caracter => REEMPLAZOS_HTML[caracter]);
+}
+
 export function calcularStatsPorJugador(datos, equipo) {
     const stats = {};
     for (const punto of datos) {
@@ -239,7 +246,7 @@ export function renderizarSoloNombres(tid, jugadoresLocal, jugadoresVisitante, e
     }
     
     tb.innerHTML = ordenados.map(j => `<tr class="border-b border-gray-700/50">
-        <td class="py-2 font-medium text-xs">${j.nombre} <span class="text-gray-500 numero-jugador">(${j.num})</span></td>
+        <td class="py-2 font-medium text-xs">${escaparHtml(j.nombre)} <span class="text-gray-500 numero-jugador">(${j.num})</span></td>
         <td class="text-center">0</td>
         <td class="text-center">0/0</td>
         <td class="text-center">0</td>
@@ -281,7 +288,7 @@ export function renderizarTop5ConNombres(sl, sv, jugadoresLocal, jugadoresVisita
         <div class="flex items-center gap-2 min-w-0">
             <span class="text-xl">${medallas[idx]}</span>
             <div>
-                <span class="font-semibold break-words">${j.nombre}</span>
+                <span class="font-semibold break-words">${escaparHtml(j.nombre)}</span>
                 <span class="text-xs ml-2 px-2 py-0.5 rounded-full ${j.equipo === 'LOCAL' ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}">${j.equipo}</span>
             </div>
         </div>
@@ -326,7 +333,7 @@ export function renderizarTarjetasMoviles(containerId, stats, jugadoresMap) {
         const efServicio = saques ? (((Number(s.acesServicio) || 0) - (Number(s.erroresServicio) || 0)) / saques * 100).toFixed(1) : '0';
         return `<details class="jugador-card-movil bg-dark/40 border border-white/10 rounded-xl overflow-hidden">
             <summary class="flex items-center justify-between gap-3 p-3 cursor-pointer">
-                <span class="font-semibold text-sm">${jugador.nombre} <span class="text-gray-500">#${jugador.numero}</span></span>
+                <span class="font-semibold text-sm">${escaparHtml(jugador.nombre)} <span class="text-gray-500">#${jugador.numero}</span></span>
                 <span class="text-primary font-bold whitespace-nowrap">${Number(s.puntos) || 0} pts</span>
             </summary>
             <div class="grid grid-cols-3 gap-2 p-3 pt-0 text-center">
@@ -428,7 +435,7 @@ export function generarTablaHTMLSimple(stats, jugadoresMap) {
         }
         
         html += `<tr style="border-bottom:1px solid #374151;">
-            <td style="padding:12px;font-weight:500;">${nombre} <span style="color:#6b7280;">(${num})</span></td>
+            <td style="padding:12px;font-weight:500;">${escaparHtml(nombre)} <span style="color:#6b7280;">(${num})</span></td>
             <td style="text-align:center;font-weight:bold;color:#667eea;">${s.puntos || 0}</td>
             <td style="text-align:center;">${ataquesTexto}</td>
             <td style="text-align:center;">${s.bloqueos || 0}</td>

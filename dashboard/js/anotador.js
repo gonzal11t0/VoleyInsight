@@ -1,4 +1,10 @@
 // dashboard/js/anotador.js
+
+// Convierte caracteres especiales en texto inofensivo antes de insertar
+// nombres (equipos, jugadoras) dentro de HTML.
+const REEMPLAZOS_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escaparHtml = (valor) => String(valor ?? '').replace(/[&<>"']/g, caracter => REEMPLAZOS_HTML[caracter]);
+
 export class AnotadorManager {
     constructor() {
         this.config = { 
@@ -137,8 +143,8 @@ export class AnotadorManager {
                 const btnVisitante = document.getElementById('btnVisitante');
                 if (localLabel) localLabel.textContent = this.homeTeamName;
                 if (visitanteLabel) visitanteLabel.textContent = this.awayTeamName;
-                if (btnLocal) btnLocal.innerHTML = `🔵 ${this.homeTeamName}`;
-                if (btnVisitante) btnVisitante.innerHTML = `🔴 ${this.awayTeamName}`;
+                if (btnLocal) btnLocal.textContent = `🔵 ${this.homeTeamName}`;
+                if (btnVisitante) btnVisitante.textContent = `🔴 ${this.awayTeamName}`;
                 return this.matchIdActual;
             }
         } catch (e) {}
@@ -236,7 +242,7 @@ export class AnotadorManager {
             container.innerHTML = data.jugadores.map(n => {
                 const nombre = data.nombres?.[n] || `Jugador ${n}`;
                 const nombreCorto = nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre;
-                return `<button class="config-jugador bg-gray-700 w-auto min-w-20 h-12 px-3 rounded-xl font-bold text-xs"  data-equipo="${equipo}" data-num="${n}">${nombreCorto}</button>`;
+                return `<button class="config-jugador bg-gray-700 w-auto min-w-20 h-12 px-3 rounded-xl font-bold text-xs"  data-equipo="${equipo}" data-num="${n}">${escaparHtml(nombreCorto)}</button>`;
             }).join('');
         }
         if (liberosContainer) {
@@ -305,7 +311,7 @@ export class AnotadorManager {
     actualizarBadgeSaque() {
         const badge = document.getElementById('servingBadge');
         if (!badge) return;
-        badge.innerHTML = `🏐 SACA ${this.equipoQueSaca === 'LOCAL' ? this.homeTeamName : this.awayTeamName}`;
+        badge.textContent = `🏐 SACA ${this.equipoQueSaca === 'LOCAL' ? this.homeTeamName : this.awayTeamName}`;
         badge.style.background = this.equipoQueSaca === 'LOCAL' ? '#1e3a5f' : '#3b1e3f';
     }
 
@@ -325,7 +331,7 @@ export class AnotadorManager {
         const nombre = nombres?.[n] || `Jugador ${n}`;
         return `<button class="jugador-btn py-3 rounded-xl bg-gray-700 font-bold transition-all ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}" style="min-width: 72px; max-width: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 6px; border: none; color: white; cursor: pointer;">
             <span style="font-size: 20px; line-height: 1.2; font-weight: 700;">${n}</span>
-            <span style="font-size: 10px; opacity: 0.8; line-height: 1.3; text-align: center; margin-top: 2px;">${nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre}</span>
+            <span style="font-size: 10px; opacity: 0.8; line-height: 1.3; text-align: center; margin-top: 2px;">${escaparHtml(nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre)}</span>
         </button>`;
     }).join('');
 
@@ -368,7 +374,7 @@ export class AnotadorManager {
                 const nombreCorto = nombre.length > 12 ? nombre.substring(0,10) + '…' : nombre;
                 html += `<button class="banco-item bg-gray-700/60 hover:bg-gray-600 px-3 py-2 rounded-lg font-bold transition-all ${this.jugadorSeleccionado === n ? 'seleccionado' : ''}" data-jugador="${n}" style="min-width: 56px; max-width: 90px; font-size: 12px; word-break: break-word; border: none; color: white; cursor: pointer; text-align: center; line-height: 1.3;">
                     <span style="font-size: 16px; font-weight: 700;">${n}</span>
-                    <span style="display: block; font-size: 9px; opacity: 0.7; font-weight: normal; margin-top: 1px;">${nombreCorto}</span>
+                    <span style="display: block; font-size: 9px; opacity: 0.7; font-weight: normal; margin-top: 1px;">${escaparHtml(nombreCorto)}</span>
                 </button>`;
             });
             html += `</div></div>`;
@@ -410,9 +416,9 @@ export class AnotadorManager {
             let accionDisplay = p.accion === 'ERROR' ? '❌ ERROR' : (p.accion === 'ERROR_RIVAL' ? '❌ ERR RIVAL' : p.accion);
             let jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
             return `<div class="flex justify-between py-1 border-b border-gray-700">
-                <span class="text-${p.equipoAnota === 'LOCAL' ? 'blue' : 'red'}-400 font-bold">${p.equipoAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName}</span>
-                <span>${jugadorDisplay}</span>
-                <span class="text-gray-400">${accionDisplay}</span>
+                <span class="text-${p.equipoAnota === 'LOCAL' ? 'blue' : 'red'}-400 font-bold">${escaparHtml(p.equipoAnota === 'LOCAL' ? this.homeTeamName : this.awayTeamName)}</span>
+                <span>${escaparHtml(jugadorDisplay)}</span>
+                <span class="text-gray-400">${escaparHtml(accionDisplay)}</span>
             </div>`;
         }).join('');
     }

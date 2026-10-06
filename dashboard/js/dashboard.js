@@ -5,7 +5,7 @@ import {
     calcularStatsPorJugador, actualizarTablaConStats, renderizarSoloNombres,
     renderizarTop5ConNombres, renderizarGraficoPuntos, calcularEstadisticasServicio,
     generarTablaHTMLSimple, resumirPuntosEquipo, renderizarTarjetasMoviles,
-    fusionarNombresJugadores
+    fusionarNombresJugadores, escaparHtml
 } from './StatsHelper.js';
 import {
     calcularRotacionesPorEquipo,
@@ -31,6 +31,12 @@ import {
 } from './comparativaHelper.js';
 import { buildSetSummary } from './setSummaryHelper.js';
 import { deduplicateTimeouts } from './timeoutHelper.js';
+
+// Reemplaza los caracteres que los sistemas de archivos no admiten en un nombre.
+function nombreArchivoSeguro(texto) {
+    const prohibidos = '/\\:*?"<>|';
+    return Array.from(String(texto ?? '')).map(c => prohibidos.includes(c) ? '_' : c).join('');
+}
 
 export class VolleyballDashboard {
     constructor() {
@@ -118,6 +124,10 @@ export class VolleyballDashboard {
     } 
 
     
+
+    // Nombres de equipo listos para insertar dentro de HTML (escapados).
+    get homeTeamHtml() { return escaparHtml(this.homeTeamName); }
+    get awayTeamHtml() { return escaparHtml(this.awayTeamName); }
 
     destruirGrafico(canvasId, chartKey) {
         if (this.charts[chartKey]) {
@@ -1055,23 +1065,23 @@ export class VolleyballDashboard {
             return `<div class="bg-dark/30 rounded-lg p-3 border-l-4 ${efectividadColor}">
                 <div class="flex justify-between items-center mb-2">
                     <span class="font-bold text-primary">⏸️ TIMEOUT #${idx + 1}</span>
-                    <span class="text-xs text-gray-500">Set ${t.set} - ${new Date(t.timestamp).toLocaleTimeString()}</span>
+                    <span class="text-xs text-gray-500">Set ${escaparHtml(t.set)} - ${escaparHtml(new Date(t.timestamp).toLocaleTimeString())}</span>
                 </div>
-                <div class="text-sm mb-2">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName} pidió timeout (${t.marcador})</div>
+                <div class="text-sm mb-2">${t.equipo === 'LOCAL' ? this.homeTeamHtml : this.awayTeamHtml} pidió timeout (${escaparHtml(t.marcador)})</div>
                 <div class="grid grid-cols-2 gap-4 text-center text-xs">
                     <div class="bg-gray-800/50 rounded p-2">
                         <div class="text-gray-400 mb-1">ANTES (últimos ${t.puntosAntes?.total || 0} puntos)</div>
                         <div class="flex justify-center gap-4">
-                            <span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.local || 0}</span>
-                            <span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosAntes?.rival || 0}</span>
+                            <span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamHtml : this.awayTeamHtml}: ${t.puntosAntes?.local || 0}</span>
+                            <span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamHtml : this.awayTeamHtml}: ${t.puntosAntes?.rival || 0}</span>
                         </div>
                         <div class="text-gray-400 mt-1">Efi: ${t.eficienciaAntes || 0}%</div>
                     </div>
                     <div class="bg-gray-800/50 rounded p-2">
                         <div class="text-gray-400 mb-1">DESPUÉS (primeros ${t.puntosDespues?.total || 0} puntos)</div>
                         <div class="flex justify-center gap-4">
-                            <span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.local || 0}</span>
-                            <span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamName : this.awayTeamName}: ${t.puntosDespues?.rival || 0}</span>
+                            <span class="text-blue-400">${t.equipo === 'LOCAL' ? this.homeTeamHtml : this.awayTeamHtml}: ${t.puntosDespues?.local || 0}</span>
+                            <span class="text-red-400">${t.equipo === 'VISITANTE' ? this.homeTeamHtml : this.awayTeamHtml}: ${t.puntosDespues?.rival || 0}</span>
                         </div>
                         <div class="text-gray-400 mt-1">Efi: ${t.eficienciaDespues || 0}%</div>
                     </div>
@@ -1218,8 +1228,8 @@ export class VolleyballDashboard {
             let ganador = '',
                 ganadorColor = '';
             if (setTerminado) {
-                if (set.home > set.away) { ganador = `🏆 ${this.homeTeamName}`;
-                    ganadorColor = 'text-blue-400'; } else { ganador = `🏆 ${this.awayTeamName}`;
+                if (set.home > set.away) { ganador = `🏆 ${this.homeTeamHtml}`;
+                    ganadorColor = 'text-blue-400'; } else { ganador = `🏆 ${this.awayTeamHtml}`;
                     ganadorColor = 'text-red-400'; }
             }
             const mostrarEnCurso = esUltimoSet && !setTerminado && !this.partidoTerminado;
@@ -1233,7 +1243,7 @@ export class VolleyballDashboard {
             </div>`;
         }
         if (this.partidoTerminado) {
-            const campeon = setsGanadosLocal >= setsParaGanar ? this.homeTeamName : this.awayTeamName;
+            const campeon = setsGanadosLocal >= setsParaGanar ? this.homeTeamHtml : this.awayTeamHtml;
             const marcadorSets = `${setsGanadosLocal} - ${setsGanadosVisitante}`;
             container.innerHTML = `${setsHtml}<div class="w-full mt-3 text-center p-2 bg-green-900/30 rounded-lg border border-green-500/50">
                 <div class="text-green-400 font-bold text-sm">🏆 PARTIDO FINALIZADO 🏆</div>
@@ -1634,7 +1644,7 @@ export class VolleyballDashboard {
         const last5 = this.data.slice(-5).filter(s => s.scorer);
         const homeLast5 = last5.filter(s => s.scorer === 'HOME').length;
         const awayLast5 = last5.filter(s => s.scorer === 'AWAY').length;
-        let txt = homeLast5 > awayLast5 + 1 ? `🔥 ${this.homeTeamName} EN RACHA` : (awayLast5 > homeLast5 + 1 ? `⚡ ${this.awayTeamName} EN RACHA` : '⚖️ EQUILIBRADO');
+        let txt = homeLast5 > awayLast5 + 1 ? `🔥 ${this.homeTeamHtml} EN RACHA` : (awayLast5 > homeLast5 + 1 ? `⚡ ${this.awayTeamHtml} EN RACHA` : '⚖️ EQUILIBRADO');
         let col = homeLast5 > awayLast5 + 1 ? '#667eea' : (awayLast5 > homeLast5 + 1 ? '#f43f5e' : '#9ca3af');
         const cm = document.getElementById('coachMomentum'),
             cr = document.getElementById('coachRun'),
@@ -1642,7 +1652,7 @@ export class VolleyballDashboard {
             cs = document.getElementById('coachScore');
         if (cm) { cm.innerHTML = txt;
             cm.style.color = col; }
-        if (cr) cr.innerHTML = `🔥 Racha: ${this.homeTeamName} ${last.homeRun} - ${last.awayRun} ${this.awayTeamName}`;
+        if (cr) cr.innerHTML = `🔥 Racha: ${this.homeTeamHtml} ${last.homeRun} - ${last.awayRun} ${this.awayTeamHtml}`;
         if (cb) {
             const metricas = calcularMetricasRally(this.data);
             cb.innerHTML = `💪 Breakpoints: ${metricas.equipos.HOME.breakpoint.exitos} - ${metricas.equipos.AWAY.breakpoint.exitos}`;
@@ -1658,7 +1668,7 @@ export class VolleyballDashboard {
         const isHome = serving === 'HOME';
         bc.innerHTML = `<div class="${isHome ? 'bg-blue-900/30' : 'bg-red-900/30'} border ${isHome ? 'border-blue-500/50' : 'border-red-500/50'} rounded-full px-3 py-1 md:px-4 md:py-1.5 flex items-center gap-1 md:gap-2 animate-pulse">
             <span class="text-xs md:text-base">🏐</span>
-            <span class="text-xs md:text-sm font-bold ${isHome ? 'text-blue-400' : 'text-red-400'} uppercase tracking-wide">SACA ${isHome ? this.homeTeamName : this.awayTeamName}</span>
+            <span class="text-xs md:text-sm font-bold ${isHome ? 'text-blue-400' : 'text-red-400'} uppercase tracking-wide">SACA ${isHome ? this.homeTeamHtml : this.awayTeamHtml}</span>
         </div>`;
         bc.classList.remove('hidden');
     }
@@ -1842,13 +1852,13 @@ export class VolleyballDashboard {
             const marcador = `${punto.homeScore ?? '?'}-${punto.awayScore ?? '?'}`;
             return `<div class="flex justify-between items-center p-2 rounded-lg ${esLocal ? 'bg-primary/10' : 'bg-rose-500/10'} mb-1">
                 <span class="text-xs text-gray-400">Set ${punto.set || '-'}</span>
-                <span class="text-sm font-semibold ${esLocal ? 'text-primary' : 'text-rose-400'}">🏐 ${esLocal ? this.homeTeamName : this.awayTeamName}</span>
+                <span class="text-sm font-semibold ${esLocal ? 'text-primary' : 'text-rose-400'}">🏐 ${esLocal ? this.homeTeamHtml : this.awayTeamHtml}</span>
                 <span class="text-xs bg-dark px-2 py-0.5 rounded-full">${marcador}</span>
             </div>`;
         }).join('');
         const marcasHtml = marcas.length ? `<div class="mt-3 pt-2 border-t border-gray-700">
             <div class="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Marcas manuales del analista</div>
-            ${marcas.slice(-6).reverse().map(marca => `<div class="flex justify-between items-center p-2 rounded-lg bg-purple-500/10 mb-1"><span class="text-xs">⭐ Momento clave</span><span class="text-xs text-gray-300">${marca.equipo || '-'}</span><span class="text-xs bg-dark px-2 py-0.5 rounded-full">${marca.marcador || '-'}</span></div>`).join('')}
+            ${marcas.slice(-6).reverse().map(marca => `<div class="flex justify-between items-center p-2 rounded-lg bg-purple-500/10 mb-1"><span class="text-xs">⭐ Momento clave</span><span class="text-xs text-gray-300">${escaparHtml(marca.equipo || '-')}</span><span class="text-xs bg-dark px-2 py-0.5 rounded-full">${escaparHtml(marca.marcador || '-')}</span></div>`).join('')}
         </div>` : '';
         c.innerHTML = automaticosHtml || marcasHtml
             ? `${automaticosHtml}${marcasHtml}`
@@ -1859,7 +1869,7 @@ export class VolleyballDashboard {
         const c = document.getElementById('insightsList');
         if (!c) return;
         const equipoAnalisis = this.obtenerEquipoAnalisis();
-        const nombreEquipo = equipoAnalisis.nombre;
+        const nombreEquipo = escaparHtml(equipoAnalisis.nombre);
         const eficiencia = equipoAnalisis.equipo === 'HOME' ? homeEfficiency : this.awayEfficiency;
         const breaks = equipoAnalisis.equipo === 'HOME' ? homeBreaks : this.awayBreaks;
         const i = [];
@@ -1914,7 +1924,7 @@ export class VolleyballDashboard {
         }
 
         const equipoRotaciones = this.obtenerEquipoRotaciones();
-        const nombreEquipoRotaciones = this.obtenerNombreEquipoRotaciones();
+        const nombreEquipoRotaciones = escaparHtml(this.obtenerNombreEquipoRotaciones());
 
         let html = `
             <div class="section">
@@ -1945,7 +1955,7 @@ export class VolleyballDashboard {
                 const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i, setSeleccionado);
                 if (formacion.length === 6) {
                     formacionNombres = formacion.map(j =>
-                    `${j.numero}${j.nombreCorto ? ' ('+j.nombreCorto+')' : ''}`
+                    `${escaparHtml(j.numero)}${j.nombreCorto ? ' (' + escaparHtml(j.nombreCorto) + ')' : ''}`
                     ).join(' • ');
                 }
             }
@@ -2211,22 +2221,22 @@ export class VolleyballDashboard {
             return `
                 <div class="bg-dark/30 rounded-xl p-3 border ${colorClass === 'blue' ? 'border-blue-500/20' : 'border-red-500/20'}">
                     <h4 class="${colorClass === 'blue' ? 'text-blue-400' : 'text-red-400'} font-bold text-sm mb-2 text-center">
-                        ${colorClass === 'blue' ? '🔵' : '🔴'} ${equipoNombre}
+                        ${colorClass === 'blue' ? '🔵' : '🔴'} ${escaparHtml(equipoNombre)}
                     </h4>
                     <div class="text-center text-[8px] text-gray-500 uppercase tracking-wider mb-1">┈┈┈┈┈ RED ┈┈┈┈┈</div>
                     <div class="grid grid-cols-3 gap-2 mb-2">
                         ${delanteros.map(j => `
                             <div class="${colorClass === 'blue' ? 'bg-blue-900/30 border-blue-500/40' : 'bg-red-900/30 border-red-500/40'} rounded-lg p-2 border text-center">
-                                <div class="text-xl font-bold text-white">${j.numero}</div>
-                                <div class="text-[10px] text-gray-300 truncate">${j.nombreCorto || j.nombre || 'Jugador'}</div>
+                                <div class="text-xl font-bold text-white">${escaparHtml(j.numero)}</div>
+                                <div class="text-[10px] text-gray-300 truncate">${escaparHtml(j.nombreCorto || j.nombre || 'Jugador')}</div>
                             </div>
                         `).join('')}
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         ${zagueros.map(j => `
                             <div class="${colorClass === 'blue' ? 'bg-blue-900/30 border-blue-500/40' : 'bg-red-900/30 border-red-500/40'} rounded-lg p-2 border text-center">
-                                <div class="text-xl font-bold text-white">${j.numero}</div>
-                                <div class="text-[10px] text-gray-300 truncate">${j.nombreCorto || j.nombre || 'Jugador'}</div>
+                                <div class="text-xl font-bold text-white">${escaparHtml(j.numero)}</div>
+                                <div class="text-[10px] text-gray-300 truncate">${escaparHtml(j.nombreCorto || j.nombre || 'Jugador')}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -2426,47 +2436,47 @@ export class VolleyballDashboard {
         const midEff = phaseHomeEff?.mid || 0;
         const interpretaciones = [];
         if (effH > 60) {
-            interpretaciones.push({ titulo: '🏆 DOMINIO ABSOLUTO', descripcion: `${this.homeTeamName} ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El sistema funciona. Mantener la estrategia y buscar perfeccionar detalles.' });
+            interpretaciones.push({ titulo: '🏆 DOMINIO ABSOLUTO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El sistema funciona. Mantener la estrategia y buscar perfeccionar detalles.' });
         } else if (effH > 55) {
-            interpretaciones.push({ titulo: '✅ CONTROL DEL PARTIDO', descripcion: `${this.homeTeamName} ganó el ${effH}% de los puntos. Ventaja clara pero el rival compitió.`, accion: 'Analizar los momentos donde el rival descontó. ¿Fueron errores propios o méritos rivales?' });
+            interpretaciones.push({ titulo: '✅ CONTROL DEL PARTIDO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% de los puntos. Ventaja clara pero el rival compitió.`, accion: 'Analizar los momentos donde el rival descontó. ¿Fueron errores propios o méritos rivales?' });
         } else if (effH > 50) {
-            interpretaciones.push({ titulo: '⚖️ VENTAJA MÍNIMA', descripcion: `${this.homeTeamName} solo ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El partido se definió por detalles. Revisar puntos de quiebre y momentos clutch.' });
+            interpretaciones.push({ titulo: '⚖️ VENTAJA MÍNIMA', descripcion: `${this.homeTeamHtml} solo ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El partido se definió por detalles. Revisar puntos de quiebre y momentos clutch.' });
         } else if (effH > 45) {
-            interpretaciones.push({ titulo: '⚠️ PARTIDO PAREDO', descripcion: `${this.homeTeamName} ganó el ${effH}% vs ${effA}% del rival. Prácticamente empatados en eficiencia.`, accion: 'El resultado pudo ser para cualquiera. ¿En qué fase del set el equipo rindió peor?' });
+            interpretaciones.push({ titulo: '⚠️ PARTIDO PAREDO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% vs ${effA}% del rival. Prácticamente empatados en eficiencia.`, accion: 'El resultado pudo ser para cualquiera. ¿En qué fase del set el equipo rindió peor?' });
         } else if (effH > 0) {
-            interpretaciones.push({ titulo: '🔴 SUPERADO EN EFICIENCIA', descripcion: `${this.homeTeamName} solo ganó el ${effH}% de los puntos. El rival dominó el ${effA}%.`, accion: 'Trabajar en: reducción de errores no forzados y mayor eficacia en ataque.' });
+            interpretaciones.push({ titulo: '🔴 SUPERADO EN EFICIENCIA', descripcion: `${this.homeTeamHtml} solo ganó el ${effH}% de los puntos. El rival dominó el ${effA}%.`, accion: 'Trabajar en: reducción de errores no forzados y mayor eficacia en ataque.' });
         }
         if (maxHR > 5 && maxHR > maxAR + 2) {
-            interpretaciones.push({ titulo: '💪 FUERZA EN RACHAS OFENSIVAS', descripcion: `${this.homeTeamName} encadenó ${maxHR} puntos seguidos, superando ampliamente la mejor racha rival (${maxAR}).`, accion: '¿Qué generó esas rachas? Saque agresivo, bloqueo efectivo o errores rivales? Identificar y replicar.' });
+            interpretaciones.push({ titulo: '💪 FUERZA EN RACHAS OFENSIVAS', descripcion: `${this.homeTeamHtml} encadenó ${maxHR} puntos seguidos, superando ampliamente la mejor racha rival (${maxAR}).`, accion: '¿Qué generó esas rachas? Saque agresivo, bloqueo efectivo o errores rivales? Identificar y replicar.' });
         } else if (maxAR > 5 && maxAR > maxHR + 2) {
-            interpretaciones.push({ titulo: '🔥 DEBILIDAD ANTE RACHAS RIVALES', descripcion: `${this.awayTeamName} tuvo una racha de ${maxAR} puntos consecutivos, ${maxAR - maxHR} más que la mejor racha propia.`, accion: 'Ajustar: pedir tiempo muerto ANTES de que la racha crezca, cambiar la rotación de saque.' });
+            interpretaciones.push({ titulo: '🔥 DEBILIDAD ANTE RACHAS RIVALES', descripcion: `${this.awayTeamHtml} tuvo una racha de ${maxAR} puntos consecutivos, ${maxAR - maxHR} más que la mejor racha propia.`, accion: 'Ajustar: pedir tiempo muerto ANTES de que la racha crezca, cambiar la rotación de saque.' });
         } else if (maxAR > 5 || maxHR > 5) {
-            interpretaciones.push({ titulo: '⚡ RACHAS MOMENTÁNEAS', descripcion: `Ambos equipos tuvieron rachas (${this.homeTeamName}: ${maxHR}, ${this.awayTeamName}: ${maxAR}). El partido fue de altibajos.`, accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.' });
+            interpretaciones.push({ titulo: '⚡ RACHAS MOMENTÁNEAS', descripcion: `Ambos equipos tuvieron rachas (${this.homeTeamHtml}: ${maxHR}, ${this.awayTeamHtml}: ${maxAR}). El partido fue de altibajos.`, accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.' });
         }
         if (brH > brA + 4) {
-            interpretaciones.push({ titulo: '💪 PRESIÓN EFECTIVA CON SAQUE PROPIO', descripcion: `${this.homeTeamName} ganó ${brH} breakpoints, ${brH - brA} más que el rival.`, accion: 'Mantener la combinación de saque, bloqueo y defensa que produjo esos puntos.' });
+            interpretaciones.push({ titulo: '💪 PRESIÓN EFECTIVA CON SAQUE PROPIO', descripcion: `${this.homeTeamHtml} ganó ${brH} breakpoints, ${brH - brA} más que el rival.`, accion: 'Mantener la combinación de saque, bloqueo y defensa que produjo esos puntos.' });
         } else if (brA > brH + 4) {
-            interpretaciones.push({ titulo: '⚠️ POCA PRODUCCIÓN CON SAQUE PROPIO', descripcion: `${this.awayTeamName} ganó ${brA} breakpoints y ${this.homeTeamName} ${brH}.`, accion: 'Trabajar presión de saque, organización de bloqueo y transición defensiva.' });
+            interpretaciones.push({ titulo: '⚠️ POCA PRODUCCIÓN CON SAQUE PROPIO', descripcion: `${this.awayTeamHtml} ganó ${brA} breakpoints y ${this.homeTeamHtml} ${brH}.`, accion: 'Trabajar presión de saque, organización de bloqueo y transición defensiva.' });
         } else if (brH + brA > 15) {
             interpretaciones.push({ titulo: '⚡ MUCHOS BREAKPOINTS', descripcion: `Hubo ${brH + brA} puntos ganados por el equipo que sacaba.`, accion: 'Revisar qué zonas de saque y sistemas de bloqueo generaron mayor ventaja.' });
         }
         if (clutch > 65) {
-            interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });
+            interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${this.homeTeamHtml} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });
         } else if (clutch < 35 && clutch > 0) {
-            interpretaciones.push({ titulo: '😰 DEBILIDAD BAJO PRESIÓN', descripcion: `${this.homeTeamName} solo ganó ${clutch}% de los puntos en situaciones críticas.`, accion: 'Entrenar ejercicios específicos: set point en contra, partidos empatados al final del set.' });
+            interpretaciones.push({ titulo: '😰 DEBILIDAD BAJO PRESIÓN', descripcion: `${this.homeTeamHtml} solo ganó ${clutch}% de los puntos en situaciones críticas.`, accion: 'Entrenar ejercicios específicos: set point en contra, partidos empatados al final del set.' });
         } else if (clutch > 0) {
             const evaluacion = clutch > 55 ? 'aceptable' : (clutch > 45 ? 'regular' : 'bajo');
-            interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${this.homeTeamName} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
+            interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${this.homeTeamHtml} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
         }
         if (sideout > 65) {
-            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamName} ganó ${sideout}% de los rallies en los que recibió el saque rival.`, accion: 'Es un buen resultado de sideout. Para identificar la causa, revisar por separado recepción, distribución y primer ataque.' });
+            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamHtml} ganó ${sideout}% de los rallies en los que recibió el saque rival.`, accion: 'Es un buen resultado de sideout. Para identificar la causa, revisar por separado recepción, distribución y primer ataque.' });
         } else if (sideout < 45 && sideout > 0) {
-            interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${this.homeTeamName} solo ganó ${sideout}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
+            interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${this.homeTeamHtml} solo ganó ${sideout}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
         }
         if (breakpoint > 45) {
-            interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${this.homeTeamName} ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'El saque propio y el sistema de bloqueo-defensa están generando ventaja.' });
+            interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${this.homeTeamHtml} ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'El saque propio y el sistema de bloqueo-defensa están generando ventaja.' });
         } else if (breakpoint < 25 && breakpoint > 0) {
-            interpretaciones.push({ titulo: '🔻 BAJA PRODUCCIÓN CON SAQUE', descripcion: `${this.homeTeamName} solo ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
+            interpretaciones.push({ titulo: '🔻 BAJA PRODUCCIÓN CON SAQUE', descripcion: `${this.homeTeamHtml} solo ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
         }
         if (serviceEff > 15) {
             interpretaciones.push({ titulo: '🏐 SAQUE MUY EFECTIVO', descripcion: `Eficiencia de servicio del ${serviceEff}% (Aces - Errores). El saque es un arma ofensiva.`, accion: 'Mantener la agresividad controlada. Seguir variando zonas y velocidades.' });
@@ -2476,10 +2486,10 @@ export class VolleyballDashboard {
             interpretaciones.push({ titulo: '📊 SERVICIO NEUTRO', descripcion: `Eficiencia de servicio del ${serviceEff}%. No fue determinante en el resultado.`, accion: 'Buscar mayor agresividad sin aumentar errores. Entrenar saques flotantes y saltados a zonas clave.' });
         }
         if (earlyEff < 40 && earlyEff > 0) {
-            interpretaciones.push({ titulo: '⏰ ARRANQUES LENTOS', descripcion: `${this.homeTeamName} tuvo solo ${earlyEff}% de efectividad en los primeros 10 puntos de cada set.`, accion: 'Trabajar la concentración desde el inicio. Calentamiento más intenso, entrada en calor efectiva.' });
+            interpretaciones.push({ titulo: '⏰ ARRANQUES LENTOS', descripcion: `${this.homeTeamHtml} tuvo solo ${earlyEff}% de efectividad en los primeros 10 puntos de cada set.`, accion: 'Trabajar la concentración desde el inicio. Calentamiento más intenso, entrada en calor efectiva.' });
         }
         if (lateEff < 40 && lateEff > 0) {
-            interpretaciones.push({ titulo: '⏱️ CIERRE DE SETS DÉBIL', descripcion: `${this.homeTeamName} tuvo solo ${lateEff}% de efectividad en la fase final (puntos 21+).`, accion: 'Ejercicios de definición de sets. Entrenar con marcador 20-20, set point en contra, etc.' });
+            interpretaciones.push({ titulo: '⏱️ CIERRE DE SETS DÉBIL', descripcion: `${this.homeTeamHtml} tuvo solo ${lateEff}% de efectividad en la fase final (puntos 21+).`, accion: 'Ejercicios de definición de sets. Entrenar con marcador 20-20, set point en contra, etc.' });
         }
         if (earlyEff > 60 && midEff > 60 && lateEff > 60) {
             interpretaciones.push({ titulo: '📊 CONSISTENCIA TOTAL', descripcion: `El equipo rindió por encima del 60% en TODAS las fases del set. Muy difícil de vencer.`, accion: 'Felicitaciones. Mantener el nivel y trabajar detalles tácticos.' });
@@ -2516,7 +2526,7 @@ export class VolleyballDashboard {
             recomendaciones.push({ prioridad: 'ALTA', area: 'EFICIENCIA GENERAL', texto: `Ganaste solo el ${effH}% de los puntos jugados.`, detalle: 'El rival dominó la mayor parte del partido. Hay que trabajar la eficiencia ofensiva y reducir errores.', tarea: 'Entrenar: reducción de errores no forzados, aumento del porcentaje de ataque.' });
         }
         if (maxAR > 6) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'RACHAS RIVALES', texto: `${this.awayTeamName} tuvo una racha de ${maxAR} puntos consecutivos.`, detalle: 'Cuando el rival encadenó puntos, el equipo no pudo cortar la racha a tiempo.', tarea: 'Pedir tiempo muerto ANTES de que la racha crezca (al 3er o 4to punto seguido). Revisar rotación de saque.' });
+            recomendaciones.push({ prioridad: 'ALTA', area: 'RACHAS RIVALES', texto: `${this.awayTeamHtml} tuvo una racha de ${maxAR} puntos consecutivos.`, detalle: 'Cuando el rival encadenó puntos, el equipo no pudo cortar la racha a tiempo.', tarea: 'Pedir tiempo muerto ANTES de que la racha crezca (al 3er o 4to punto seguido). Revisar rotación de saque.' });
         }
         if (clutch < 40 && clutch > 0) {
             recomendaciones.push({ prioridad: 'ALTA', area: 'MANEJO DE LA PRESIÓN', texto: `Solo convertiste ${clutch}% de los puntos en momentos críticos.`, detalle: 'El equipo se achica cuando el partido está parejo o hay set point en contra.', tarea: 'Ejercicios específicos: definir sets con marcador 20-20, 23-23, set point en contra.' });
@@ -2608,15 +2618,15 @@ export class VolleyballDashboard {
             let em = '',
                 txt = '';
             if (h10 > a10 + 2) { em = '🔥';
-                txt = `${this.homeTeamName} dominó el cierre`; } else if (a10 > h10 + 2) { em = '⚡';
-                txt = `${this.awayTeamName} dominó el cierre`; } else { em = '⚖️';
+                txt = `${this.homeTeamHtml} dominó el cierre`; } else if (a10 > h10 + 2) { em = '⚡';
+                txt = `${this.awayTeamHtml} dominó el cierre`; } else { em = '⚖️';
                 txt = 'Cierre parejo'; }
             c.innerHTML = `<div class="text-center p-3">
                 <div class="text-sm font-semibold mb-2 text-gray-400">ÚLTIMOS ${resumenUltimos.total} PUNTOS</div>
                 <div class="flex justify-center items-center gap-6">
-                    <div class="text-center"><div class="text-3xl font-bold text-primary">${h10}</div><div class="text-xs text-gray-500">${this.homeTeamName}</div></div>
+                    <div class="text-center"><div class="text-3xl font-bold text-primary">${h10}</div><div class="text-xs text-gray-500">${this.homeTeamHtml}</div></div>
                     <div class="text-2xl">${em}</div>
-                    <div class="text-center"><div class="text-3xl font-bold text-rose-400">${a10}</div><div class="text-xs text-gray-500">${this.awayTeamName}</div></div>
+                    <div class="text-center"><div class="text-3xl font-bold text-rose-400">${a10}</div><div class="text-xs text-gray-500">${this.awayTeamHtml}</div></div>
                 </div>
                 <div class="text-xs text-gray-500 mt-2">${txt}</div>
             </div>`;
@@ -2788,6 +2798,8 @@ export class VolleyballDashboard {
             const last = this.data ? this.data[this.data.length - 1] : null;
             const homeTeam = this.homeTeamName;
             const awayTeam = this.awayTeamName;
+            const homeTeamH = escaparHtml(homeTeam);
+            const awayTeamH = escaparHtml(awayTeam);
             const homeScore = last ? last.homeScore : 0;
             const awayScore = last ? last.awayScore : 0;
             const points = this.data ? this.data.filter(s => s.scorer) : [];
@@ -2847,7 +2859,7 @@ export class VolleyballDashboard {
             for (const [num, scores] of sets) {
                 const isFinished = isSetTerminadoHelper(scores.home, scores.away, num, this.configSets);
                 const winner = isFinished
-                    ? `🏆 ${scores.home > scores.away ? homeTeam : awayTeam}`
+                    ? `🏆 ${scores.home > scores.away ? homeTeamH : awayTeamH}`
                     : '🔴 En curso';
                 setsReporte.push({
                     number: Number(num),
@@ -2892,7 +2904,7 @@ export class VolleyballDashboard {
             if (metricasRally.breakpoints.length) {
                 breakPointsHtml = '<div style="max-height:300px;overflow-y:auto;">' + metricasRally.breakpoints.slice(-20).reverse().map(punto => {
                     const isHome = punto.equipoBreakpoint === 'HOME';
-                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:${isHome ? 'rgba(102,126,234,0.1)' : 'rgba(244,63,94,0.1)'};border-radius:10px;margin-bottom:8px;"><span>Set ${punto.set || '-'}</span><strong style="color:${isHome ? '#667eea' : '#f43f5e'};">🏐 ${isHome ? homeTeam : awayTeam}</strong><span>${punto.homeScore ?? '?'}-${punto.awayScore ?? '?'}</span></div>`;
+                    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:${isHome ? 'rgba(102,126,234,0.1)' : 'rgba(244,63,94,0.1)'};border-radius:10px;margin-bottom:8px;"><span>Set ${punto.set || '-'}</span><strong style="color:${isHome ? '#667eea' : '#f43f5e'};">🏐 ${isHome ? homeTeamH : awayTeamH}</strong><span>${punto.homeScore ?? '?'}-${punto.awayScore ?? '?'}</span></div>`;
                 }).join('') + '</div>';
             }
             if (!breakPointsHtml) breakPointsHtml = '<div style="text-align:center;padding:30px;color:#6b7280;">No hubo breakpoints ganados con saque propio</div>';
@@ -2904,34 +2916,34 @@ export class VolleyballDashboard {
                 let emoji = '',
                     text = '';
                 if (homeLast10 > awayLast10 + 2) { emoji = '🔥';
-                    text = `${homeTeam} dominó el cierre`; } else if (awayLast10 > homeLast10 + 2) { emoji = '⚡';
-                    text = `${awayTeam} dominó el cierre`; } else { emoji = '⚖️';
+                    text = `${homeTeamH} dominó el cierre`; } else if (awayLast10 > homeLast10 + 2) { emoji = '⚡';
+                    text = `${awayTeamH} dominó el cierre`; } else { emoji = '⚖️';
                     text = 'Cierre parejo'; }
                 timelineHtml = `<div style="text-align: center; padding: 20px;">
                     <div style="font-size: 14px; font-weight: bold; margin-bottom: 15px;">ÚLTIMOS ${resumenUltimos.total} PUNTOS</div>
                     <div style="display: flex; justify-content: center; align-items: center; gap: 30px;">
-                        <div><div style="font-size: 40px; font-weight: bold; color: #667eea;">${homeLast10}</div><div style="font-size: 12px; color: #6b7280;">${homeTeam}</div></div>
+                        <div><div style="font-size: 40px; font-weight: bold; color: #667eea;">${homeLast10}</div><div style="font-size: 12px; color: #6b7280;">${homeTeamH}</div></div>
                         <div style="font-size: 32px;">${emoji}</div>
-                        <div><div style="font-size: 40px; font-weight: bold; color: #f43f5e;">${awayLast10}</div><div style="font-size: 12px; color: #6b7280;">${awayTeam}</div></div>
+                        <div><div style="font-size: 40px; font-weight: bold; color: #f43f5e;">${awayLast10}</div><div style="font-size: 12px; color: #6b7280;">${awayTeamH}</div></div>
                     </div>
                     <div style="font-size: 12px; color: #6b7280; margin-top: 12px;">${text}</div>
                 </div>`;
             } else { timelineHtml = '<div style="text-align: center; padding: 30px; color: #6b7280;">Esperando más datos...</div>'; }
             let interpretationsHtml = '';
-            if (homeEfficiency > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${homeEfficiency}%) → ${homeTeam} dominó el partido.</div>`;
-            else if (homeEfficiency < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${homeEfficiency}%) → ${awayTeam} dominó el partido.</div>`;
+            if (homeEfficiency > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${homeEfficiency}%) → ${homeTeamH} dominó el partido.</div>`;
+            else if (homeEfficiency < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${homeEfficiency}%) → ${awayTeamH} dominó el partido.</div>`;
             else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${homeEfficiency}%) → Partido parejo.</div>`;
-            if (maxAwayRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxAwayRun} pts) → ${awayTeam} tuvo una racha larga.</div>`;
-            if (maxHomeRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxHomeRun} pts) → ${homeTeam} encadenó puntos.</div>`;
-            if (homeBreaks > awayBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${homeTeam} produjo más puntos con saque propio.</div>`;
-            else if (awayBreaks > homeBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${awayTeam} produjo más puntos con saque propio.</div>`;
-            if (homeClutchPct > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeam} demostró temple.</div>`;
-            else if (homeClutchPct < 35 && homeClutchPct > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeam} mostró debilidad.</div>`;
+            if (maxAwayRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxAwayRun} pts) → ${awayTeamH} tuvo una racha larga.</div>`;
+            if (maxHomeRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxHomeRun} pts) → ${homeTeamH} encadenó puntos.</div>`;
+            if (homeBreaks > awayBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${homeTeamH} produjo más puntos con saque propio.</div>`;
+            else if (awayBreaks > homeBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${awayTeamH} produjo más puntos con saque propio.</div>`;
+            if (homeClutchPct > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeamH} demostró temple.</div>`;
+            else if (homeClutchPct < 35 && homeClutchPct > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeamH} mostró debilidad.</div>`;
             let recommendationsHtml = '';
-            if (homeEfficiency < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${homeTeam} solo ganó el ${homeEfficiency}% de los puntos</div>`;
-            if (maxAwayRun > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${awayTeam} tuvo una racha de ${maxAwayRun} puntos. Ajustar bloqueo y recepción.</div>`;
-            if (awayBreaks > homeBreaks + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${awayTeam} ganó ${awayBreaks} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
-            if (homeClutchPct < 40 && homeClutchPct > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${homeTeam} solo convirtió ${homeClutchPct}% en momentos críticos.</div>`;
+            if (homeEfficiency < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${homeTeamH} solo ganó el ${homeEfficiency}% de los puntos</div>`;
+            if (maxAwayRun > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${awayTeamH} tuvo una racha de ${maxAwayRun} puntos. Ajustar bloqueo y recepción.</div>`;
+            if (awayBreaks > homeBreaks + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${awayTeamH} ganó ${awayBreaks} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
+            if (homeClutchPct < 40 && homeClutchPct > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${homeTeamH} solo convirtió ${homeClutchPct}% en momentos críticos.</div>`;
             if (homePhaseEff.late < 40 && homePhaseEff.late > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Débil en el cierre (${homePhaseEff.late}% en Late Game). Trabajar definición.</div>`;
             if (!recommendationsHtml) recommendationsHtml = '<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido! Mantener la estrategia.</div>';
             const eficienciaPorSet = [];
@@ -2993,7 +3005,7 @@ export class VolleyballDashboard {
             };
             const marcas = [...leerMarcas(`breaks_${this.matchId}`), ...leerMarcas(`marcas_${this.matchId}`)];
             const marcasManualHtml = marcas.length
-                ? marcas.map(marca => `<div style="display:flex;justify-content:space-between;padding:10px;background:rgba(124,58,237,.1);border-radius:8px;margin-bottom:6px;"><span>⭐ Momento clave · Set ${marca.set || '-'}</span><strong>${marca.equipo || '-'}</strong><span>${marca.marcador || '-'}</span></div>`).join('')
+                ? marcas.map(marca => `<div style="display:flex;justify-content:space-between;padding:10px;background:rgba(124,58,237,.1);border-radius:8px;margin-bottom:6px;"><span>⭐ Momento clave · Set ${escaparHtml(marca.set || '-')}</span><strong>${escaparHtml(marca.equipo || '-')}</strong><span>${escaparHtml(marca.marcador || '-')}</span></div>`).join('')
                 : '<div style="color:#6b7280;text-align:center;">Sin marcas manuales</div>';
             const generadoEn = new Date();
             const datosReporte = {
@@ -3072,7 +3084,7 @@ export class VolleyballDashboard {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `reporte_${homeTeam}_vs_${awayTeam}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.html`;
+            a.download = `reporte_${nombreArchivoSeguro(homeTeam)}_vs_${nombreArchivoSeguro(awayTeam)}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.html`;
             a.click();
             URL.revokeObjectURL(url);
             this.mostrarFeedbackPartido('📄 Reporte generado correctamente');

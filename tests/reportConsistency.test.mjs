@@ -108,8 +108,39 @@ assert.match(html, /Cobertura del análisis/);
 assert.match(html, /Métricas generales y rotaciones: Set 1, Set 2 \(datos oficiales de Metro\)/);
 assert.match(html, /Acciones, individuales y servicio: Set 2: 42 de 42 puntos/);
 assert.match(html, /ESTADÍSTICAS INDIVIDUALES \(Sets analizados: 2\)/);
-assert.match(html, /Equipo: 25 · Atribuidos a jugadoras\/es: 20 · Sin atribuir: 5/);
+assert.doesNotMatch(html, /Atribuidos a jugadoras\/es/);
 assert.doesNotMatch(html, /Puntos que convertís cuando tenés el saque/);
+
+// Nombres con caracteres especiales no deben poder inyectar HTML ni romper el script del informe
+const nombreHostil = "O'Brien <img src=x onerror=alert(1)> & Co";
+const htmlHostil = ReporteGenerator.generarHTML({
+    homeTeam: nombreHostil, awayTeam: 'VISITA </script><script>alert(2)</script>',
+    homeScore: 25, awayScore: 20, fechaHora: '03/08/2026',
+    homeEfficiency: 55.6, awayEfficiency: 44.4, maxHomeRun: 4, maxAwayRun: 3,
+    homeBreaks: 8, awayBreaks: 6, totalPoints: 45, homeClutchPct: 60,
+    homePhaseEff: {}, awayPhaseEff: {}, setsHtml: '', sideoutHome: 62, sideoutAway: 58,
+    breakpointHome: 38, breakpointAway: 42, serviceEfficiencyHome: 10, serviceEfficiencyAway: -5,
+    localPorSet: {}, visitantePorSet: {},
+    reportMetadata: { generatedAt: '2026-08-06T18:30:00.000Z', matchId: 1, sets: [], coverage: {}, metrics: {} }
+});
+assert.doesNotMatch(htmlHostil, /<img src=x onerror/, 'el nombre del equipo no debe insertarse como HTML');
+assert.doesNotMatch(htmlHostil, /<script>alert\(2\)/, 'el nombre del equipo no debe cerrar el script');
+assert.match(htmlHostil, /O&#39;Brien &lt;img/);
+
+const scriptsHostil = [...htmlHostil.matchAll(/<script(?![^>]*\bsrc=)(?![^>]*application\/json)[^>]*>([\s\S]*?)<\/script>/g)];
+assert.ok(scriptsHostil.length > 0, 'el informe debe incluir su script interno');
+for (const [, codigo] of scriptsHostil) {
+    assert.doesNotThrow(() => new Function(codigo), 'el script del informe debe seguir siendo JavaScript valido');
+}
+
+const tablaHostil = statsHelper.generarTablaHTMLSimple(
+    statsHelper.calcularStatsPorJugador([
+        { equipo: 'LOCAL', jugador: 4, jugadorNombre: '<b onmouseover=alert(3)>Ana</b>', accion: 'ATAQUE' }
+    ], 'LOCAL'),
+    {}
+);
+assert.doesNotMatch(tablaHostil, /<b onmouseover/);
+assert.match(tablaHostil, /&lt;b onmouseover/);
 
 const metadataMatch = html.match(/<script id="voleyInsightReportData" type="application\/json">([\s\S]*?)<\/script>/);
 assert.ok(metadataMatch, 'el informe debe incluir metadatos estables para comparación');

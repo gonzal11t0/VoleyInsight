@@ -1,0 +1,36 @@
+# Dependencias
+node_modules/
+
+# Archivos locales y variables de entorno
+.env
+.DS_Store
+
+# Ejecutables y configuraciones de tuneles locales
+cloudflared.exe
+ngrok.exe
+ngrok.yml
+
+# Logs generados durante la ejecucion
+*.log
+tracker.log
+
+# Datos generados por partidos y por el tracker
+data/*.json
+data/*.csv
+data/*.bak
+data/*.tmp
+data/*.old
+data/api_url.txt
+data/.auth_secret
+voleyinsight-*.json
+
+# Reportes e informes locales generados en la raiz
+/*reporte_*.html
+/INFORME_MAESTRO_VOLEYINSIGHT_*.md
+
+# Datos personales de jugadoras/es: reportes reales, PDFs y respaldos (no subir al repo publico)
+data/campeonato oficial/
+data/**/*.html
+data/**/*.pdf
+Preview/reportes/
+*.bak

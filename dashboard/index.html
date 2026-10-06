@@ -2788,6 +2788,11 @@
                     }
                 }
 
+                function escaparHtml(valor) {
+                    const reemplazos = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                    return String(valor ?? '').replace(/[&<>"']/g, caracter => reemplazos[caracter]);
+                }
+
                 function renderizarCancha() {
                     const containerLocal = document.getElementById('jugadoresLocal');
                     const containerVisitante = document.getElementById('jugadoresVisitante');
@@ -2820,7 +2825,7 @@
                             btn.innerHTML = `
                                 <span class="posicion-court">P${j.posicion}</span>
                                 <span class="numero">${j.numero}</span>
-                                <span class="nombre-corto">${j.nombreCorto}</span>
+                                <span class="nombre-corto">${escaparHtml(j.nombreCorto)}</span>
                             `;
                             if (estado.jugador === j.numero && estado.equipo === 'LOCAL') {
                                 btn.classList.add('seleccionado');
@@ -2846,7 +2851,7 @@
                             btn.innerHTML = `
                                 <span class="posicion-court">P${j.posicion}</span>
                                 <span class="numero">${j.numero}</span>
-                                <span class="nombre-corto">${j.nombreCorto}</span>
+                                <span class="nombre-corto">${escaparHtml(j.nombreCorto)}</span>
                             `;
                             if (estado.jugador === j.numero && estado.equipo === 'VISITANTE') {
                                 btn.classList.add('seleccionado');
@@ -2933,10 +2938,10 @@
                         const color = p.equipoAnota === 'LOCAL' ? '#93c5fd' : '#fca5a5';
                         const jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
                         item.innerHTML = `
-                            <span style="color:${color};font-weight:600;">${nombreEquipo}</span>
-                            <span>${jugadorDisplay}</span>
-                            <span style="color:#9ca3af;">${p.accion}</span>
-                            <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
+                            <span style="color:${color};font-weight:600;">${escaparHtml(nombreEquipo)}</span>
+                            <span>${escaparHtml(jugadorDisplay)}</span>
+                            <span style="color:#9ca3af;">${escaparHtml(p.accion)}</span>
+                            <span style="color:#6b7280;font-size:7px;">${escaparHtml(p.marcadorDespues)}</span>
                         `;
                         hacerPuntoEditable(item, p);
                         container.appendChild(item);
@@ -2959,10 +2964,10 @@
                         const color = p.equipoAnota === 'LOCAL' ? '#93c5fd' : '#fca5a5';
                         const jugadorDisplay = p.jugador ? `J${p.jugador}` : 'RIVAL';
                         item.innerHTML = `
-                            <span style="color:${color};font-weight:600;">${nombreEquipo}</span>
-                            <span>${jugadorDisplay}</span>
-                            <span style="color:#9ca3af;">${p.accion}</span>
-                            <span style="color:#6b7280;font-size:7px;">${p.marcadorDespues}</span>
+                            <span style="color:${color};font-weight:600;">${escaparHtml(nombreEquipo)}</span>
+                            <span>${escaparHtml(jugadorDisplay)}</span>
+                            <span style="color:#9ca3af;">${escaparHtml(p.accion)}</span>
+                            <span style="color:#6b7280;font-size:7px;">${escaparHtml(p.marcadorDespues)}</span>
                         `;
                         hacerPuntoEditable(item, p);
                         container.appendChild(item);

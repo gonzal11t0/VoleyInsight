@@ -1,4 +1,19 @@
 // dashboard/js/reporteGenerator.js
+
+// Convierte caracteres especiales en texto inofensivo antes de insertar
+// nombres dentro del HTML del reporte.
+const REEMPLAZOS_HTML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+const escaparHtml = (valor) => String(valor ?? '').replace(/[&<>"']/g, caracter => REEMPLAZOS_HTML[caracter]);
+
+// Serializa datos para pegarlos dentro de un <script> sin que un nombre
+// con comillas, "<" o saltos de línea pueda romper o alterar el código.
+const jsonParaScript = (valor) => JSON.stringify(valor)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(new RegExp(String.fromCharCode(8232), 'g'), '\\u2028')
+    .replace(new RegExp(String.fromCharCode(8233), 'g'), '\\u2029');
+
 export class ReporteGenerator {
     static generarHTML(d) {
         const {
@@ -24,6 +39,10 @@ export class ReporteGenerator {
             reportMetadata = {}
 
         } = d;
+
+        const homeTeamH = escaparHtml(homeTeam);
+        const awayTeamH = escaparHtml(awayTeam);
+        const fechaHoraH = escaparHtml(fechaHora);
 
         const numeroSeguro = (valor) => {
             const numero = Number(valor);
@@ -77,13 +96,13 @@ export class ReporteGenerator {
             ? cobertura.detalle.filter(item => Number(item?.manuales) > 0)
             : [];
         const textoSetsOficiales = setsOficiales.length
-            ? setsOficiales.map(set => `Set ${set}`).join(', ')
+            ? setsOficiales.map(set => `Set ${escaparHtml(set)}`).join(', ')
             : 'sin sets oficiales';
         const textoManual = detalleManual.length
-            ? detalleManual.map(item => `Set ${item.set}: ${item.manuales}${item.oficiales ? ` de ${item.oficiales}` : ''} puntos`).join(' · ')
+            ? detalleManual.map(item => `Set ${escaparHtml(item.set)}: ${escaparHtml(item.manuales)}${item.oficiales ? ` de ${escaparHtml(item.oficiales)}` : ''} puntos`).join(' · ')
             : 'sin acciones manuales registradas';
         const alcanceIndividuales = setsManuales.length
-            ? `Sets analizados: ${setsManuales.join(', ')}`
+            ? `Sets analizados: ${setsManuales.map(escaparHtml).join(', ')}`
             : 'Sin análisis manual';
 
         const encabezadoIndividuales = `<thead><tr><th>Jugador</th><th>PTS</th><th>ATA</th><th>BLO</th><th>ACE</th><th>ERR</th><th>ASIS</th><th>EFI%</th><th>📥 REC</th><th>REC%</th><th>🛡️ DEF</th><th>DEF%</th><th>🏐 SAQUE</th><th>❌ ERR SERV</th><th>📊 EFI SERV%</th><th>🏐 TOT SERV</th></tr></thead>`;
@@ -93,10 +112,10 @@ export class ReporteGenerator {
         ])].filter(set => set !== 'todos').sort((a, b) => Number(a) - Number(b));
         const individualesPorSetHtml = setsConIndividuales.map(set => `
             <details style="margin-bottom:12px;background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:12px;">
-                <summary style="cursor:pointer;font-weight:700;color:#667eea;">Set ${set}</summary>
-                <h4 style="margin:14px 0 8px;color:#93c5fd;">🔵 ${homeTeam}</h4>
+                <summary style="cursor:pointer;font-weight:700;color:#667eea;">Set ${escaparHtml(set)}</summary>
+                <h4 style="margin:14px 0 8px;color:#93c5fd;">🔵 ${homeTeamH}</h4>
                 <div style="overflow-x:auto;"><table style="min-width:900px;">${encabezadoIndividuales}<tbody>${localPorSet[set] || '<tr><td colspan="16">Sin datos</td></tr>'}</tbody></table></div>
-                <h4 style="margin:14px 0 8px;color:#fca5a5;">🔴 ${awayTeam}</h4>
+                <h4 style="margin:14px 0 8px;color:#fca5a5;">🔴 ${awayTeamH}</h4>
                 <div style="overflow-x:auto;"><table style="min-width:900px;">${encabezadoIndividuales}<tbody>${visitantePorSet[set] || '<tr><td colspan="16">Sin datos</td></tr>'}</tbody></table></div>
             </details>`).join('');
 
@@ -106,7 +125,7 @@ export class ReporteGenerator {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <title>${homeTeam} vs ${awayTeam} - Reporte VoleyInsight</title>
+    <title>${homeTeamH} vs ${awayTeamH} - Reporte VoleyInsight</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -219,11 +238,11 @@ export class ReporteGenerator {
                 ? `<img class="report-logo" src="${logoDataUrl}" alt="VoleyInsight">`
                 : '<h1>🏐 VoleyInsight</h1>'}
             <div class="score-container">
-                <div class="team-score"><div class="team-name">${homeTeam}</div><div class="score-number" style="color:#3b82f6;">${homeScore}</div></div>
+                <div class="team-score"><div class="team-name">${homeTeamH}</div><div class="score-number" style="color:#3b82f6;">${homeScore}</div></div>
                 <div class="vs-badge">VS</div>
-                <div class="team-score"><div class="team-name">${awayTeam}</div><div class="score-number" style="color:#ef4444;">${awayScore}</div></div>
+                <div class="team-score"><div class="team-name">${awayTeamH}</div><div class="score-number" style="color:#ef4444;">${awayScore}</div></div>
             </div>
-            <div class="date">📅 ${fechaHora}</div>
+            <div class="date">📅 ${fechaHoraH}</div>
         </div>
         <div class="save-banner">
             <p>💾 <strong>¿Cómo guardar este reporte?</strong></p>
@@ -237,22 +256,22 @@ export class ReporteGenerator {
             Acciones, individuales y servicio: ${textoManual}.
         </div>
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Breakpoints ${homeTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Breakpoints ${awayTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(5)</div><div class="stat-value">${homeEfficiency}%</div><div class="stat-label">Eficiencia ${homeTeam}</div></div>
-            <div class="stat-card"><div class="stat-number">(6)</div><div class="stat-value">${awayEfficiency}%</div><div class="stat-label">Eficiencia ${awayTeam}</div></div>
+            <div class="stat-card"><div class="stat-number">(1)</div><div class="stat-value">${maxHomeRun}</div><div class="stat-label">Racha ${homeTeamH}</div></div>
+            <div class="stat-card"><div class="stat-number">(2)</div><div class="stat-value">${maxAwayRun}</div><div class="stat-label">Racha ${awayTeamH}</div></div>
+            <div class="stat-card"><div class="stat-number">(3)</div><div class="stat-value">${homeBreaks}</div><div class="stat-label">Breakpoints ${homeTeamH}</div></div>
+            <div class="stat-card"><div class="stat-number">(4)</div><div class="stat-value">${awayBreaks}</div><div class="stat-label">Breakpoints ${awayTeamH}</div></div>
+            <div class="stat-card"><div class="stat-number">(5)</div><div class="stat-value">${homeEfficiency}%</div><div class="stat-label">Eficiencia ${homeTeamH}</div></div>
+            <div class="stat-card"><div class="stat-number">(6)</div><div class="stat-value">${awayEfficiency}%</div><div class="stat-label">Eficiencia ${awayTeamH}</div></div>
             <div class="stat-card"><div class="stat-number">(7)</div><div class="stat-value">${homeClutchPct}%</div><div class="stat-label">Bajo presión</div></div>
             <div class="stat-card"><div class="stat-number">(8)</div><div class="stat-value">${totalPoints}</div><div class="stat-label">Puntos Totales</div></div>
         </div>
         <div class="section">
             <div class="section-title">🏐 SIDEOUT Y BREAKPOINT</div>
             <div class="stats-grid" style="padding:0;background:transparent;">
-                <div class="stat-card"><div class="stat-value">${sideoutHome}%</div><div class="stat-label">Sideout ${homeTeam}</div></div>
-                <div class="stat-card"><div class="stat-value">${sideoutAway}%</div><div class="stat-label">Sideout ${awayTeam}</div></div>
-                <div class="stat-card"><div class="stat-value">${breakpointHome}%</div><div class="stat-label">Breakpoint ${homeTeam}</div></div>
-                <div class="stat-card"><div class="stat-value">${breakpointAway}%</div><div class="stat-label">Breakpoint ${awayTeam}</div></div>
+                <div class="stat-card"><div class="stat-value">${sideoutHome}%</div><div class="stat-label">Sideout ${homeTeamH}</div></div>
+                <div class="stat-card"><div class="stat-value">${sideoutAway}%</div><div class="stat-label">Sideout ${awayTeamH}</div></div>
+                <div class="stat-card"><div class="stat-value">${breakpointHome}%</div><div class="stat-label">Breakpoint ${homeTeamH}</div></div>
+                <div class="stat-card"><div class="stat-value">${breakpointAway}%</div><div class="stat-label">Breakpoint ${awayTeamH}</div></div>
             </div>
             <p style="color:#9ca3af;font-size:12px;margin-top:12px;">Sideout: punto ganado al recibir. Breakpoint: punto ganado mientras el equipo saca.</p>
         </div>
@@ -296,10 +315,10 @@ export class ReporteGenerator {
         <div class="section">
             <div class="section-title">💎 RENDIMIENTO BAJO PRESIÓN <span style="font-size:12px;">(7)</span></div>
             <div class="clutch-bar" style="background:#1a1f2e;border-radius:60px;overflow:hidden;margin-bottom:16px;">
-                <div class="clutch-fill" style="width:${homeClutchPct}%;background:linear-gradient(90deg,#667eea,#764ba2);padding:12px 16px;text-align:center;color:white;font-weight:700;">${homeTeam} ${homeClutchPct}%</div>
+                <div class="clutch-fill" style="width:${homeClutchPct}%;background:linear-gradient(90deg,#667eea,#764ba2);padding:12px 16px;text-align:center;color:white;font-weight:700;">${homeTeamH} ${homeClutchPct}%</div>
             </div>
             <div class="clutch-bar" style="background:#1a1f2e;border-radius:60px;overflow:hidden;">
-                <div class="clutch-fill" style="width:${100-homeClutchPct}%;background:linear-gradient(90deg,#f43f5e,#e11d48);padding:12px 16px;text-align:center;color:white;font-weight:700;">${awayTeam} ${100-homeClutchPct}%</div>
+                <div class="clutch-fill" style="width:${100-homeClutchPct}%;background:linear-gradient(90deg,#f43f5e,#e11d48);padding:12px 16px;text-align:center;color:white;font-weight:700;">${awayTeamH} ${100-homeClutchPct}%</div>
             </div>
         </div>
         <div class="section"><div class="section-title">🔍 Breakpoints ganados con saque propio</div><div>${breakPointsHtml||'<div class="text-center text-gray-400 py-4">No se detectaron breakpoints</div>'}</div></div>
@@ -308,7 +327,7 @@ export class ReporteGenerator {
         <div class="section"><div class="section-title">🎯 Qué cambiar para el próximo partido</div><div>${recommendationsHtml||'<div class="text-center text-gray-400 py-4">Esperando datos...</div>'}</div></div>
         <div class="section"><div class="section-title">⏱️ Timeline de Eventos Críticos</div><div>${timelineHtml||'<div class="text-center text-gray-400 py-8">Esperando más datos...</div>'}</div></div>
         <div class="section">
-            <div class="section-title">🔵 ${homeTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
+            <div class="section-title">🔵 ${homeTeamH} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
@@ -336,7 +355,7 @@ export class ReporteGenerator {
             </div>
         </div>
         <div class="section">
-            <div class="section-title">🔴 ${awayTeam} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
+            <div class="section-title">🔴 ${awayTeamH} - ESTADÍSTICAS INDIVIDUALES (${alcanceIndividuales})</div>
             <div style="overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;min-width:600px;">
                     <thead>
@@ -470,10 +489,11 @@ export class ReporteGenerator {
                 </div>
             </div>
         </div>
-        <div class="footer">VoleyInsight v3.1.2 · Credenciales privadas y persistencia protegida · Informe generado ${fechaHora}</div>
+        <div class="footer">VoleyInsight v3.1.2 · Credenciales privadas y persistencia protegida · Informe generado ${fechaHoraH}</div>
     </div>
     <script>
-        const eficienciaData = ${JSON.stringify(eficienciaPorSet)};
+        const eficienciaData = ${jsonParaScript(eficienciaPorSet)};
+        const equipos = ${jsonParaScript({ home: homeTeam, away: awayTeam })};
         console.log('📊 Reporte - eficienciaData:', eficienciaData);
 
         if (eficienciaData.length > 0) {
@@ -485,7 +505,7 @@ export class ReporteGenerator {
                         labels: eficienciaData.map(function(d) { return d.set; }),
                         datasets: [
                             {
-                                label: '${homeTeam}',
+                                label: equipos.home,
                                 data: eficienciaData.map(function(d) { return parseFloat(d.local); }),
                                 borderColor: '#3b82f6',
                                 backgroundColor: 'rgba(59,130,246,0.1)',
@@ -496,7 +516,7 @@ export class ReporteGenerator {
                                 pointBackgroundColor: '#3b82f6'
                             },
                             {
-                                label: '${awayTeam}',
+                                label: equipos.away,
                                 data: eficienciaData.map(function(d) { return parseFloat(d.visitante); }),
                                 borderColor: '#ef4444',
                                 backgroundColor: 'rgba(239,68,68,0.1)',
@@ -524,11 +544,18 @@ export class ReporteGenerator {
             }
         }
         
+        const caracteresProhibidos = '/:*?"<>|' + String.fromCharCode(92);
+        function nombreArchivoSeguro(texto) {
+            return Array.from(String(texto)).map(function(c) {
+                return caracteresProhibidos.indexOf(c) >= 0 ? '_' : c;
+            }).join('');
+        }
+
         document.getElementById('btnDescargarPDF').addEventListener('click', function() {
             const element = document.querySelector('.container');
             const opt = {
                 margin: [0.5, 0.5, 0.5, 0.5],
-                filename: 'reporte_${homeTeam}_vs_${awayTeam}.pdf',
+                filename: 'reporte_' + nombreArchivoSeguro(equipos.home) + '_vs_' + nombreArchivoSeguro(equipos.away) + '.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
