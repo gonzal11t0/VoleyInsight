@@ -1575,7 +1575,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | VoleyInsight v3.1.2 · Credenciales privadas y persistencia protegida</p>
+            <p>Datos en tiempo real | VoleyInsight v3.2.0 · Acceso Público/Operador y persistencia protegida</p>
         </div>
     </div>
 
@@ -1998,7 +1998,7 @@
                     if (!statusResponse.ok) throw new Error('Servidor no disponible');
                     const status = await statusResponse.json();
                     servidorDisponible = true;
-                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.1.2'}`);
+                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.2.0'}`);
                     actualizarBotonIngreso();
                     actualizarBotonCambio();
 

@@ -208,7 +208,7 @@ class MatchTracker {
         try {
             const url = `https://metrovoley.com.ar/matches/${matchId}/players`;
             const res = await fetch(url, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.1.2)' }
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.2.0)' }
             });
             if (!res.ok) {
                 logger.warn(`[roster] HTTP ${res.status} al pedir ${url}`);
