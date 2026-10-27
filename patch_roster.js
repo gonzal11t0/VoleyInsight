@@ -32,7 +32,7 @@ async function fetchRoster(matchId) {
   const url = `https://metrovoley.com.ar/matches/${matchId}/players`;
   console.log(`Fetching ${url} ...`);
   const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.1.2)' }
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.2.0)' }
   });
   if (!res.ok) throw new Error(`HTTP ${res.status} al pedir ${url}`);
   const html = await res.text();
