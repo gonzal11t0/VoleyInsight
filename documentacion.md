@@ -425,6 +425,10 @@ Anotador	http://localhost:5501/dashboard/anotador.html	https://xxxx.trycloudflar
 API Status	http://localhost:5501/api/status	https://xxxx.trycloudflare.com/api/status
 API Config	http://localhost:5501/api/config	https://xxxx.trycloudflare.com/api/config
 WebSocket	ws://localhost:5501	wss://xxxx.trycloudflare.com (con Socket.IO)
+Acceso: la pantalla inicial tiene un selector Público/Operador. Público crea la sesión
+(30 días) sin contraseña. Operador pide la contraseña de VOLEY_OPERATOR_PASSWORD, con
+límite de intentos fallidos. El servidor acepta role "public" sin clave en
+POST /api/auth/login y no toca el contador de intentos.
 11. FORMATOS DE ARCHIVO
 11.1 match_XXXXX.json (puntos del partido)
 json
@@ -638,7 +642,7 @@ Limitación	Descripción
 Un solo partido	El tracker solo puede seguir un partido a la vez
 Dependencia externa	Requiere que Metro Vóley tenga el partido (para datos automáticos)
 Sin base de datos	Los datos se guardan en archivos JSON
-Sin autenticación	Cualquiera con la URL puede ver el dashboard
+Acceso público abierto	Cualquiera con la URL entra como Público sin contraseña (solo lectura). Operador requiere contraseña
 POST a la API en celular	Puede fallar si el túnel de Cloudflare no está activo
 
 21. SOLUCIÓN DE PROBLEMAS COMUNES (ACTUALIZADA)

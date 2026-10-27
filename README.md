@@ -18,7 +18,7 @@ Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido
 - Servicio: aces, errores y eficiencia real, sin confundir errores de ataque.
 - Reporte HTML/PDF con gráficos, tablas por set y acumulado, rotaciones y glosario.
 - Sincronización entre dispositivos y acceso remoto mediante Cloudflare.
-- Acceso protegido por contraseña con roles Operador y Público y sesión de 30 días.
+- Pantalla de ingreso con selector Público/Operador y sesión de 30 días. Público entra sin contraseña (solo lectura); Operador requiere contraseña.
 - Recuperación exacta de puntos omitidos, corrección individual y protección contra duplicados.
 - Persistencia atómica con respaldo automático para puntos manuales e historial oficial.
 - Comparación de hasta cinco informes siguiendo automáticamente al equipo principal.
@@ -29,7 +29,7 @@ Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido
 
 La instalación, configuración de Node.js, puertos, Cloudflare y archivos técnicos forman parte de la preparación del sistema y pueden quedar a cargo del operador de VoleyInsight. El entrenador o club no necesita editar código para usar el servicio durante un partido.
 
-El dashboard puede abrirse desde notebook o celular. El modo Público muestra el análisis completo, pero oculta el anotador, la comparación, la descarga y la administración del partido.
+El dashboard puede abrirse desde notebook o celular. El modo Público entra sin contraseña, muestra el análisis completo, pero oculta el anotador, la comparación, la descarga y la administración del partido.
 
 ## Inicio técnico
 
@@ -46,7 +46,8 @@ la planilla en vivo, el partido puede prepararse anticipadamente ingresando el I
 los dos equipos y una categoría válida.
 
 Antes del primer inicio, copiá `.env.example` como `.env` y configurá allí las
-contraseñas privadas de Operador y Público. El archivo `.env` queda únicamente en
+contraseña privada de Operador (VOLEY_OPERATOR_PASSWORD). VOLEY_PUBLIC_PASSWORD sigue siendo requerida al arrancar, pero ya no se usa para ingresar
+. El archivo `.env` queda únicamente en
 el equipo de trabajo y Git no lo publica. Las claves distinguen mayúsculas de
 minúsculas.
 
