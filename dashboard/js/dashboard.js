@@ -1955,6 +1955,7 @@ export class VolleyballDashboard {
             
             let formacionNombres = 'Formación histórica no registrada';
             
+            const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i, setSeleccionado);
             if (formacion.length === 6) {
                 const jugadoresMap = equipoRotaciones === 'VISITANTE'
                     ? this.jugadoresVisitante

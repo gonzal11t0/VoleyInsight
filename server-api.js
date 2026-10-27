@@ -475,25 +475,25 @@ app.get('/api/plantel/:matchId', async (req, res) => {
     }
 });
 
-// Endpoint: court actual (fallback si no hay formación inicial guardada)
-app.get('/api/court/:matchId', async (req, res) => {
-    try {
-        const { matchId } = req.params;
-        const fullPath = path.join(__dirname, 'data', `full_${matchId}.json`);
-        const full = JSON.parse(await fs.promises.readFile(fullPath, 'utf-8'));
-        const court = full?.liveState?.court || full?.court || null;
-        if (!court) return res.status(404).json({ success: false, error: 'Sin court en full' });
-        res.json({ success: true, data: court });
-    } catch (e) {
-        res.status(404).json({ success: false, error: e.message });
-    }
-});
 app.get('/api/formacion/:matchId/:set', async (req, res) => {
     try {
         const { matchId, set } = req.params;
         const formacionPath = path.join(__dirname, 'data', `formacion_inicial_${matchId}_set_${set}.json`);
-        const formacion = JSON.parse(await fs.promises.readFile(formacionPath, 'utf-8'));
+        const formacion = JSON.parse(await fs.readFile(formacionPath, 'utf-8'));
         res.json({ success: true, data: formacion });
+    } catch (e) {
+        res.status(404).json({ success: false, error: 'No hay formación guardada para ese set' });
+    }
+});
+
+app.get('/api/court/:matchId', async (req, res) => {
+    try {
+        const { matchId } = req.params;
+        const fullPath = path.join(__dirname, 'data', `full_${matchId}.json`);
+        const full = JSON.parse(await fs.readFile(fullPath, 'utf-8'));
+        const court = full?.liveState?.court || full?.court || null;
+        if (!court) return res.status(404).json({ success: false, error: 'Sin court en full' });
+        res.json({ success: true, data: court });
     } catch (e) {
         res.status(404).json({ success: false, error: e.message });
     }
