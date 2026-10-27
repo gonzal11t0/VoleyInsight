@@ -953,12 +953,12 @@
                 <div class="acceso-campo">
                     <label for="accesoRol">Tipo de acceso</label>
                     <select id="accesoRol" name="rol" autocomplete="off">
-                        <option value="operator">Operador</option>
                         <option value="public">Público</option>
+                        <option value="operator">Operador</option>
                     </select>
                 </div>
-                <div class="acceso-campo">
-                    <label for="accesoClave">Contraseña</label>
+                <div class="acceso-campo" id="accesoClaveCampo">
+                        <label for="accesoClave">Contraseña</label>
                     <input id="accesoClave" name="clave" type="password" autocomplete="current-password" required placeholder="Ingresá la contraseña">
                 </div>
             </div>
@@ -1704,10 +1704,19 @@
                 if (!window.dashboard) window.dashboard = new VolleyballDashboard();
             }
 
+                        function actualizarCampoClave() {
+                const esPublico = accesoRol.value === 'public';
+                const campo = document.getElementById('accesoClaveCampo');
+                if (campo) campo.style.display = esPublico ? 'none' : '';
+                accesoClave.required = !esPublico && !accesoClave.disabled;
+                if (esPublico) accesoClave.value = '';
+            }
+
             function configurarCamposAutenticacion(requiereCredenciales) {
                 accesoRol.disabled = !requiereCredenciales;
                 accesoClave.disabled = !requiereCredenciales;
-                accesoClave.required = requiereCredenciales;
+                accesoClave.required = requiereCredenciales && accesoRol.value !== 'public';
+                actualizarCampoClave();
             }
 
             function aplicarRol(role) {
@@ -1722,7 +1731,8 @@
 
             const rolSolicitado = new URLSearchParams(window.location.search).get('rol');
             if (rolSolicitado === 'public' || rolSolicitado === 'operator') accesoRol.value = rolSolicitado;
-
+                accesoRol.addEventListener('change', () => { actualizarCampoClave(); actualizarBotonIngreso(); });
+                actualizarCampoClave();
             async function cargarPerfilClub() {
                 const response = await fetch('/api/club-profile', { cache: 'no-store' });
                 if (!response.ok) return;
@@ -1806,8 +1816,8 @@
             function actualizarBotonIngreso(nivel = 'waiting') {
                 entrarAccesoBtn.disabled = !servidorDisponible;
                 if (!sesionActual) {
-                    entrarAccesoBtn.textContent = 'INICIAR SESIÓN';
-                } else {
+                    entrarAccesoBtn.textContent = accesoRol.value === 'public' ? 'ENTRAR' : 'INICIAR SESIÓN';
+                    } else {
                     entrarAccesoBtn.textContent = nivel === 'ready'
                         ? 'INGRESAR A VOLEYINSIGHT'
                         : 'INGRESAR IGUALMENTE';
@@ -2310,8 +2320,7 @@
                 } catch (error) {
                     mostrarMensajeAcceso(error.message);
                     entrarAccesoBtn.disabled = false;
-                    entrarAccesoBtn.textContent = 'INICIAR SESIÓN';
-                }
+                    entrarAccesoBtn.textContent = accesoRol.value === 'public' ? 'ENTRAR' : 'INICIAR SESIÓN';                }
             });
 
             logoutBtn?.addEventListener('click', async () => {

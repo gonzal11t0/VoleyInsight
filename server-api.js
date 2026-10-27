@@ -158,6 +158,11 @@ async function requireOperator(req, res, next) {
 }
 
 app.post('/api/auth/login', async (req, res) => {
+     if (String(req.body?.role || '').trim().toLowerCase() === 'public') {
+        const tokenPublico = createSessionToken({ role: 'public' }, await obtenerSecretoAuth());
+        res.setHeader('Set-Cookie', serializeSessionCookie(tokenPublico, { secure: esConexionSegura(req) }));
+        return res.json({ success: true, role: 'public', expiresInDays: 30 });
+    }
     const clientKey = String(
         req.headers['cf-connecting-ip']
         || req.headers['x-forwarded-for']
