@@ -1372,7 +1372,7 @@ export class VolleyballDashboard {
         }
     }
 
-    async loadData() {
+        async loadData() {
         const offlineManager = new OfflineManager();
         if (this.offlineMode) {
             const cachedData = await offlineManager.getMatchData(this.matchId);
@@ -1479,13 +1479,17 @@ export class VolleyballDashboard {
                     this.actualizarVistaIndividuales();
                 }
             }
+            await this.cargarFormacionDesdeBackend();
             this.mostrarSkeleton(false);
         } catch (error) {
             const cachedData = await offlineManager.getMatchData(this.matchId);
             if (cachedData) {
                 this.data = cachedData;
                 this.updateDashboard();
-                this.mostrarFeedbackPartido('⚠️ Error de conexión - Usando datos cacheados');
+                this.mostrarFeedbackPartido('📡 Modo offline - Datos cacheados');
+            } else {
+                console.error('Error cargando datos:', error);
+                this.mostrarFeedbackPartido('❌ Error cargando datos');
             }
             this.mostrarSkeleton(false);
         }
@@ -1951,13 +1955,17 @@ export class VolleyballDashboard {
             
             let formacionNombres = 'Formación histórica no registrada';
             
-            if (tieneDatos) {
-                const formacion = this.obtenerJugadoresEnRotacion(equipoRotaciones, i, setSeleccionado);
-                if (formacion.length === 6) {
-                    formacionNombres = formacion.map(j =>
-                    `${escaparHtml(j.numero)}${j.nombreCorto ? ' (' + escaparHtml(j.nombreCorto) + ')' : ''}`
-                    ).join(' • ');
-                }
+            if (formacion.length === 6) {
+                const jugadoresMap = equipoRotaciones === 'VISITANTE'
+                    ? this.jugadoresVisitante
+                    : this.jugadoresLocal;
+                formacionNombres = formacion.map(j => {
+                    const nombre = (jugadoresMap && jugadoresMap[j.numero])
+                        || j.nombre
+                        || j.nombreCorto;
+                    const nombreLimpio = (nombre && nombre !== 'Jugador') ? nombre : null;
+                    return `${escaparHtml(j.numero)}${nombreLimpio ? ' (' + escaparHtml(nombreLimpio) + ')' : ''}`;
+                }).join(' • ');
             }
 
             if (!tieneDatos) {
@@ -2277,6 +2285,62 @@ export class VolleyballDashboard {
         return setSeleccionado !== 'all'
             ? Number(setSeleccionado)
             : (setsConPuntos.find(set => this.formacionInicialPorSet?.[set]) || setsConPuntos[0] || 1);
+    }
+
+    async cargarFormacionDesdeBackend() {
+        if (!this.matchId) return;
+        if (!this.formacionInicialPorSet) this.formacionInicialPorSet = {};
+
+        // 1) Intentar formación inicial por set (fuente exacta)
+        for (let set = 1; set <= 5; set++) {
+            if (this.formacionInicialPorSet[set]) continue;
+            try {
+                const r = await fetch(`${window.location.origin}/api/formacion/${this.matchId}/${set}`);
+                if (r.ok) {
+                    const p = await r.json();
+                    if (p.data && p.data.local?.length === 6) {
+                        this.formacionInicialPorSet[set] = p.data;
+                        this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${set}`, p.data);
+                    }
+                }
+            } catch {}
+        }
+
+        // 2) Fallback: si no hay NINGUNA formación inicial, usar court actual para todos los sets
+        const tieneAlguna = Object.keys(this.formacionInicialPorSet).length > 0;
+        if (!tieneAlguna) {
+            try {
+                const r = await fetch(`${window.location.origin}/api/court/${this.matchId}`);
+                if (r.ok) {
+                    const p = await r.json();
+                    const court = p.data;
+                    if (court) {
+                        const formacion = { local: [], visitante: [] };
+                        for (const pos of Object.values(court.home?.positions || {})) {
+                            formacion.local.push({
+                                numero: pos.number,
+                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
+                            });
+                        }
+                        for (const pos of Object.values(court.away?.positions || {})) {
+                            formacion.visitante.push({
+                                numero: pos.number,
+                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
+                            });
+                        }
+                        if (formacion.local.length === 6 && formacion.visitante.length === 6) {
+                            for (let s = 1; s <= 5; s++) {
+                                this.formacionInicialPorSet[s] = formacion;
+                                this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${s}`, formacion);
+                            }
+                            console.log('[formacion] Fallback aplicado: formación del court usada para todos los sets');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('[formacion] No se pudo cargar fallback:', e.message);
+            }
+        }
     }
 
     obtenerJugadoresEnRotacion(equipo, rotacionNum, setSeleccionado = this.filtroRotaciones) {

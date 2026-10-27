@@ -197,8 +197,83 @@ class MatchTracker {
             } catch (e) {}
         }, 5000);
     }
+    // === ROSTER DESDE HTML (nombres reales) ===
+    _rosterMap = null;
+    _rosterMatchId = null;
 
-    async fetchAndProcess() {
+    async cargarRosterDesdeHTML(matchId) {
+        if (this._rosterMap && this._rosterMatchId === matchId) {
+            return this._rosterMap;
+        }
+        try {
+            const url = `https://metrovoley.com.ar/matches/${matchId}/players`;
+            const res = await fetch(url, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.1.2)' }
+            });
+            if (!res.ok) {
+                logger.warn(`[roster] HTTP ${res.status} al pedir ${url}`);
+                return null;
+            }
+            const html = await res.text();
+            const match = html.match(/data-page="([^"]+)"/);
+            if (!match) {
+                logger.warn('[roster] No se encontró data-page en el HTML');
+                return null;
+            }
+            const raw = match[1]
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>');
+            const dataPage = JSON.parse(raw);
+            const props = dataPage.props || {};
+
+            const mapa = {};
+            const agregar = (lista) => {
+                for (const j of lista || []) {
+                    const nombre = (j.name || '').trim();
+                    if (nombre) mapa[j.id] = nombre;
+                }
+            };
+            agregar(props.homeRoster);
+            agregar(props.awayRoster);
+
+            this._rosterMap = mapa;
+            this._rosterMatchId = matchId;
+            logger.info(`[roster] ${Object.keys(mapa).length} nombres cargados desde HTML`);
+            return mapa;
+        } catch (e) {
+            logger.warn(`[roster] Error cargando roster: ${e.message}`);
+            return null;
+        }
+    }
+
+    enriquecerConNombres(court, mapa) {
+        if (!court || !mapa) return;
+        for (const side of ['home', 'away']) {
+            const equipo = court[side];
+            if (!equipo) continue;
+
+            const aplicar = (jugador) => {
+                if (!jugador || !jugador.matchTeamPlayerId) return;
+                const nombre = mapa[jugador.matchTeamPlayerId];
+                if (!nombre) return;
+                const partes = nombre.split(' ');
+                jugador.name = nombre;
+                jugador.lastName = partes.pop() || '';
+                jugador.firstName = partes.join(' ');
+            };
+
+            for (const pos of Object.values(equipo.positions || {})) aplicar(pos);
+            for (const j of equipo.bench || []) aplicar(j);
+            if (equipo.liberoIn) aplicar(equipo.liberoIn);
+        }
+    }
+    // === FIN ROSTER ===
+
+
+       async fetchAndProcess() {
         if (this.isPaused) return;
         if (this.isReconnecting) {
             logger.debug('Already reconnecting, skipping fetch');
@@ -206,6 +281,19 @@ class MatchTracker {
         }
         try {
             const data = await this.api.fetchUpdates();
+
+            // === FIX A: enriquecer nombres desde el HTML antes de procesar ===
+            try {
+                const courtRaw = data?.liveState?.court || data?.court;
+                if (courtRaw) {
+                    const roster = await this.cargarRosterDesdeHTML(this.matchId);
+                    if (roster) this.enriquecerConNombres(courtRaw, roster);
+                }
+            } catch (e) {
+                logger.debug('Enriquecimiento de roster falló:', e.message);
+            }
+            // === FIN FIX A ===
+
             if (this.consecutiveErrors > 0) {
                 logger.info(`✅ Conexión restablecida después de ${this.consecutiveErrors} errores`);
                 this.consecutiveErrors = 0;
@@ -262,18 +350,65 @@ class MatchTracker {
                     console.error('Error guardando JSON:', saveError.message);
                 }
             }
+
+            // === FIX B: guardar full_*.json y court_*.json (solo si hay formación) ===
+            const courtActual = data?.liveState?.court || data?.court;
             try {
                 const fullDataPath = path.join('./data', `full_${this.matchId}.json`);
-                await writeJsonAtomic(fullDataPath, data);
-                if (data.court) {
+                const tieneFormacion = courtActual && (
+                    Object.keys(courtActual.home?.positions || {}).length > 0 ||
+                    Object.keys(courtActual.away?.positions || {}).length > 0
+                );
+                const fullExiste = await fs.access(fullDataPath).then(() => true).catch(() => false);
+                if (tieneFormacion || !fullExiste) {
+                    await writeJsonAtomic(fullDataPath, data);
+                } else {
+                    logger.debug('full_*.json no se sobreescribe: sin formación y archivo ya existe');
+                }
+                if (courtActual) {
                     const courtPath = path.join('./data', `court_${this.matchId}.json`);
-                    await writeJsonAtomic(courtPath, data.court);
+                    await writeJsonAtomic(courtPath, courtActual);
                 } else {
                     console.log('⚠️ No hay datos de court en esta respuesta (normal, aparecerán cuando el partido empiece)');
                 }
             } catch (e) {
                 console.error('Error guardando datos completos:', e.message);
             }
+            // === FIN FIX B ===
+
+            // === FIX FORMACIÓN INICIAL POR SET ===
+            try {
+                const setActual = data?.liveState?.score?.currentSet?.number
+                    || data?.match?.currentSet
+                    || data?.currentSet;
+                if (courtActual && setActual) {
+                    const formacionPath = path.join('./data', `formacion_inicial_${this.matchId}_set_${setActual}.json`);
+                    const yaExiste = await fs.access(formacionPath).then(() => true).catch(() => false);
+                    if (!yaExiste) {
+                        const formacion = { local: [], visitante: [] };
+                        for (const pos of Object.values(courtActual.home?.positions || {})) {
+                            formacion.local.push({
+                                numero: pos.number,
+                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
+                            });
+                        }
+                        for (const pos of Object.values(courtActual.away?.positions || {})) {
+                            formacion.visitante.push({
+                                numero: pos.number,
+                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
+                            });
+                        }
+                        if (formacion.local.length === 6 && formacion.visitante.length === 6) {
+                            await writeJsonAtomic(formacionPath, formacion);
+                            logger.info(`[formacion] Guardada formación inicial del set ${setActual}`);
+                        }
+                    }
+                }
+            } catch (e) {
+                logger.debug('Error guardando formación inicial:', e.message);
+            }
+            // === FIN FIX FORMACIÓN ===
+
             this.actualizarActividadPartido();
             await this.fetchStats();
         } catch (error) {
