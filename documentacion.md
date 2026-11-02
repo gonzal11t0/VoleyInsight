@@ -1,6 +1,7 @@
-📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.0
+📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.2.0
 
 1. DESCRIPCIÓN GENERAL
+Novedad v3.2.0: pantalla de ingreso con selector Público/Operador. Público entra sin contraseña (solo lectura) y Operador requiere contraseña.
 VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real que:
 
 Captura datos automáticos desde la API de Metro Vóley cada 3 segundos (con WebSocket para tiempo real)
@@ -702,7 +703,7 @@ API Docs	http://localhost:5501/api/status
 
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   🏐 VOLEYINSIGHT v3.0                                                       ║
+║   🏐 VOLEYINSIGHT v3.2                                                      ║
 ║                                                                              ║
 ║   ✅ 46 mejoras implementadas (92%)                                          ║
 ║   ✅ Dashboard 100% funcional (4 vistas + selector)                          ║
@@ -729,7 +730,7 @@ API Docs	http://localhost:5501/api/status
 ║   🚀 LISTO PARA PRODUCCIÓN                                                   ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-Documentación generada: Junio 2026
-Versión del sistema: VoleyInsight v3.0
+Documentación generada: Noviebre 2026
+Versión del sistema: VoleyInsight v3.2.0
 Estado: Producción - 46/50 mejoras implementadas (92%)
 Novedades principales: Selector de partidos funcional en celular, túnel único de Cloudflare, resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.
