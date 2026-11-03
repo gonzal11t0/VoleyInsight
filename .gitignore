@@ -23,7 +23,11 @@ data/*.old
 data/api_url.txt
 data/.auth_secret
 voleyinsight-*.json
+data/informes/
 
+c.txt
+*.cookie
+cookies.txt
 # Reportes e informes locales generados en la raiz
 /*reporte_*.html
 /INFORME_MAESTRO_VOLEYINSIGHT_*.md
