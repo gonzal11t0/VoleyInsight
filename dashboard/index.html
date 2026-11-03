@@ -1575,7 +1575,7 @@
 
         <!-- FOOTER -->
         <div class="text-center py-4 md:py-6 text-gray-500 text-xs border-t border-white/5">
-            <p>Datos en tiempo real | VoleyInsight v3.2.0 · Acceso Público/Operador y persistencia protegida</p>
+            <p>Datos en tiempo real | VoleyInsight v3.2.1 · Acceso Público/Operador y persistencia protegida</p>
         </div>
     </div>
 
@@ -1602,6 +1602,8 @@
                 <select id="partidoSelector" class="w-full bg-gray-700 text-white px-2 py-1.5 rounded-lg text-xs"><option value="">Cargando partidos...</option></select>
                 <button id="cargarPartidoBtn" class="w-full mt-1 bg-purple-700 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">📋 CARGAR PARTIDO</button>
                 <button id="quitarPartidoPreparadoBtn" class="hidden w-full mt-1 bg-red-900/80 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🗑️ QUITAR DE PRÓXIMOS</button>
+                <button id="quitarPartidoHistorialBtn" class="hidden w-full mt-1 bg-red-900/80 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🗑️ QUITAR DEL HISTORIAL</button>
+                <button id="limpiarHistorialBtn" class="hidden w-full mt-1 bg-gray-700 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🧹 LIMPIAR HISTORIAL</button>
                 <button id="finalizarPartidoActivoBtn" class="hidden w-full mt-1 bg-amber-800 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg text-xs transition-all">🏁 FINALIZAR ACTIVO</button>
             </div>
             <button id="copyUrlBtn" class="w-full mt-2 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1">🔗 Copiar URL del túnel</button>
@@ -1998,7 +2000,7 @@
                     if (!statusResponse.ok) throw new Error('Servidor no disponible');
                     const status = await statusResponse.json();
                     servidorDisponible = true;
-                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.2.0'}`);
+                    actualizarTarjetaAcceso('accesoEstadoServidor', 'ok', '🟢 Servidor conectado', `VoleyInsight v${status.version || '3.2.1'}`);
                     actualizarBotonIngreso();
                     actualizarBotonCambio();
 

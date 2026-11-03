@@ -29,6 +29,9 @@ const {
     obtenerPartidosPreparados,
     guardarPartidoPreparado,
     quitarPartidoPreparado,
+    quitarPartidoDelHistorial,
+    limpiarHistorialPartidos,
+    obtenerPartidosConfigurados,
     validarConfiguracionPartido,
     aplicarPartidoActivo,
     finalizarPartidoActivo,
@@ -955,7 +958,7 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 });
 
 app.get('/api/status', (req, res) => {
-    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id', 'DELETE /api/preparation/active'] });
+    res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id', 'DELETE /api/preparation/history', 'DELETE /api/preparation/history/:id', 'DELETE /api/preparation/active'] });
 });
 
 app.get('/api/config', async (req, res) => {
@@ -1122,6 +1125,59 @@ app.delete('/api/preparation/queue/:id', requireOperator, async (req, res) => {
             activeMatchId: normalizarMatchId(config.matchId),
             partidosPreparados: obtenerPartidosPreparados(configActualizada),
             trackerChanged: false
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Quita un partido de la lista HISTORIAL del selector (solo config.partidos).
+// No borra match_*.json ni full_*.json: los datos y los informes se conservan.
+app.delete('/api/preparation/history', requireOperator, async (req, res) => {
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        const activo = normalizarMatchId(config.matchId);
+        const quitados = obtenerPartidosConfigurados(config)
+            .filter(partido => partido.id !== activo)
+            .map(partido => partido.id);
+        const configActualizada = limpiarHistorialPartidos(config);
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+        res.json({
+            success: true,
+            removedMatchIds: quitados,
+            removedCount: quitados.length,
+            activeMatchId: activo,
+            partidos: obtenerPartidosConfigurados(configActualizada),
+            dataFilesDeleted: false
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.delete('/api/preparation/history/:id', requireOperator, async (req, res) => {
+    const matchId = normalizarMatchId(req.params.id);
+    if (!matchId) {
+        return res.status(400).json({ success: false, error: 'Ingresá un Match ID válido.' });
+    }
+    try {
+        const config = await leerJsonOpcional(CONFIG_PATH, {});
+        if (matchId === normalizarMatchId(config.matchId)) {
+            return res.status(409).json({ success: false, error: 'No se puede quitar del historial el partido activo.' });
+        }
+        const estabaEnHistorial = obtenerPartidosConfigurados(config)
+            .some(partido => partido.id === matchId);
+        if (!estabaEnHistorial) {
+            return res.status(404).json({ success: false, error: 'Ese partido no está en el historial.' });
+        }
+        const configActualizada = quitarPartidoDelHistorial(config, matchId);
+        await escribirJsonSeguro(CONFIG_PATH, configActualizada);
+        res.json({
+            success: true,
+            removedMatchId: matchId,
+            activeMatchId: normalizarMatchId(config.matchId),
+            partidos: obtenerPartidosConfigurados(configActualizada),
+            dataFilesDeleted: false
         });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });

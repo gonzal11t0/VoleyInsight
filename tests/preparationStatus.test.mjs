@@ -9,6 +9,8 @@ const {
     obtenerPartidosPreparados,
     guardarPartidoPreparado,
     quitarPartidoPreparado,
+    quitarPartidoDelHistorial,
+    limpiarHistorialPartidos,
     actualizarHistorialPartidos,
     validarConfiguracionPartido,
     validarConfiguracionPendiente,
@@ -156,6 +158,24 @@ const activadoDesdePreparados = aplicarPartidoActivo(conDosPreparados, {
 assert.equal(activadoDesdePreparados.matchId, 277500);
 assert.deepEqual(obtenerPartidosPreparados(activadoDesdePreparados).map(partido => partido.id), [277501],
     'activar un partido debe quitar solo ese partido de la lista de preparados');
+
+const sinPartidoViejo = quitarPartidoDelHistorial(configConHistorialViejo, 230512);
+assert.deepEqual(sinPartidoViejo.partidos.map(partido => partido.id), [277134],
+    'quitar del historial debe sacar solo ese partido de config.partidos');
+assert.equal(sinPartidoViejo.matchId, 277134, 'quitar del historial no debe tocar el partido activo');
+assert.equal(configConHistorialViejo.partidos.length, 2, 'no debe mutar la config original');
+assert.throws(() => quitarPartidoDelHistorial(configConHistorialViejo, 277134), /partido activo/i);
+assert.throws(() => quitarPartidoDelHistorial(configConHistorialViejo, 'abc'), /inválido/i);
+assert.deepEqual(
+    obtenerPartidosPreparados(quitarPartidoDelHistorial(conDosPreparados, 230512)).map(partido => partido.id),
+    [277500, 277501],
+    'quitar del historial no debe tocar los próximos partidos'
+);
+const historialLimpio = limpiarHistorialPartidos(configConHistorialViejo);
+assert.deepEqual(historialLimpio.partidos.map(partido => partido.id), [277134],
+    'limpiar el historial debe conservar el partido activo');
+assert.deepEqual(limpiarHistorialPartidos({ partidos: [{ id: 1 }, { id: 2 }] }).partidos, [],
+    'sin partido activo se limpia todo el historial');
 
 const sinSegundoPreparado = quitarPartidoPreparado(conDosPreparados, 277501);
 assert.deepEqual(obtenerPartidosPreparados(sinSegundoPreparado).map(partido => partido.id), [277500]);

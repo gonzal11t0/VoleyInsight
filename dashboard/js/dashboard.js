@@ -427,6 +427,7 @@ export class VolleyballDashboard {
                     Number(partido.id) !== Number(this.partidoActivoConfigurado.id)
                     && !idsPreparados.has(Number(partido.id))
                 );
+                this.cantidadHistoricos = historicos.length;
                 agregarGrupo('PARTIDO ACTIVO', activo, 'activo');
                 agregarGrupo('PRÓXIMOS PARTIDOS', this.partidosPreparados, 'preparado');
                 agregarGrupo('HISTORIAL', historicos, 'historico');
@@ -474,6 +475,10 @@ export class VolleyballDashboard {
                 : '📋 CARGAR PARTIDO';
         quitarBtn.classList.toggle('hidden', tipo !== 'preparado');
         finalizarBtn.classList.toggle('hidden', tipo !== 'activo');
+        document.getElementById('quitarPartidoHistorialBtn')
+            ?.classList.toggle('hidden', tipo !== 'historico');
+        document.getElementById('limpiarHistorialBtn')
+            ?.classList.toggle('hidden', !(this.cantidadHistoricos > 0));
     }
 
     setupPanelMinimizable() {
@@ -578,6 +583,52 @@ export class VolleyballDashboard {
             } finally {
                 quitarBtn.disabled = false;
                 quitarBtn.textContent = '🗑️ QUITAR DE PRÓXIMOS';
+                this.actualizarControlesSelectorPartido();
+            }
+        });
+
+        const quitarHistorialBtn = document.getElementById('quitarPartidoHistorialBtn');
+        quitarHistorialBtn?.addEventListener('click', async () => {
+            const { tipo, partido } = this.obtenerPartidoSeleccionado();
+            if (tipo !== 'historico' || !partido) return;
+            if (!window.confirm(`¿Quitar ${partido.id}: ${partido.homeTeam} vs ${partido.awayTeam} del historial?\n\nSolo se quita de la lista. Los datos y los informes del partido se conservan.`)) return;
+            quitarHistorialBtn.disabled = true;
+            quitarHistorialBtn.textContent = 'QUITANDO…';
+            try {
+                const apiUrl = await this.obtenerUrlApi();
+                const response = await fetch(`${apiUrl}/api/preparation/history/${partido.id}`, { method: 'DELETE' });
+                const resultado = await response.json();
+                if (!response.ok) throw new Error(resultado.error || 'No se pudo quitar el partido del historial.');
+                this.mostrarFeedbackPartido(`✅ Partido ${partido.id} quitado del historial.`);
+                await this.cargarListaPartidos();
+            } catch (error) {
+                this.mostrarFeedbackPartido(`❌ ${error.message}`);
+            } finally {
+                quitarHistorialBtn.disabled = false;
+                quitarHistorialBtn.textContent = '🗑️ QUITAR DEL HISTORIAL';
+                this.actualizarControlesSelectorPartido();
+            }
+        });
+
+        const limpiarHistorialBtn = document.getElementById('limpiarHistorialBtn');
+        limpiarHistorialBtn?.addEventListener('click', async () => {
+            const cantidad = this.cantidadHistoricos || 0;
+            if (!cantidad) return;
+            if (!window.confirm(`¿Quitar los ${cantidad} partidos del historial del selector?\n\nEl partido activo y los próximos no se tocan. Los datos y los informes se conservan.`)) return;
+            limpiarHistorialBtn.disabled = true;
+            limpiarHistorialBtn.textContent = 'LIMPIANDO…';
+            try {
+                const apiUrl = await this.obtenerUrlApi();
+                const response = await fetch(`${apiUrl}/api/preparation/history`, { method: 'DELETE' });
+                const resultado = await response.json();
+                if (!response.ok) throw new Error(resultado.error || 'No se pudo limpiar el historial.');
+                this.mostrarFeedbackPartido(`✅ Historial limpiado (${resultado.removedCount ?? 0} partidos).`);
+                await this.cargarListaPartidos();
+            } catch (error) {
+                this.mostrarFeedbackPartido(`❌ ${error.message}`);
+            } finally {
+                limpiarHistorialBtn.disabled = false;
+                limpiarHistorialBtn.textContent = '🧹 LIMPIAR HISTORIAL';
                 this.actualizarControlesSelectorPartido();
             }
         });

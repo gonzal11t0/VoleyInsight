@@ -1,6 +1,7 @@
-📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.2.0
+📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.2.1
 
 1. DESCRIPCIÓN GENERAL
+Novedad v3.2.1: el operador puede quitar partidos del HISTORIAL del selector de partido (uno por uno con "QUITAR DEL HISTORIAL" o todos con "LIMPIAR HISTORIAL"). Solo se modifica la lista de config.json; los archivos de datos y los informes se conservan. El partido activo y los próximos no se tocan.
 Novedad v3.2.0: pantalla de ingreso con selector Público/Operador. Público entra sin contraseña (solo lectura) y Operador requiere contraseña.
 VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real que:
 
@@ -731,6 +732,6 @@ API Docs	http://localhost:5501/api/status
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 Documentación generada: Noviebre 2026
-Versión del sistema: VoleyInsight v3.2.0
+Versión del sistema: VoleyInsight v3.2.1
 Estado: Producción - 46/50 mejoras implementadas (92%)
 Novedades principales: Selector de partidos funcional en celular, túnel único de Cloudflare, resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.

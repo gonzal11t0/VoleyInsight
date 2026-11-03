@@ -60,6 +60,28 @@ function quitarPartidoPreparado(config = {}, matchId) {
     };
 }
 
+function quitarPartidoDelHistorial(config = {}, matchId) {
+    const id = normalizarMatchId(matchId);
+    if (!id) throw new Error('matchId inválido');
+    if (id === normalizarMatchId(config.matchId)) {
+        throw new Error('No se puede quitar del historial el partido activo.');
+    }
+    return {
+        ...config,
+        partidos: obtenerPartidosConfigurados(config)
+            .filter(partido => partido.id !== id)
+    };
+}
+
+function limpiarHistorialPartidos(config = {}) {
+    const activo = normalizarMatchId(config.matchId);
+    return {
+        ...config,
+        partidos: obtenerPartidosConfigurados(config)
+            .filter(partido => partido.id === activo)
+    };
+}
+
 function buscarPartidoConfigurado(config = {}, matchId) {
     const id = normalizarMatchId(matchId);
     if (!id) return null;
@@ -344,6 +366,8 @@ module.exports = {
     obtenerPartidosPreparados,
     guardarPartidoPreparado,
     quitarPartidoPreparado,
+    quitarPartidoDelHistorial,
+    limpiarHistorialPartidos,
     buscarPartidoConfigurado,
     obtenerRespaldoPartido,
     actualizarHistorialPartidos,
