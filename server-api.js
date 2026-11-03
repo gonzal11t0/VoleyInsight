@@ -485,7 +485,12 @@ app.get('/api/plantel/:matchId', async (req, res) => {
 
 app.get('/api/formacion/:matchId/:set', async (req, res) => {
     try {
-        const { matchId, set } = req.params;
+        const matchId = parseInt(req.params.matchId, 10);
+        const set = parseInt(req.params.set, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0
+            || !Number.isInteger(set) || set < 1 || set > 5) {
+            return res.status(400).json({ success: false, error: 'Match ID o set inválido' });
+        }
         const formacionPath = path.join(__dirname, 'data', `formacion_inicial_${matchId}_set_${set}.json`);
         const formacion = JSON.parse(await fs.readFile(formacionPath, 'utf-8'));
         res.json({ success: true, data: formacion });
@@ -496,14 +501,17 @@ app.get('/api/formacion/:matchId/:set', async (req, res) => {
 
 app.get('/api/court/:matchId', async (req, res) => {
     try {
-        const { matchId } = req.params;
+        const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const fullPath = path.join(__dirname, 'data', `full_${matchId}.json`);
         const full = JSON.parse(await fs.readFile(fullPath, 'utf-8'));
         const court = full?.liveState?.court || full?.court || null;
         if (!court) return res.status(404).json({ success: false, error: 'Sin court en full' });
         res.json({ success: true, data: court });
     } catch (e) {
-        res.status(404).json({ success: false, error: e.message });
+        res.status(404).json({ success: false, error: 'No hay court guardado para ese partido' });
     }
 });
 app.post('/api/plantel/:matchId', requireOperator, async (req, res) => {
