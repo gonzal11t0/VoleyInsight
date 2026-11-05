@@ -200,17 +200,21 @@ class MatchTracker {
     // === ROSTER DESDE HTML (nombres reales) ===
     _rosterMap = null;
     _rosterMatchId = null;
+    _rosterRetryAt = null;
 
-    async cargarRosterDesdeHTML(matchId) {
+        async cargarRosterDesdeHTML(matchId) {
         if (this._rosterMap && this._rosterMatchId === matchId) {
             return this._rosterMap;
+        }
+        if (this._rosterRetryAt && this._rosterRetryAt > Date.now()) {
+            return null;
         }
         try {
             const url = `https://metrovoley.com.ar/matches/${matchId}/players`;
             const res = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.2.1)' },
-    signal: AbortSignal.timeout(5000)
-	});
+                headers: { 'User-Agent': 'Mozilla/5.0 (compatible; VoleyInsight/3.2.1)' },
+                signal: AbortSignal.timeout(5000)
+	            });
             if (!res.ok) {
                 logger.warn(`[roster] HTTP ${res.status} al pedir ${url}`);
                 return null;
@@ -239,6 +243,12 @@ class MatchTracker {
             };
             agregar(props.homeRoster);
             agregar(props.awayRoster);
+
+            if (Object.keys(mapa).length === 0) {
+                this._rosterRetryAt = Date.now() + 30000;
+                logger.warn('[roster] data-page sin jugadores; se reintentará en 30s');
+                return null;
+            }
 
             this._rosterMap = mapa;
             this._rosterMatchId = matchId;
