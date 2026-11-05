@@ -987,11 +987,14 @@ app.get('/api/matches/:id/sets', async (req, res) => {
 app.get('/api/status', (req, res) => {
     res.json({ success: true, status: 'online', version: APP_VERSION, timestamp: new Date().toISOString(), endpoints: ['GET /api/matches', 'GET /api/matches/:id', 'GET /api/matches/:id/points', 'GET /api/matches/:id/points/last', 'GET /api/matches/:id/stats', 'GET /api/matches/:id/sets', 'GET /api/status', 'GET /api/preparation', 'POST /api/preparation/verify', 'POST /api/preparation/queue', 'DELETE /api/preparation/queue/:id', 'DELETE /api/preparation/history', 'DELETE /api/preparation/history/:id', 'DELETE /api/preparation/active'] });
 });
-
 app.get('/api/config', async (req, res) => {
     try {
         const data = await fs.readFile(CONFIG_PATH, 'utf-8');
-        res.json(JSON.parse(data));
+        const config = JSON.parse(data);
+        if (req.session?.role !== 'operator') {
+            delete config.partidosPreparados;
+        }
+        res.json(config);
     } catch(e) {
         res.status(404).json({ error: 'Config not found' });
     }
