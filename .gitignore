@@ -31,3 +31,13 @@ cookies.txt
 # Reportes e informes locales generados en la raiz
 /*reporte_*.html
 /INFORME_MAESTRO_VOLEYINSIGHT_*.md
+# Protección de datos personales
+data/campeonato oficial/
+data/**/*.html
+data/**/*.pdf
+Preview/reportes/
+*.bak
+cookies*.txt
+
+del cookies_op.txt
+del cookies.txt
