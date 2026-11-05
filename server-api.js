@@ -421,9 +421,13 @@ function emitPuntoManual(matchId, punto) {
 
 app.post('/api/puntos', requireOperator, async (req, res) => {
     try {
-        const { matchId, punto } = req.body;
-        if (!matchId || !punto) {
+        const { matchId: rawMatchId, punto } = req.body;
+        if (!rawMatchId || !punto) {
             return res.status(400).json({ success: false, error: 'Faltan datos: matchId y punto son requeridos' });
+        }
+        const matchId = parseInt(rawMatchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
         }
 
         const operacion = await conBloqueoPuntos(matchId, async () => {
@@ -529,7 +533,10 @@ app.post('/api/plantel/:matchId', requireOperator, async (req, res) => {
 
 app.get('/api/puntos/:matchId', async (req, res) => {
     try {
-        const matchId = parseInt(req.params.matchId);
+        const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const resultado = await conBloqueoPuntos(matchId, async () => {
             const puntos = await leerPuntosManuales(matchId);
             return reconciliarPuntosManuales(matchId, puntos);
@@ -551,6 +558,9 @@ app.get('/api/puntos/:matchId', async (req, res) => {
 app.get('/api/puntos/:matchId/recovery', async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const set = Math.max(1, parseInt(req.query.set, 10) || 1);
         const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
         const oficiales = await leerPuntosOficiales(matchId);
@@ -567,6 +577,9 @@ app.get('/api/puntos/:matchId/recovery', async (req, res) => {
 app.post('/api/puntos/:matchId/recovery', requireOperator, async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const set = Math.max(1, Number(req.body?.set) || 1);
         const operacion = await conBloqueoPuntos(matchId, async () => {
             const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
@@ -604,6 +617,9 @@ app.post('/api/puntos/:matchId/recovery', requireOperator, async (req, res) => {
 app.patch('/api/puntos/:matchId/:eventId', requireOperator, async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const camposPermitidos = [
             'equipo',
             'equipoAnota',
@@ -639,6 +655,9 @@ app.patch('/api/puntos/:matchId/:eventId', requireOperator, async (req, res) => 
 app.delete('/api/puntos/:matchId/:eventId', requireOperator, async (req, res) => {
     try {
         const matchId = parseInt(req.params.matchId, 10);
+        if (!Number.isInteger(matchId) || matchId <= 0) {
+            return res.status(400).json({ success: false, error: 'Match ID inválido' });
+        }
         const operacion = await conBloqueoPuntos(matchId, async () => {
             const puntos = normalizeLegacyEvents(await leerPuntosManuales(matchId), { matchId });
             const resultado = voidEvent(puntos, req.params.eventId, { actor: 'operator' });
