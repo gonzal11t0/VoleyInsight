@@ -1,161 +1,246 @@
-📚 DOCUMENTACIÓN TÉCNICA COMPLETA - VOLEYINSIGHT v3.2.1
+📚 DOCUMENTACIÓN TÉCNICA COMPLETA — VOLEYINSIGHT v3.2.1
 
-1. DESCRIPCIÓN GENERAL
-Novedad v3.2.1: el operador puede quitar partidos del HISTORIAL del selector de partido (uno por uno con "QUITAR DEL HISTORIAL" o todos con "LIMPIAR HISTORIAL"). Solo se modifica la lista de config.json; los archivos de datos y los informes se conservan. El partido activo y los próximos no se tocan.
-Novedad v3.2.0: pantalla de ingreso con selector Público/Operador. Público entra sin contraseña (solo lectura) y Operador requiere contraseña.
+**Última actualización:** 5 de noviembre de 2026
+**Commit vigente:** `197c42b`
+**Estado:** Producción
+
+---
+
+## 1. DESCRIPCIÓN GENERAL
+
 VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real que:
 
-Captura datos automáticos desde la API de Metro Vóley cada 3 segundos (con WebSocket para tiempo real)
+- Captura datos automáticos desde la API de Metro Vóley cada 3 segundos (con WebSocket para tiempo real).
+- Permite anotación manual de puntos y estadísticas individuales con atajos de teclado.
+- Visualiza análisis en un dashboard profesional con cuatro vistas: **PARTIDO**, **INDIVIDUALES**, **EVOLUCIÓN** y **ANOTADOR**.
+- Exporta reportes en formato HTML con gráficos como imágenes base64 y glosario de métricas.
+- Permite análisis evolutivo: compara múltiples partidos subiendo los reportes HTML generados.
+- Funciona offline con datos cacheados (Service Worker + IndexedDB).
+- Expone una API REST propia para consultar datos programáticamente.
+- Analiza tiempos muertos con registro manual y cálculo de efectividad.
+- Calcula Sideout%, Breakpoint%, Clutch%, fases del set y rachas.
+- Estadísticas de servicio, recepción y defensa por jugador.
+- **Selector de partidos** para cambiar entre partidos históricos, activos y preparados desde el dashboard (funciona en PC y celular).
+- **Resuscripción WebSocket** automática al cambiar de partido.
+- **Túnel único** de Cloudflare publica Dashboard, API y WebSocket desde el puerto 5501.
+- **Autenticación por roles** con selector Público/Operador. Público entra sin contraseña (solo lectura); Operador requiere contraseña.
 
-Permite anotación manual de puntos y estadísticas individuales con atajos de teclado
+### Novedades v3.2.1
 
-Visualiza análisis en un dashboard profesional con TRES vistas: PARTIDO, INDIVIDUALES y EVOLUCIÓN
+- El operador puede quitar partidos del **HISTORIAL** del selector de partido: uno por uno con "QUITAR DEL HISTORIAL" o todos con "LIMPIAR HISTORIAL". Solo se modifica la lista de `config.json`; los archivos de datos y los informes se conservan. El partido activo y los próximos no se tocan.
+- El rol **Público** ya no recibe `partidosPreparados` en `/api/config`: el fixture futuro deja de ser visible sin credenciales de operador.
+- **Validación estricta de `matchId` y `set`** en todos los endpoints que construyen rutas de archivo (path traversal cerrado).
+- **Timeout de 5 segundos** en la descarga del HTML de Metro Vóley desde el tracker. El tracker ya no se bloquea si Metro tarda o se cuelga.
+- **Cacheo robusto del roster**: si Metro devuelve el roster vacío, el tracker reintenta cada 30 segundos sin bloquear el polling.
+- **Auditoría de dependencias**: `npm audit` sin vulnerabilidades `high` ni `moderate` en producción (`minimatch` queda en `nodemon`, que es dev-only).
 
-Exporta reportes en formato HTML con gráficos como imágenes base64 y glosario de métricas
+### Novedades v3.2.0
 
-ANÁLISIS EVOLUTIVO: Compara múltiples partidos subiendo los reportes HTML generados
+- Pantalla de ingreso con selector Público/Operador.
+- Sesión de 30 días firmada con HMAC-SHA256, cookie `HttpOnly` y `SameSite=Lax`.
+- Rate limiting de login: 5 intentos fallidos cada 10 minutos, bloqueo de 15 minutos por IP.
 
-Funciona offline con datos cacheados (Service Worker + IndexedDB)
+---
 
-API REST propia para consultar datos programáticamente
-
-Análisis de tiempos muertos con registro manual
-
-Sideout% y Breakpoint% para análisis ofensivo
-
-Estadísticas de servicio por jugador (SAQUE, errores, eficiencia, total de saques)
-
-🆕 SELECTOR DE PARTIDOS: Cambia entre partidos históricos desde el dashboard (funciona en PC y celular)
-
-🆕 RESUSCRIPCIÓN WEBSOCKET: Al cambiar de partido, el WebSocket se resuscribe automáticamente
-
-🆕 TÚNEL ÚNICO: Cloudflare publica Dashboard, API y WebSocket desde el puerto 5501
-
-🆕 ESTADÍSTICAS DE RECEPCIÓN: REC+ (positiva), REC- (negativa) y eficiencia de recepción
-
-🆕 ESTADÍSTICAS DE DEFENSA: DEF+ (positiva), DEF- (negativa) y eficiencia defensiva
-
-🆕 BREAKPOINTS: puntos ganados mientras el equipo tiene el saque
-
-2. ARQUITECTURA DEL SISTEMA
-text
+## 2. ARQUITECTURA DEL SISTEMA
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           VOLEYINSIGHT - ARQUITECTURA                        │
+│ VOLEYINSIGHT - ARQUITECTURA │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   ┌─────────────────────┐     ┌─────────────────────┐                      │
-│   │   API Metro Vóley   │     │   App de Anotación  │                      │
-│   │   (fuente externa)  │     │   (anotador.html)   │                      │
-│   └──────────┬──────────┘     └──────────┬──────────┘                      │
-│              │                           │                                  │
-│              ▼                           ▼                                  │
-│   ┌─────────────────────┐     ┌─────────────────────┐                      │
-│   │   Tracker (Node.js) │     │   localStorage /    │                      │
-│   │   (WebSocket + Polling)   │   IndexedDB         │                      │
-│   └──────────┬──────────┘     └──────────┬──────────┘                      │
-│              │                           │                                  │
-│              ▼                           ▼                                  │
-│   ┌─────────────────────┐     ┌─────────────────────┐                      │
-│   │   match_XXXXX.json  │     │   timeouts_XXXXX    │                      │
-│   │   full_XXXXX.json   │     │   puntos_XXXXX      │                      │
-│   │                     │     │   marcas_XXXXX      │                      │
-│   └──────────┬──────────┘     └──────────┬──────────┘                      │
-│              │                           │                                  │
-│              └─────────────┬─────────────┘                                  │
-│                            ▼                                                │
-│                 ┌─────────────────────────────────────┐                    │
-│                 │           DASHBOARD                  │                    │
-│                 │         index.html                   │                    │
-│                 │                                      │                    │
-│                 │  📊 VISTA PARTIDO    (en vivo)       │                    │
-│                 │  👕 VISTA INDIVIDUAL (por jugador)   │                    │
-│                 │  📈 VISTA EVOLUCIÓN  (comparativa)   │                    │
-│                 │  🆕 SELECTOR DE PARTIDOS             │                    │
-│                 │                                      │                    │
-│                 │  💾 Exportar HTML   📡 Modo offline  │                    │
-│                 │  ⏸️ Tiempos muertos 📊 Sideout/Break │                    │
-│                 └─────────────────────────────────────┘                    │
-│                            │                                                │
-│                            ▼                                                │
-│                 ┌─────────────────────┐                                    │
-│                 │   API REST propia   │                                    │
-│                 │   WebSocket Server  │                                    │
-│                 │   (CORS habilitado) │                                    │
-│                 └─────────────────────┘                                    │
-│                            │                                                │
-│                            ▼                                                │
-│   ┌─────────────────────────────────────────────────────────────────────┐  │
-│   │                         ACCESO REMOTO                               │  │
-│   │   Cloudflare Tunnel → Dashboard + API + WebSocket (puerto 5501)     │  │
-│   │   El frontend usa el mismo origen para todos los servicios          │  │
-│   └─────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
+│ │
+│ ┌─────────────────────┐ ┌─────────────────────┐ │
+│ │ API Metro Vóley │ │ App de Anotación │ │
+│ │ (fuente externa) │ │ (anotador.html) │ │
+│ └──────────┬──────────┘ └──────────┬──────────┘ │
+│ │ │ │
+│ ▼ ▼ │
+│ ┌─────────────────────┐ ┌─────────────────────┐ │
+│ │ Tracker (Node.js) │ │ localStorage / │ │
+│ │ (WebSocket + Polling) │ IndexedDB │ │
+│ └──────────┬──────────┘ └──────────┬──────────┘ │
+│ │ │ │
+│ ▼ ▼ │
+│ ┌─────────────────────┐ ┌─────────────────────┐ │
+│ │ match_XXXXX.json │ │ timeouts_XXXXX │ │
+│ │ full_XXXXX.json │ │ puntos_XXXXX │ │
+│ │ court_XXXXX.json │ │ marcas_XXXXX │ │
+│ │ formacion_*.json │ │ │ │
+│ └──────────┬──────────┘ └──────────┬──────────┘ │
+│ │ │ │
+│ └─────────────┬─────────────┘ │
+│ ▼ │
+│ ┌─────────────────────────────────────┐ │
+│ │ DASHBOARD │ │
+│ │ index.html │ │
+│ │ │ │
+│ │ 📊 VISTA PARTIDO (en vivo) │ │
+│ │ 👕 VISTA INDIVIDUAL (por jugador) │ │
+│ │ 📈 VISTA EVOLUCIÓN (comparativa) │ │
+│ │ 🏐 VISTA ANOTADOR (manual) │ │
+│ │ 🆕 SELECTOR DE PARTIDOS │ │
+│ │ │ │
+│ │ 💾 Exportar HTML 📡 Modo offline │ │
+│ │ ⏸️ Tiempos muertos 📊 Sideout/Break │ │
+│ └─────────────────────────────────────┘ │
+│ │ │
+│ ▼ │
+│ ┌─────────────────────┐ │
+│ │ API REST propia │ │
+│ │ WebSocket Server │ │
+│ │ Auth (HMAC + JWT-like) │
+│ └─────────────────────┘ │
+│ │ │
+│ ▼ │
+│ ┌─────────────────────────────────────────────────────────────────────┐ │
+│ │ ACCESO REMOTO │ │
+│ │ Cloudflare Tunnel → Dashboard + API + WebSocket (puerto 5501) │ │
+│ │ El frontend usa el mismo origen para todos los servicios │ │
+│ └─────────────────────────────────────────────────────────────────────┘ │
+│ │
 └─────────────────────────────────────────────────────────────────────────────┘
-3. ESTRUCTURA DE ARCHIVOS (ACTUALIZADA)
+
 text
-voley/
+
+---
+
+## 3. ESTRUCTURA DE ARCHIVOS (ACTUALIZADA)
+VoleyInsight/
+├── server-api.js # Servidor Express (puerto 5501): API + WebSocket + estáticos
+├── index.js # Punto de entrada del tracker
+├── iniciar-partido.bat # Lanzador Windows (3 procesos: API, tracker, túnel)
+├── package.json # Dependencias y scripts
+├── README.md
+├── documentacion.md # Este archivo
+├── documentación comercial.md
+├── patch_roster.js # Script de un solo uso para enriquecer partidos viejos
+├── .env # Contraseñas locales (NO en Git)
+├── .env.example
+├── .gitignore
+│
 ├── dashboard/
-│   ├── index.html              # Dashboard principal (3 pestañas + selector)
-│   ├── anotador.html           # App de anotación manual
-│   ├── logo.png                # Logo del sistema
-│   └── js/
-│       ├── dashboard.js        # Lógica principal (incluye selector y resuscripción WS)
-│       ├── anotador.js         # Lógica del anotador manual
-│       ├── reporteGenerator.js # Generación de reportes HTML
-│       ├── statsHelper.js      # Estadísticas por jugador
-│       ├── utils.js            # Utilidades (OfflineManager, SoundManager)
-│       └── sw.js               # Service Worker para modo offline
-├── data/
-│   ├── config.json             # { matchId, homeTeam, awayTeam, categoria, partidos[] }
-│   ├── reglamento.json         # Configuración de sets por categoría
-│   ├── match_*.json            # Puntos del partido (automático)
-│   ├── full_*.json             # Datos completos de API
-│   ├── jugadores_*.json        # Puntos anotados manualmente
-│   ├── timeouts_*.json         # Tiempos muertos (localStorage)
-│   └── marcas_*.json           # Observaciones manuales (localStorage)
+│ ├── index.html # Dashboard principal (4 pestañas + selector)
+│ ├── anotador.html # App de anotación manual
+│ ├── logo-horizontal.png
+│ ├── logo.png
+│ ├── logo-icon-192.png
+│ ├── logo-icon-512.png
+│ ├── favicon-64.png
+│ ├── site.webmanifest
+│ └── js/
+│ ├── dashboard.js # Lógica principal (selector, resuscripción WS, métricas)
+│ ├── anotador.js # Lógica del anotador manual
+│ ├── reporteGenerator.js # Generación de reportes HTML
+│ ├── StatsHelper.js # Estadísticas por jugador
+│ ├── rotacionHelper.js # Cálculo de rotaciones 1-6
+│ ├── metricasVoleyHelper.js # Métricas estándar (Sideout, Breakpoint)
+│ ├── partidoHelper.js # Estado oficial del partido, sets
+│ ├── comparativaHelper.js # Comparación de informes
+│ ├── setSummaryHelper.js # Resumen automático de sets
+│ ├── timeoutHelper.js # Deduplicación de timeouts
+│ ├── utils.js # OfflineManager, SoundManager
+│ └── sw.js # Service Worker para modo offline
+│
 ├── src/
-│   ├── core/
-│   │   ├── tracker.js          # Lógica principal del tracker (con monitor de config.json)
-│   │   └── stateProcessor.js   # Procesamiento de estados
-│   ├── services/
-│   │   └── api.js              # Conexión con API Metro Vóley
-│   └── analytics/
-│       ├── performanceAnalyzer.js  # Análisis de rendimiento
-│       └── volleyballMetrics.js    # Métricas de voleibol
-├── server-api.js               # Servidor Express (puerto 5501) con CORS y WebSocket
-├── index.js                    # Punto de entrada del tracker
-└── iniciar-partido.bat         # Lanzador automático (Windows) con dos túneles
-4. COMPONENTES DEL SISTEMA
-4.1 Tracker (Node.js) - ACTUALIZADO
-Archivo	Función
-index.js	Punto de entrada, lee config.json, maneja errores globales
-src/core/tracker.js	Lógica principal: fetch cada 3s, procesa datos, guarda JSON, WebSocket
-src/services/api.js	Conexión con API de Metro Vóley con timeout y retry
-src/core/stateProcessor.js	Calcula rachas, breakpoints, fases y eventos
-🆕 Nuevas funcionalidades en tracker.js:
-
-Monitoreo de config.json cada 5 segundos (configMonitorInterval)
-
-Cambio automático de partido al detectar nuevo matchId
-
-Método crearArchivoPartidoVacio() para inicializar archivos JSON
-
-Escucha evento WebSocket 'cambiar_partido'
-
-Comandos:
+│ ├── core/
+│ │ ├── tracker.js # Fetch Metro cada 3s, roster HTML, WebSocket
+│ │ ├── stateProcessor.js # Procesa estados, rallies, breakpoints
+│ │ ├── preparationStatus.js # Validación de partidos y config
+│ │ ├── eventEngine.js # Normalización de eventos manuales
+│ │ ├── auth.js # HMAC-SHA256, cookies, sesiones
+│ │ ├── loginGuard.js # Rate limiting de login
+│ │ ├── authConfig.js # Lectura de contraseñas de .env
+│ │ ├── rosterHistory.js # Fusión de planteles
+│ │ ├── rotationHistory.js # Historial de rotaciones
+│ │ └── activityStatus.js # Detección de inactividad
+│ ├── services/
+│ │ ├── api.js # Conexión con Metro Vóley (timeout + retry)
+│ │ └── websocket.js # Stub (no usado, conexión real va por socket.io-client)
+│ ├── analytics/
+│ │ ├── performanceAnalyzer.js
+│ │ └── volleyballMetrics.js
+│ ├── repositories/
+│ │ └── dataRepository.js
+│ ├── export/
+│ │ └── htmlExporter.js
+│ ├── utils/
+│ │ ├── atomicFile.js # Escritura atómica + respaldos .bak
+│ │ └── logger.js
+│ └── config.js
+│
+├── data/
+│ ├── config.json # { matchId, homeTeam, awayTeam, categoria, partidos[], partidosPreparados[] }
+│ ├── reglamento.json # Configuración de sets por categoría
+│ ├── club-profile.json # Perfil del club (nombre, colores, logo)
+│ ├── .auth_secret # Secreto HMAC (generado, permisos 0600)
+│ ├── match_XXXXX.json # Puntos del partido (automático)
+│ ├── match_XXXXX.csv # Puntos en CSV
+│ ├── full_XXXXX.json # Snapshot completo de la API
+│ ├── court_XXXXX.json # Formación actual
+│ ├── formacion_inicial_XXXXX_set_N.json # Formación inicial del set N
+│ ├── plantel_XXXXX.json # Mapa dorsal → nombre
+│ ├── puntos_manuales_XXXXX.json # Puntos anotados manualmente
+│ ├── analysis_XXXXX.json # Análisis de rendimiento
+│ ├── tracker_status_XXXXX.json # Estado del tracker
+│ └── informes/ # Informes HTML importantes (no en Git)
+│
+└── tests/ # 15 tests automatizados
+├── auth.test.mjs
+├── authConfig.test.cjs
+├── loginGuard.test.cjs
+├── eventEngine.test.cjs
+├── persistenceSafety.test.cjs
+├── rotationState.test.cjs
+├── trackerActiveState.test.cjs
+├── formacionHelper.test.mjs
+├── rotacionHelper.test.mjs
+├── metricasVoleyHelper.test.mjs
+├── reportConsistency.test.mjs
+├── comparativaHelper.test.mjs
+├── setSummaryHelper.test.mjs
+├── timeoutHelper.test.mjs
+├── partidoStatus.test.mjs
+└── preparationStatus.test.mjs
 
 text
-npm start          # Iniciar tracker
-npm run watch      # Monitor en vivo (terminal)
-4.2 Dashboard (index.html) - ACTUALIZADO
+
+---
+
+## 4. COMPONENTES DEL SISTEMA
+
+### 4.1 Tracker (Node.js)
+
+| Archivo | Función |
+|---|---|
+| `index.js` | Punto de entrada, lee `config.json`, maneja errores globales |
+| `src/core/tracker.js` | Fetch cada 3s, procesa datos, guarda JSON, emite por WebSocket |
+| `src/services/api.js` | Conexión con API de Metro Vóley con timeout y retry |
+| `src/core/stateProcessor.js` | Calcula rachas, breakpoints, fases y eventos |
+
+**Funcionalidades del tracker:**
+
+- Monitoreo de `config.json` cada 5 segundos (`configMonitorInterval`).
+- Cambio automático de partido al detectar nuevo `matchId`.
+- Método `crearArchivoPartidoVacio()` para inicializar archivos JSON.
+- Escucha evento WebSocket `cambiar_partido` y `pausar_partido`.
+- Descarga del HTML de Metro `/matches/{id}/players` para extraer nombres reales (vía `data-page` embebido de Inertia.js).
+- **Timeout de 5 segundos** en el fetch del roster (`AbortSignal.timeout(5000)`).
+- **Reintento cada 30 segundos** si el roster viene vacío (Metro tarda ~4 min en generarlo la primera vez).
+- Guarda `full_*.json` **solo si hay formación**, para no pisar el archivo con `liveState: null` al terminar el partido.
+- Guarda `court_*.json` y `formacion_inicial_*.json` para tener formación histórica por set.
+
+**Comandos:**
+
+```bash
+npm start          # Iniciar tracker (también npm run tracker)
+npm run watch      # Monitor en vivo (nodemon)
+4.2 Dashboard (index.html)
 Sección	Contenido
 Header	Marcador en tiempo real, nombres de equipos, badge de saque
 Pestañas	PARTIDO / INDIVIDUALES / EVOLUCIÓN / ANOTADOR (4 vistas)
-🆕 Selector	Panel flotante con selector de partidos (cambia ID y nombres)
-Vista PARTIDO	Stats grid (8 métricas), gráficos (4), dominancia por set, breakpoints automáticos, insights, timeline, servicio, Sideout% y Breakpoint%
-Vista INDIVIDUALES	Filtros por set, tablas de jugadores (con estadísticas de servicio, recepción y defensa), TOP 5, gráfico de puntos, análisis de tiempos muertos
+Selector	Panel flotante con selector de partidos (cambia ID y nombres)
+Vista PARTIDO	Stats grid (8 métricas), gráficos (4), dominancia por set, breakpoints, insights, timeline, servicio, Sideout% y Breakpoint%
+Vista INDIVIDUALES	Filtros por set, tablas de jugadores (servicio, recepción, defensa), TOP 5, gráfico de puntos, tiempos muertos
 Vista EVOLUCIÓN	Subida de reportes HTML, análisis comparativo, tabla evolutiva, gráfico de tendencias
-Vista ANOTADOR	Anotación manual con acciones: ATAQUE, BLOQUEO, SAQUE, SAQUE MALO, ERROR, REC+, REC-, DEF+, DEF-
+Vista ANOTADOR	Anotación manual: ATAQUE, BLOQUEO, SAQUE, SAQUE MALO, ERROR, REC+, REC-, DEF+, DEF-
 Botones funcionales:
 
 Botón	Función
@@ -165,24 +250,30 @@ Botón	Función
 🔊 Sonidos	Activar/desactivar sonidos
 ⏱️ Selector de refresco	5s, 10s, 15s
 📡 Modo offline	Forzar uso de datos cacheados
-🆕 Funciones en dashboard.js:
+🗑️ QUITAR DE PRÓXIMOS	Quitar partido preparado
+🗑️ QUITAR DEL HISTORIAL	Quitar partido del historial
+🧹 LIMPIAR HISTORIAL	Vaciar historial (excepto activo)
+🏁 FINALIZAR ACTIVO	Cerrar partido activo (tracker queda en espera)
+Funciones clave en dashboard.js:
 
-obtenerUrlApi(): Usa el mismo origen desde el que se abrió el dashboard
+obtenerUrlApi(): usa el mismo origen desde el que se abrió el dashboard.
 
-setupSelectorPartido(): Maneja el cambio de partido con resuscripción WebSocket
+setupSelectorPartido(): maneja el cambio de partido con resuscripción WebSocket.
 
-limpiarDatosPartidoEspecifico(matchId): Limpia localStorage del partido
+limpiarDatosPartidoEspecifico(matchId): limpia localStorage del partido.
 
-verificarConsistenciaYLimpiar(): Detecta y corrige mezcla de datos
+verificarConsistenciaYLimpiar(): detecta y corrige mezcla de datos.
 
-Ping keepalive cada 25 segundos (para mantener túneles activos)
+Ping keepalive cada 25 segundos (para mantener túneles activos).
 
-obtenerEquipoAnalisis(): Detecta ATTITUDE y analiza siempre a ese equipo (o LOCAL)
+obtenerEquipoAnalisis(): detecta ATTITUDE y analiza siempre a ese equipo (o LOCAL).
 
-4.3 App de Anotación (anotador.html) - ACTUALIZADO
+cargarRosterDesdeHTML() (en tracker.js): descarga el HTML de Metro, extrae data-page, cruza por matchTeamPlayerId, y enriquece el court antes de procesar.
+
+4.3 App de Anotación (anotador.html)
 Pantalla	Función
 Configuración	Armar equipos (agregar/eliminar números, marcar líberos)
-Anotación	Seleccionar equipo → seleccionar jugador → seleccionar acción → confirmar punto
+Anotación	Seleccionar equipo → jugador → acción → confirmar punto
 Acciones disponibles:
 
 Acción	¿Necesita jugador?	Qué pasa
@@ -196,7 +287,7 @@ REC-	✅ Sí	Registra recepción negativa (NO suma punto)
 DEF+	✅ Sí	Registra defensa positiva (NO suma punto)
 DEF-	✅ Sí	Registra defensa negativa (NO suma punto)
 TIMEOUT	❌ No	Registra tiempo muerto
-MARCAR CLAVE	❌ No	Guarda una observación manual sin alterar las métricas automáticas
+MARCAR CLAVE	❌ No	Guarda observación manual sin alterar métricas automáticas
 Atajos de teclado:
 
 Tecla	Acción	Tecla	Acción
@@ -210,29 +301,51 @@ T	TIMEOUT	Enter	Confirmar
 Z	Deshacer	0-9	Seleccionar jugador
 + / -	Navegar jugador		
 4.4 API REST Propia
-Endpoint	Método	Descripción
-/api/status	GET	Estado del servidor
-/api/matches	GET	Lista todos los partidos
-/api/matches/:id	GET	Datos generales del partido
-/api/matches/:id/points	GET	Todos los puntos (filtro ?set=2)
-/api/matches/:id/points/last?n=10	GET	Últimos N puntos
-/api/matches/:id/stats	GET	Estadísticas resumidas
-/api/matches/:id/sets	GET	Resultados por set
-/api/webhook/point	POST	Webhook para puntos en tiempo real
-/api/config	GET	Lee config.json
-/api/config	POST	Actualiza config.json
-/api/puntos	POST	Guarda punto manual
-/api/puntos/:matchId	GET	Obtiene puntos manuales
-4.5 WebSocket en Tiempo Real - ACTUALIZADO
+Todos los endpoints requieren sesión válida excepto los marcados con ❌.
+
+Endpoint	Método	Auth	Descripción
+/api/status	GET	❌	Estado del servidor
+/api/auth/login	POST	❌	Login Público/Operador
+/api/auth/session	GET	✅	Datos de la sesión activa
+/api/auth/logout	POST	❌	Cerrar sesión
+/api/config	GET	✅	Configuración (sin partidosPreparados para público)
+/api/config	POST	operator	Actualizar partido activo
+/api/club-profile	GET	✅	Perfil del club
+/api/club-profile	PUT	operator	Actualizar perfil
+/api/matches	GET	✅	Lista todos los partidos
+/api/matches/:id	GET	✅	Datos generales del partido
+/api/matches/:id/points	GET	✅	Todos los puntos (?set=2)
+/api/matches/:id/points/last?n=10	GET	✅	Últimos N puntos
+/api/matches/:id/stats	GET	✅	Estadísticas resumidas
+/api/matches/:id/sets	GET	✅	Resultados por set
+/api/formacion/:matchId/:set	GET	✅	Formación inicial del set
+/api/court/:matchId	GET	✅	Court actual
+/api/plantel/:matchId	GET	✅	Mapa dorsal → nombre
+/api/plantel/:matchId	POST	operator	Actualizar plantel
+/api/puntos	POST	operator	Guardar punto manual
+/api/puntos/:matchId	GET	✅	Puntos manuales reconciliados
+/api/puntos/:matchId/recovery	GET	✅	Estado de recuperación
+/api/puntos/:matchId/recovery	POST	operator	Crear eventos de recuperación
+/api/puntos/:matchId/:eventId	PATCH	operator	Corregir evento
+/api/puntos/:matchId/:eventId	DELETE	operator	Anular evento
+/api/preparation	GET	operator	Estado de preparación
+/api/preparation/verify	POST	operator	Verificar partido en Metro
+/api/preparation/queue	POST	operator	Preparar partido
+/api/preparation/queue/:id	DELETE	operator	Quitar de preparados
+/api/preparation/history	DELETE	operator	Limpiar historial
+/api/preparation/history/:id	DELETE	operator	Quitar partido del historial
+/api/preparation/active	DELETE	operator	Finalizar partido activo
+/api/webhook/point	POST	local only	Webhook del tracker
+4.5 WebSocket en Tiempo Real
 Característica	Descripción
 Conexión	Persistente entre dashboard y servidor
-Eventos	new_point cuando hay un nuevo punto
+Auth	Requiere sesión válida (cookie) o internalTracker: true desde localhost
+Eventos	new_point, punto_manual, punto_actualizado, punto_anulado, partido_terminado, partido_sin_actividad
 Suscripción	Por matchId (subscribe / unsubscribe)
-🆕 Cambio de partido	Evento 'cambiar_partido' (tracker) y resuscripción manual (dashboard)
-🆕 Ping keepalive	Evento 'ping_keepalive' cada 25 segundos
+Cambio de partido	Evento cambiar_partido (tracker) y resuscripción manual (dashboard)
+Ping keepalive	Evento ping_keepalive cada 25 segundos
 Fallback	Vuelve a polling (3s) si WebSocket falla
-🆕 Punto manual	Evento 'punto_manual' para sincronizar anotaciones
-🆕 Resuscripción en el dashboard:
+Resuscripción en el dashboard:
 
 javascript
 if (this.socket) {
@@ -250,7 +363,7 @@ if (this.socket) {
 javascript
 const corsOptions = {
     origin: true,   // Permite cualquier origen (útil para túneles)
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 };
@@ -265,12 +378,14 @@ const io = socketIo(server, {
         transports: ['polling', 'websocket']
     }
 });
+Nota de seguridad: origin: true con credentials: true es aceptable en este caso porque la cookie de sesión tiene SameSite=Lax, lo que bloquea requests cross-origin con credenciales. La combinación origin: true + SameSite=Lax está auditada y no permite CSRF.
+
 4.7 Túnel para acceso remoto
 Servicio	Puerto	Comando	URL
 Cloudflare	5501 (sistema completo)	cloudflared tunnel --url http://localhost:5501	https://xxxx.trycloudflare.com
+El dashboard, la API REST y el WebSocket comparten la misma URL.
 
-El dashboard, la API REST y WebSocket comparten la misma URL.
-5. FLUJO DE DATOS (ACTUALIZADO)
+5. FLUJO DE DATOS
 text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           FLUJO DE DATOS                                     │
@@ -278,28 +393,33 @@ text
 │                                                                             │
 │  1. TRACKER                                                                 │
 │     ├── Fetch a API Metro Vóley cada 3 segundos                             │
+│     ├── Fetch al HTML de /players para nombres reales (timeout 5s)          │
 │     ├── Procesa snapshot (rachas, breakpoints, eventos)                     │
 │     ├── Emite punto por WebSocket al servidor                               │
 │     ├── Guarda en data/match_XXXXX.json y full_XXXXX.json                   │
-│     └── 🆕 Monitorea data/config.json cada 5 segundos                       │
+│     ├── Guarda court_XXXXX.json y formacion_inicial_*.json                  │
+│     └── Monitorea data/config.json cada 5 segundos                          │
 │                                                                             │
 │  2. SERVIDOR API + WEBSOCKET                                                │
+│     ├── Valida sesión (HMAC-SHA256, cookie HttpOnly, SameSite=Lax)          │
+│     ├── Aplica rate limiting en login                                       │
 │     ├── Recibe puntos por WebSocket o webhook                               │
 │     ├── Reenvía puntos a todos los dashboards conectados                    │
 │     ├── Sirve archivos estáticos y API REST                                 │
-│     └── 🆕 Configuración CORS (origin: true)                                │
+│     ├── Valida matchId/set antes de construir rutas de archivo              │
+│     └── Filtra partidosPreparados para el rol público                       │
 │                                                                             │
 │  3. DASHBOARD (PC - localhost)                                              │
 │     ├── Conecta WebSocket a localhost:5501                                  │
 │     ├── Lee data/config.json, match_*.json, full_*.json                     │
 │     ├── Calcula Sideout% y Breakpoint%                                      │
-│     └── 🆕 Selector de partidos: cambia ID, nombres y datos                 │
+│     └── Selector de partidos: cambia ID, nombres y datos                    │
 │                                                                             │
 │  4. DASHBOARD (Celular - remoto)                                            │
 │     ├── Conecta WebSocket al mismo origen publicado por Cloudflare          │
 │     ├── Lee data/config.json, match_*.json a través del túnel               │
-│     ├── 🆕 Selector: envía POST a la API y resuscribe WebSocket             │
-│     └── 🆕 Ping keepalive cada 25 segundos                                  │
+│     ├── Selector: envía POST a la API y resuscribe WebSocket                │
+│     └── Ping keepalive cada 25 segundos                                     │
 │                                                                             │
 │  5. APP DE ANOTACIÓN                                                        │
 │     ├── Configura equipos (números, líberos)                                │
@@ -314,23 +434,27 @@ text
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 6. CONFIGURACIÓN
-6.1 Archivo data/config.json (ACTUALIZADO)
+6.1 Archivo data/config.json
 json
 {
   "matchId": 260314,
   "homeTeam": "L.HERAS B",
   "awayTeam": "ATTITUDE",
   "categoria": "sub-16",
+  "metroStatus": "verified",
   "partidos": [
-    { "id": 77702, "homeTeam": "L.HERAS B", "awayTeam": "ATTITUDE" }
-  ]
+    { "id": 77702, "homeTeam": "L.HERAS B", "awayTeam": "ATTITUDE", "categoria": "sub-16" }
+  ],
+  "partidosPreparados": []
 }
 Campo	Descripción
 matchId	ID del partido actual en Metro Vóley
 homeTeam	Nombre del equipo LOCAL
 awayTeam	Nombre del equipo VISITANTE
 categoria	Categoría del partido (ej: "sub-19", "mayores")
-partidos	Lista de partidos disponibles en el selector
+metroStatus	verified / pending / unverified
+partidos	Historial de partidos disponibles en el selector
+partidosPreparados	Próximos partidos ya configurados (no visible al público)
 6.2 Archivo data/reglamento.json
 json
 {
@@ -343,9 +467,14 @@ json
     }
   }
 }
+Atención: si reglamento.json falta o la categoría no está definida, el dashboard usa valores por defecto (maxSets: 3, setsParaGanar: 2), lo que puede dar mal el "partido terminado" en categorías que juegan al mejor de 5.
+
 6.3 Archivo .env
-text
+env
 PORT=5501
+VOLEY_OPERATOR_PASSWORD=<contraseña privada del operador>   # obligatoria
+VOLEY_PUBLIC_PASSWORD=<contraseña de referencia>            # requerida al arrancar, ya no se usa para login
+VOLEY_SESSION_SECRET=<opcional; si falta, se genera aleatorio en data/.auth_secret>
 LOCAL_SERVER_URL=http://localhost:5501
 POLL_INTERVAL_MS=3000
 SAVE_INTERVAL_MS=10000
@@ -354,8 +483,10 @@ API_TIMEOUT_MS=10000
 API_RETRY_ATTEMPTS=3
 API_RETRY_BACKOFF_MS=1000
 LOG_LEVEL=info
+.env está en .gitignore y nunca debe subirse al repositorio.
+
 6.4 Túnel
-text
+bash
 # Publica Dashboard, API REST y WebSocket
 cloudflared tunnel --url http://localhost:5501
 7. MÉTRICAS CALCULADAS
@@ -412,7 +543,7 @@ bash
 node server-api.js
 
 # Terminal 2 - Tracker
-npm start
+npm run tracker
 
 # Terminal 3 - Cloudflare Tunnel
 cloudflared tunnel --url http://localhost:5501
@@ -420,19 +551,84 @@ cloudflared tunnel --url http://localhost:5501
 # Navegador (local)
 http://localhost:5501/dashboard/index.html
 http://localhost:5501/dashboard/anotador.html
-10. URLs IMPORTANTES
+9.3 Cómo apagar
+Ctrl+C en cada una de las 3 ventanas (API, tracker, túnel). El sistema queda listo para el próximo arranque.
+
+Importante: si editás server-api.js o tracker.js mientras corren, Node no recarga el archivo. Siempre Ctrl+C y reinicio después de cambios.
+
+10. URLS IMPORTANTES
 Recurso	URL local	URL remota (túnel)
 Dashboard	http://localhost:5501/dashboard/index.html	https://xxxx.trycloudflare.com/dashboard/index.html
 Anotador	http://localhost:5501/dashboard/anotador.html	https://xxxx.trycloudflare.com/dashboard/anotador.html
 API Status	http://localhost:5501/api/status	https://xxxx.trycloudflare.com/api/status
 API Config	http://localhost:5501/api/config	https://xxxx.trycloudflare.com/api/config
 WebSocket	ws://localhost:5501	wss://xxxx.trycloudflare.com (con Socket.IO)
-Acceso: la pantalla inicial tiene un selector Público/Operador. Público crea la sesión
-(30 días) sin contraseña. Operador pide la contraseña de VOLEY_OPERATOR_PASSWORD, con
-límite de intentos fallidos. El servidor acepta role "public" sin clave en
-POST /api/auth/login y no toca el contador de intentos.
-11. FORMATOS DE ARCHIVO
-11.1 match_XXXXX.json (puntos del partido)
+Acceso: la pantalla inicial tiene un selector Público/Operador. Público crea la sesión (30 días) sin contraseña. Operador pide la contraseña de VOLEY_OPERATOR_PASSWORD, con límite de intentos fallidos.
+
+11. SEGURIDAD
+11.1 Autenticación
+HMAC-SHA256 para firmar sesiones (src/core/auth.js).
+
+Cookie voleyinsight_session: HttpOnly, SameSite=Lax, 30 días de duración.
+
+Secreto de sesión: crypto.randomBytes(48) en data/.auth_secret (permisos 0600). Si VOLEY_SESSION_SECRET está en .env, se usa ese.
+
+Comparaciones con crypto.timingSafeEqual para evitar timing attacks.
+
+11.2 Rate limiting
+5 intentos fallidos cada 10 minutos → bloqueo de 15 minutos por IP.
+
+El rol Público no consume intentos (se loguea sin contraseña).
+
+11.3 Separación de roles
+Público: solo lectura. No puede anotar, cambiar partidos, borrar eventos, finalizar partidos, ni ver el fixture de próximos partidos.
+
+Operador: acceso completo.
+
+11.4 Validación de parámetros
+Todos los endpoints que construyen rutas de archivo validan matchId y set como enteros positivos antes de acceder al disco:
+
+javascript
+const matchId = parseInt(req.params.matchId, 10);
+if (!Number.isInteger(matchId) || matchId <= 0) {
+    return res.status(400).json({ success: false, error: 'Match ID inválido' });
+}
+Esto cierra la puerta a path traversal (por ejemplo, GET /api/court/..%2Fconfig devuelve 400 y no lee config.json).
+
+11.5 Timeout en llamadas externas
+Fetch al HTML de Metro: AbortSignal.timeout(5000).
+
+Fetch a la API de Metro: timeout configurable + retry con backoff.
+
+11.6 Persistencia atómica
+Todos los archivos de datos se escriben con writeJsonAtomic:
+
+Escritura a archivo temporal con fsync.
+
+Validación de sintaxis del contenido serializado.
+
+Reemplazo con rename (o rename + rename con recuperación en Windows).
+
+Respaldo .bak previo del archivo anterior.
+
+Si un archivo queda corrupto, readJsonRecoverable lo recupera automáticamente desde su .bak.
+
+11.7 Filtrado de datos sensibles
+/api/config no expone partidosPreparados al rol público.
+
+/data/ está protegido por requireAuthenticated y dotfiles: 'deny' (bloquea .auth_secret y .env).
+
+.env está en .gitignore.
+
+.gitignore cubre data/campeonato oficial/, data/**/*.html, data/**/*.pdf, Preview/reportes/, *.bak, cookies*.txt.
+
+11.8 Auditoría de dependencias
+npm audit se corre antes de cada release.
+
+Estado actual: solo minimatch con severidad moderate en nodemon (dev-only). No correr npm audit fix --force porque degradaría nodemon a 1.0.2.
+
+12. FORMATOS DE ARCHIVO
+12.1 match_XXXXX.json (puntos del partido)
 json
 [{
   "timestamp": "2026-04-23T20:00:33.338Z",
@@ -449,7 +645,7 @@ json
   "phase": "EARLY",
   "event": "POINT"
 }]
-11.2 jugadores_XXXXX.json (estadísticas manuales)
+12.2 puntos_manuales_XXXXX.json (estadísticas manuales)
 json
 [{
   "timestamp": "2026-04-23T20:30:50.398Z",
@@ -463,7 +659,18 @@ json
   "marcadorAntes": "0-0",
   "marcadorDespues": "1-0"
 }]
-11.3 timeouts_XXXXX (localStorage)
+12.3 formacion_inicial_XXXXX_set_N.json
+json
+{
+  "local": [
+    { "numero": 3, "nombre": "Tomás Alessandro Visciglia" },
+    { "numero": 10, "nombre": "Mateo Cayetano Visciglia" }
+  ],
+  "visitante": [
+    { "numero": 2, "nombre": "Gonzalo Veiguela" }
+  ]
+}
+12.4 timeouts_XXXXX (localStorage)
 json
 [{
   "id": "timeout_1745436789000",
@@ -478,7 +685,7 @@ json
   "mejora": 40,
   "efectividad": "positiva"
 }]
-11.4 marcas_XXXXX (localStorage)
+12.5 marcas_XXXXX (localStorage)
 json
 [{
   "timestamp": "2026-04-23T20:35:00.000Z",
@@ -487,9 +694,8 @@ json
   "tipo": "momento_clave",
   "marcador": "14-13"
 }]
-12. DEPENDENCIAS
-Backend (Node.js):
-
+13. DEPENDENCIAS
+Backend (Node.js)
 json
 {
   "dependencies": {
@@ -497,200 +703,200 @@ json
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "socket.io": "^4.7.2",
-    "socket.io-client": "^4.7.2"
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
-Frontend (CDN):
-
+Frontend (CDN)
 Chart.js ^4.4.0
 
 TailwindCSS
 
 Socket.IO ^4.7.2
 
-Túnel:
-
+Túnel
 cloudflared (para Dashboard, API y WebSocket)
 
-13. REQUISITOS TÉCNICOS
+14. REQUISITOS TÉCNICOS
 Requisito	Mínimo
-Node.js	18.0.0 o superior
+Node.js	18.0.0 o superior (probado con v22.22.2)
 Navegador	Moderno (Chrome, Firefox, Edge)
 Sistema operativo	Windows, Linux, macOS
 Puertos	5501 (API, Dashboard y WebSocket)
 Conexión	Internet (para API Metro Vóley y túnel)
 Túneles	Cloudflared instalado
-14. ESTADÍSTICAS DE SERVICIO POR JUGADOR
+15. ESTADÍSTICAS DE SERVICIO POR JUGADOR
 Columna	Descripción
 🏐 SAQUE	Puntos directos de saque del jugador
 ❌ ERR SERV	Errores de servicio del jugador
-📊 EFI SERV%	Eficiencia de servicio = (SAQUE - Errores) / Total saques × 100
+📊 EFI SERV%	Eficiencia = (SAQUE - Errores) / Total saques × 100
 🏐 TOT SERV	Total de saques realizados
 Colores en EFI SERV%:
 
-🟢 Verde: Eficiencia positiva (>10%) - Excelente
+🟢 Verde: Eficiencia positiva (>10%) — Excelente
 
-🟡 Amarillo: Eficiencia neutra (0% a 10%) - Regular
+🟡 Amarillo: Eficiencia neutra (0% a 10%) — Regular
 
-🔴 Rojo: Eficiencia negativa (<0%) - Necesita mejorar
+🔴 Rojo: Eficiencia negativa (<0%) — Necesita mejorar
 
-15. ESTADÍSTICAS DE RECEPCIÓN Y DEFENSA POR JUGADOR
+16. ESTADÍSTICAS DE RECEPCIÓN Y DEFENSA POR JUGADOR
 Columna	Descripción
 📥 REC	Recepciones positivas / Totales de recepción
-REC%	Eficiencia de recepción = (REC+ / Total Recepciones) × 100
+REC%	Eficiencia = (REC+ / Total Recepciones) × 100
 🛡️ DEF	Defensas positivas / Totales de defensa
-DEF%	Eficiencia de defensa = (DEF+ / Total Defensas) × 100
+DEF%	Eficiencia = (DEF+ / Total Defensas) × 100
 Colores en REC% y DEF%:
 
-🟢 Verde: Eficiencia >60% - Excelente
+🟢 Verde: Eficiencia >60% — Excelente
 
-🟡 Amarillo: Eficiencia 40-60% - Regular
+🟡 Amarillo: Eficiencia 40-60% — Regular
 
-🔴 Rojo: Eficiencia <40% - Necesita mejorar
+🔴 Rojo: Eficiencia <40% — Necesita mejorar
 
-16. ANÁLISIS DE TIEMPOS MUERTOS
+17. ANÁLISIS DE TIEMPOS MUERTOS
 Métrica	Descripción
 Total Timeouts	Cantidad de timeouts registrados
 Efectivos	Timeouts con mejora >20% después
 Mejora promedio	Promedio de mejora en eficiencia
 Efectividad	Positiva (>20%), Neutra (±20%), Negativa (<-20%)
-17. SIDEOUT% Y BREAKPOINT%
+18. SIDEOUT% Y BREAKPOINT%
 Métrica	Qué indica
 Sideout% > 60%	Buena recepción y eficacia del primer ataque
 Sideout% < 40%	Problemas para recuperar el saque al recibir
 Breakpoint% > 40%	Buena producción mientras el equipo saca
 Breakpoint% < 20%	Poca presión de saque o baja eficacia de bloqueo-defensa
-18. ANÁLISIS EVOLUTIVO - GUÍA DE USO
-18.1 ¿Para qué sirve?
-El análisis evolutivo permite a entrenadores y analistas:
+19. ANÁLISIS EVOLUTIVO — GUÍA DE USO
+19.1 ¿Para qué sirve?
+Seguir la evolución del equipo a lo largo de múltiples partidos.
 
-Seguir la evolución del equipo a lo largo de múltiples partidos
+Identificar tendencias (mejora o empeoramiento) en métricas clave.
 
-Identificar tendencias (mejora o empeoramiento) en métricas clave
+Detectar fortalezas consistentes y debilidades recurrentes.
 
-Detectar fortalezas consistentes y debilidades recurrentes
+Tomar decisiones basadas en datos sobre qué aspectos entrenar.
 
-Tomar decisiones basadas en datos sobre qué aspectos entrenar
+19.2 ¿Cómo se usa?
+Guardar reportes: después de cada partido, hacer clic en "💾 Guardar" en el dashboard. Se descarga un HTML.
 
-18.2 ¿Cómo se usa?
-Guardar reportes: Después de cada partido, hacer clic en "💾 Guardar" en el dashboard. Se descargará un archivo HTML.
+Subir reportes: ir a la pestaña "📈 EVOLUCIÓN" → arrastrar o seleccionar hasta 5 archivos HTML guardados.
 
-Subir reportes: Ir a la pestaña "📈 EVOLUCIÓN" → arrastrar o seleccionar los archivos HTML guardados.
-
-Analizar: Hacer clic en "📊 ANALIZAR EVOLUCIÓN".
+Analizar: hacer clic en "📊 ANALIZAR EVOLUCIÓN".
 
 Qué muestra:
 
-Resumen ejecutivo: texto claro sobre la tendencia general
+Resumen ejecutivo: texto claro sobre la tendencia general.
 
-Fortalezas: métricas donde el equipo destaca (verde)
+Fortalezas: métricas donde el equipo destaca (verde).
 
-Debilidades: métricas a mejorar (rojo)
+Debilidades: métricas a mejorar (rojo).
 
-Tabla evolutiva: comparación numérica partido a partido
+Tabla evolutiva: comparación numérica partido a partido.
 
-Gráfico de tendencias: visualización de la evolución
+Gráfico de tendencias: visualización de la evolución.
 
-18.3 Interpretación de colores en la tabla
+19.3 Interpretación de colores
 Color	Significado
 🟢 Verde	Métrica excelente (Sideout >60%, Breakpoint >40%, Clutch >60%, Efi Servicio >10%)
 🟡 Amarillo	Métrica regular (dentro de rangos normales)
 🔴 Rojo	Métrica a mejorar (por debajo del umbral deseado)
+20. SELECTOR DE PARTIDOS
+20.1 ¿Cómo funciona?
+El selector de partidos permite cambiar entre diferentes partidos sin modificar manualmente config.json. Tiene 3 grupos:
 
-19. SELECCIONADOR DE PARTIDOS (SELECTOR)
-19.1 ¿Cómo funciona?
-El selector de partidos permite cambiar entre diferentes partidos sin modificar manualmente config.json.
+PARTIDO ACTIVO: el que está corriendo ahora.
 
-19.2 Requisitos para que funcione en el celular:
-El túnel de Cloudflare debe estar publicando el puerto 5501.
+PRÓXIMOS PARTIDOS: partidos preparados anticipadamente.
 
-CORS configurado con origin: true en server-api.js
+HISTORIAL: partidos jugados anteriormente.
 
-19.3 Flujo del selector:
-El usuario selecciona un partido del desplegable
+20.2 Requisitos
+El túnel de Cloudflare publicando el puerto 5501.
 
-El dashboard guarda el ID anterior y actualiza this.matchId
+CORS configurado con origin: true en server-api.js.
 
-Limpia localStorage del partido anterior
+20.3 Flujo del selector
+El usuario selecciona un partido del desplegable.
 
-Envía POST a /api/config para actualizar config.json (opcional, puede fallar)
+El dashboard guarda el ID anterior y actualiza this.matchId.
 
-Resuscribe el WebSocket: unsubscribe(idAnterior) + subscribe(nuevoId)
+Limpia localStorage del partido anterior.
 
-Recarga los datos del nuevo partido (match_nuevoId.json)
+Envía POST /api/config para actualizar config.json.
 
-19.4 Resuscripción WebSocket (código):
-javascript
-if (this.socket) {
-    if (this.socket.connected) {
-        this.socket.emit('unsubscribe', idAnterior);
-        this.socket.emit('subscribe', nuevoId);
-    } else {
-        this.socket.connect();
-        this.socket.once('connect', () => {
-            this.socket.emit('subscribe', nuevoId);
-        });
-    }
-}
-19.5 Limpieza automática de localStorage:
-limpiarPartidosAnteriores(): Al cargar, borra datos de partidos que no son el actual
+Resuscribe el WebSocket: unsubscribe(idAnterior) + subscribe(nuevoId).
 
-limpiarDatosPartidoEspecifico(matchId): Borra todas las claves de un partido específico
+Recarga los datos del nuevo partido (match_nuevoId.json).
 
-verificarConsistenciaYLimpiar(): Detecta mezcla de datos y limpia automáticamente
+20.4 Botones del selector
+Botón	Función
+📋 CARGAR PARTIDO	Cambiar a un partido del historial
+✅ ACTIVAR PREPARADO	Activar un partido de la cola de preparados
+🗑️ QUITAR DE PRÓXIMOS	Quitar un partido preparado
+🗑️ QUITAR DEL HISTORIAL	Quitar un partido del historial (no borra archivos)
+🧹 LIMPIAR HISTORIAL	Vaciar historial (excepto activo)
+🏁 FINALIZAR ACTIVO	Cerrar partido activo, tracker queda en espera
+20.5 Limpieza automática de localStorage
+limpiarPartidosAnteriores(): al cargar, borra datos de partidos que no son el actual.
 
-20. LIMITACIONES ACTUALES
+limpiarDatosPartidoEspecifico(matchId): borra todas las claves de un partido específico.
+
+verificarConsistenciaYLimpiar(): detecta mezcla de datos y limpia automáticamente.
+
+21. LIMITACIONES ACTUALES
 Limitación	Descripción
 Un solo partido	El tracker solo puede seguir un partido a la vez
 Dependencia externa	Requiere que Metro Vóley tenga el partido (para datos automáticos)
 Sin base de datos	Los datos se guardan en archivos JSON
-Acceso público abierto	Cualquiera con la URL entra como Público sin contraseña (solo lectura). Operador requiere contraseña
+Acceso público abierto	Cualquiera con la URL entra como Público sin contraseña (solo lectura)
 POST a la API en celular	Puede fallar si el túnel de Cloudflare no está activo
-
-21. SOLUCIÓN DE PROBLEMAS COMUNES (ACTUALIZADA)
+Roster de Metro tarda ~4 min	La primera vez que se consulta un partido, Metro tarda en generar el roster
+Saltos de marcador ambiguos	Si los dos equipos anotan entre dos consultas, el sistema no inventa el orden
+22. SOLUCIÓN DE PROBLEMAS COMUNES
 Problema	Causa	Solución
-Tracker se cierra	Error no manejado	Agregar manejadores de errores en index.js
+SyntaxError: Unexpected end of input	Falta cerrar una llave, paréntesis o bloque	node --check archivo.js muestra el archivo. Buscar duplicaciones de app.get(...)
+Tracker se cierra	Error no manejado	Revisar tracker.log, verificar manejadores en index.js
 Dashboard no muestra datos	match_*.json no existe o está vacío	Verificar que el tracker esté corriendo
-No se ven nombres de jugadores	La API no devuelve court	Esperar a que el partido empiece (court aparece después del inicio)
+No se ven nombres de jugadores	Roster no generado aún por Metro	Esperar 4 minutos o arrancar el tracker 10-15 min antes
 Error 404 en JSON	El partido no empezó o el ID es incorrecto	Verificar ID en config.json
-Puerto 5501 en uso	Otro proceso usando el puerto	Cambiar PORT en el archivo .env
+Puerto 5501 en uso	Otro proceso usando el puerto	netstat -ano | findstr :5501 y matar el proceso, o cambiar PORT en .env
 Gráficos no cargan	Problema en stateProcessor.js	Verificar los datos de entrada
 Sets no se muestran	La API devuelve datos en match.sets	Verificar la estructura de la respuesta
 Modo offline no funciona	Service Worker no registrado	Verificar sw.js y que IndexedDB esté disponible
-WebSocket no conecta	server-api.js no está corriendo	Verificar que el servidor esté activo
-Skeleton no se oculta	Timeout de seguridad	Verificar el constructor
+WebSocket no conecta	server-api.js no está corriendo o sesión inválida	Verificar que el servidor esté activo y volver a loguearse
 Sideout/Breakpoint no se ven	IDs incorrectos en HTML	Verificar los labels en index.html
 Análisis evolutivo no muestra datos	Reportes HTML no válidos	Asegurar que sean generados por VoleyInsight
-🆕 Selector no cambia nombres	No se actualiza matchId en el dashboard	Verificar config.json y que el servidor esté activo
-🆕 Error "Error al cambiar partido en el servidor"	POST a /api/config falla	Verificar el servidor y el túnel de Cloudflare
-🆕 Mezcla de nombres con puntos de otro partido	localStorage residual	El dashboard limpia automáticamente los datos viejos
-🆕 WebSocket no se resuscribe	Cliente no envía unsubscribe/subscribe	La función setupSelectorPartido() ya lo maneja
-🆕 El tracker no cambia de partido	No monitorea config.json	tracker.js incluye configMonitorInterval cada 5s
-🆕 El celular no ve el selector	CORS bloquea la petición	Configurar origin: true en server-api.js
-🆕 El túnel de Cloudflare se cae	Conexión inactiva	Reiniciar cloudflared
+Selector no cambia nombres	No se actualiza matchId en el dashboard	Verificar config.json y que el servidor esté activo
+Mezcla de nombres con puntos de otro partido	localStorage residual	El dashboard limpia automáticamente los datos viejos
+WebSocket no se resuscribe	Cliente no envía unsubscribe/subscribe	setupSelectorPartido() ya lo maneja
+El tracker no cambia de partido	No monitorea config.json	tracker.js incluye configMonitorInterval cada 5s
+El celular no ve el selector	CORS bloquea la petición	Verificar origin: true en server-api.js
+El túnel de Cloudflare se cae	Conexión inactiva	Reiniciar cloudflared
+findstr no encuentra un string con tildes	Code page de CMD no coincide con UTF-8	Buscar sin tildes: findstr /C:"ID inv" en vez de "inválido"
+Los cambios no se aplican	El servidor sigue con el código viejo en memoria	Ctrl+C + reiniciar node server-api.js o npm run tracker
+.env no se lee	Archivo malformado o clave faltante	Verificar VOLEY_OPERATOR_PASSWORD y VOLEY_PUBLIC_PASSWORD
+git check-ignore no reporta un archivo	El archivo está trackeado en el índice	Hacer git rm --cached archivo o commitear el borrado
+23. TIPS PARA ENTRENADORES
+Usá la pestaña EVOLUCIÓN después de 3 o más partidos para ver tendencias reales.
 
+Sideout% > 60% = estás resolviendo bien cuando recibís. <45% = revisar recepción y primer ataque.
 
+Breakpoint% > 40% = el saque propio y el sistema de bloqueo-defensa generan puntos.
 
-22. TIPS PARA ENTRENADORES (Cómo aprovechar VoleyInsight)
-Usá la pestaña EVOLUCIÓN después de 3 o más partidos para ver tendencias reales
+Clutch% bajo (<40%) = entrená definición de sets y manejo de presión.
 
-Sideout% > 60% = estás resolviendo bien cuando recibís. <45% = revisar recepción y primer ataque
+Eficiencia de servicio negativa = muchos errores de saque. Priorizá efectividad sobre potencia.
 
-Breakpoint% > 40% = el saque propio y el sistema de bloqueo-defensa generan puntos
+REC% bajo (<40%) = problema en recepción de saque. Trabajar técnica y posicionamiento.
 
-Clutch% bajo (<40%) = entrená definición de sets y manejo de presión
+DEF% bajo (<40%) = problema en defensa. Revisar sistema defensivo y cobertura.
 
-Eficiencia de servicio negativa = muchos errores de saque. Priorizá efectividad sobre potencia
+Guardá TODOS los reportes para poder hacer análisis evolutivo a fin de temporada.
 
-REC% bajo (<40%) = problema en recepción de saque. Trabajar técnica y posicionamiento
+Compará partidos para ver si las mejoras que entrenaste realmente aparecen en los números.
 
-DEF% bajo (<40%) = problema en defensa. Revisar sistema defensivo y cobertura
-
-Guardá TODOS los reportes para poder hacer análisis evolutivo a fin de temporada
-
-Compará partidos para ver si las mejoras que entrenaste realmente aparecen en los números
-
-23. CONTACTO Y SOPORTE
+24. CONTACTO Y SOPORTE
 Recurso	Descripción
 Configuración	data/config.json (cambiar ID, nombres y categoría)
 Reglamento	data/reglamento.json (configurar sets por categoría)
@@ -699,39 +905,64 @@ Logs	tracker.log (en carpeta raíz)
 Datos	Carpeta data/ (todos los JSON)
 Reportes exportados	Se guardan donde el usuario elija
 API Docs	http://localhost:5501/api/status
-
-24. RESUMEN DE ESTADO
-
+Contacto	Gonzalo · 11 5136-4852
+25. RESUMEN DE ESTADO
+text
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
-║   🏐 VOLEYINSIGHT v3.2                                                      ║
+║   🏐 VOLEYINSIGHT v3.2.1                                                    ║
+║   Commit vigente: 197c42b                                                    ║
 ║                                                                              ║
-║   ✅ 46 mejoras implementadas (92%)                                          ║
 ║   ✅ Dashboard 100% funcional (4 vistas + selector)                          ║
-║   ✅ Tracker 100% funcional (con monitor de config.json)                     ║
+║   ✅ Tracker 100% funcional (con monitor de config.json y roster HTML)       ║
 ║   ✅ Anotador 100% funcional (con atajos de teclado)                         ║
-║   ✅ Reporte HTML con gráficos y glosario mejorado                           ║
-║   ✅ API REST propia (con CORS)                                              ║
+║   ✅ Reporte HTML con gráficos y glosario                                    ║
+║   ✅ API REST propia                                                         ║
+║   ✅ WebSocket en tiempo real (con resuscripción)                            ║
 ║   ✅ Modo offline                                                            ║
 ║   ✅ Tiempos muertos                                                         ║
-║   ✅ WebSocket en tiempo real (con resuscripción)                            ║
 ║   ✅ Sideout% + Breakpoint%                                                  ║
-║   ✅ Estadísticas de servicio por jugador                                    ║
-║   ✅ Estadísticas de recepción por jugador                                  ║
-║   ✅ Estadísticas de defensa por jugador                                    ║
+║   ✅ Estadísticas de servicio, recepción y defensa por jugador               ║
 ║   ✅ Análisis evolutivo (comparativa de partidos)                            ║
-║   ✅ SELECTOR DE PARTIDOS (funciona en celular)                              ║
-║   ✅ TÚNEL ÚNICO CLOUDFLARE                                                  ║
-║   ✅ LIMPIEZA AUTOMÁTICA DE LOCALSTORAGE                                     ║
-║   ✅ PING KEEPALIVE PARA TÚNELES                                             ║
-║   ✅ INSIGHTS SIEMPRE PARA ATTITUDE (o LOCAL)                               ║
-║   ✅ GLOSARIO MEJORADO CON EJEMPLOS                                          ║
-║   ✅ SAQUE Y SAQUE MALO EN ANOTADOR                                          ║
+║   ✅ Selector de partidos (PC y celular)                                     ║
+║   ✅ Túnel único Cloudflare                                                  ║
+║   ✅ Limpieza automática de localStorage                                     ║
+║   ✅ Ping keepalive para túneles                                             ║
+║   ✅ Insights siempre para ATTITUDE (o LOCAL)                                ║
+║   ✅ Glosario mejorado con ejemplos                                          ║
+║   ✅ Autenticación por roles (Público/Operador)                              ║
+║   ✅ Sesión HMAC-SHA256, cookie HttpOnly + SameSite=Lax                      ║
+║   ✅ Rate limiting de login (5 intentos / 10 min)                            ║
+║   ✅ Validación de matchId numérico en todos los endpoints                   ║
+║   ✅ Path traversal cerrado en /api/formacion y /api/court                   ║
+║   ✅ Timeout de 5s en fetch del roster de Metro                              ║
+║   ✅ Reintento de roster vacío cada 30s                                      ║
+║   ✅ /api/config sin partidosPreparados para público                         ║
+║   ✅ npm audit sin high/moderate en producción                               ║
+║   ✅ 15/15 tests automatizados pasando                                       ║
 ║                                                                              ║
 ║   🚀 LISTO PARA PRODUCCIÓN                                                   ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-Documentación generada: Noviebre 2026
+Documentación generada: 5 de noviembre de 2026
 Versión del sistema: VoleyInsight v3.2.1
-Estado: Producción - 46/50 mejoras implementadas (92%)
-Novedades principales: Selector de partidos funcional en celular, túnel único de Cloudflare, resuscripción WebSocket, limpieza automática de localStorage, ping keepalive, CORS configurado, estadísticas de recepción y defensa, glosario mejorado, SAQUE MALO en anotador, insights siempre para ATTITUDE.
+Commit vigente: 197c42b
+Estado: Producción
+
+Novedades de esta versión:
+
+Selector de partidos con separación de roles (Público/Operador).
+
+Gestión de partidos activos, preparados e historial.
+
+Sesión firmada con HMAC-SHA256, cookie HttpOnly + SameSite=Lax, rate limiting de login.
+
+Validación estricta de matchId/set en todos los endpoints que construyen rutas de archivo.
+
+Timeout de 5 segundos en fetch del roster de Metro, con reintento cada 30 segundos si el roster viene vacío.
+
+/api/config filtra partidosPreparados para el rol público.
+
+.gitignore consolidado con protección de datos personales.
+
+Auditoría de seguridad completa: npm audit sin high/moderate en producción.
