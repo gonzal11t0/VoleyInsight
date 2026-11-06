@@ -1,7 +1,7 @@
 📚 DOCUMENTACIÓN TÉCNICA COMPLETA — VOLEYINSIGHT v3.2.1
 
-**Última actualización:** 5 de noviembre de 2026
-**Commit vigente:** `197c42b`
+**Última actualización:** 6 de noviembre de 2026
+**Commit vigente:** `eeee450`
 **Estado:** Producción
 
 ---
@@ -911,7 +911,7 @@ text
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
 ║   🏐 VOLEYINSIGHT v3.2.1                                                    ║
-║   Commit vigente: 197c42b                                                    ║
+║   Commit vigente: eeee450                                                    ║
 ║                                                                              ║
 ║   ✅ Dashboard 100% funcional (4 vistas + selector)                          ║
 ║   ✅ Tracker 100% funcional (con monitor de config.json y roster HTML)       ║
@@ -944,9 +944,9 @@ text
 ║   🚀 LISTO PARA PRODUCCIÓN                                                   ║
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-Documentación generada: 5 de noviembre de 2026
+Documentación generada: 6 de noviembre de 2026
 Versión del sistema: VoleyInsight v3.2.1
-Commit vigente: 197c42b
+Commit vigente: eeee450
 Estado: Producción
 
 Novedades de esta versión:
@@ -966,3 +966,20 @@ Timeout de 5 segundos en fetch del roster de Metro, con reintento cada 30 segund
 .gitignore consolidado con protección de datos personales.
 
 Auditoría de seguridad completa: npm audit sin high/moderate en producción.
+
+---
+
+## 26. PENDIENTES Y ESTADO ACTUAL
+
+**Base vigente:** v3.2.1 · commit `eeee450`
+
+### Cerrado (6 de noviembre de 2026)
+-  **Formación por rotación visible en PC y celular.** Causa: los JSON `formacion_inicial_*` no traen campo `posicion`; se normaliza en `obtenerJugadoresEnRotacion` (asigna `posicion = index + 1` si falta). Se agregaron además `guardarCacheJSON` como método, no-reset de `formacionInicialPorSet` entre llamadas a `loadData`, y `Promise.all` + `AbortSignal.timeout(8000)` en `cargarFormacionDesdeBackend`.
+-  **"Últimos 10 puntos" del informe** verificado en el partido del 5/11 (suma 10, no 9).
+-  **`guardarCacheJSON` ausente** en `dashboard.js`. Antes del fix, `localStorage` nunca guardaba la formación. Bug latente que afectaba a todos los dispositivos.
+
+### Pendientes (no urgentes, no bloquean)
+-  **4 puntos manuales de más en Set 1 del partido 241350** (43 manuales vs 39 oficiales). Solo afecta individuales del Set 1 y el acumulado. Rotaciones y métricas de equipo salen de Metro y están correctas.
+-  **Log "Estado actual enviado: X-Y" en `server-api.js`** con el partido ya cerrado. Revisar el handler de `subscribe` para confirmar si es estado cacheado o logs viejos.
+-  **Rotaciones Sub-18 desincronizadas.** Detectado en el informe del 08/08/2026 (53-53 en rotaciones vs 56-59 en marcador). Sin verificar si sigue.
+
