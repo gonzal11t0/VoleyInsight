@@ -1397,8 +1397,16 @@ export class VolleyballDashboard {
             return valorPorDefecto;
         }
     }
-
-    cargarDatosGuardadosDelPartido() {
+    guardarCacheJSON(clave, valor) {
+        try {
+            localStorage.setItem(clave, JSON.stringify(valor));
+            return true;
+        } catch (error) {
+            console.warn(`No se pudo guardar ${clave}:`, error.message);
+            return false;
+        }
+    }
+        cargarDatosGuardadosDelPartido() {
         const nombresLocal = this.leerCacheJSON(`jugadores_${this.matchId}_local`, {});
         const nombresVisitante = this.leerCacheJSON(`jugadores_${this.matchId}_visitante`, {});
         this.jugadoresLocal = { ...nombresLocal, ...this.jugadoresLocal };
@@ -1416,7 +1424,16 @@ export class VolleyballDashboard {
             }
         }
 
+        const yaTieneFormacionEnMemoria = this.formacionInicialPorSet &&
+            Object.keys(this.formacionInicialPorSet).length > 0;
+        const mismoPartido = this._formacionMatchId === this.matchId;
+
+        if (yaTieneFormacionEnMemoria && mismoPartido) {
+            return;
+        }
+
         this.formacionInicialPorSet = {};
+        this._formacionMatchId = this.matchId;
         for (let set = 1; set <= 5; set++) {
             const formacion = this.leerCacheJSON(`formacion_inicial_${this.matchId}_set_${set}`);
             if (formacion) this.formacionInicialPorSet[set] = formacion;
@@ -2339,63 +2356,75 @@ export class VolleyballDashboard {
             : (setsConPuntos.find(set => this.formacionInicialPorSet?.[set]) || setsConPuntos[0] || 1);
     }
 
-    async cargarFormacionDesdeBackend() {
+        async cargarFormacionDesdeBackend() {
         if (!this.matchId) return;
         if (!this.formacionInicialPorSet) this.formacionInicialPorSet = {};
 
-        // 1) Intentar formación inicial por set (fuente exacta)
+        const setsAPedir = [];
         for (let set = 1; set <= 5; set++) {
-            if (this.formacionInicialPorSet[set]) continue;
-            try {
-                const r = await fetch(`${window.location.origin}/api/formacion/${this.matchId}/${set}`);
-                if (r.ok) {
+            if (!this.formacionInicialPorSet[set]) setsAPedir.push(set);
+        }
+
+        if (setsAPedir.length > 0) {
+            await Promise.all(setsAPedir.map(async (set) => {
+                try {
+                    const r = await fetch(
+                        `${window.location.origin}/api/formacion/${this.matchId}/${set}`,
+                        { signal: AbortSignal.timeout(8000) }
+                    );
+                    if (!r.ok) return;
                     const p = await r.json();
                     if (p.data && p.data.local?.length === 6) {
                         this.formacionInicialPorSet[set] = p.data;
                         this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${set}`, p.data);
                     }
+                } catch (e) {
+                    console.warn(`[formacion] No se pudo cargar set ${set}:`, e.message);
                 }
-            } catch {}
+            }));
         }
 
-        // 2) Fallback: si no hay NINGUNA formación inicial, usar court actual para todos los sets
         const tieneAlguna = Object.keys(this.formacionInicialPorSet).length > 0;
-        if (!tieneAlguna) {
-            try {
-                const r = await fetch(`${window.location.origin}/api/court/${this.matchId}`);
-                if (r.ok) {
-                    const p = await r.json();
-                    const court = p.data;
-                    if (court) {
-                        const formacion = { local: [], visitante: [] };
-                        for (const pos of Object.values(court.home?.positions || {})) {
-                            formacion.local.push({
-                                numero: pos.number,
-                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
-                            });
-                        }
-                        for (const pos of Object.values(court.away?.positions || {})) {
-                            formacion.visitante.push({
-                                numero: pos.number,
-                                nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim()
-                            });
-                        }
-                        if (formacion.local.length === 6 && formacion.visitante.length === 6) {
-                            for (let s = 1; s <= 5; s++) {
-                                this.formacionInicialPorSet[s] = formacion;
-                                this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${s}`, formacion);
-                            }
-                            console.log('[formacion] Fallback aplicado: formación del court usada para todos los sets');
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn('[formacion] No se pudo cargar fallback:', e.message);
+        if (tieneAlguna) return;
+
+        try {
+            const r = await fetch(
+                `${window.location.origin}/api/court/${this.matchId}`,
+                { signal: AbortSignal.timeout(8000) }
+            );
+            if (!r.ok) return;
+            const p = await r.json();
+            const court = p.data;
+            if (!court) return;
+
+            const formacion = { local: [], visitante: [] };
+            for (const [clavePos, pos] of Object.entries(court.home?.positions || {})) {
+                formacion.local.push({
+                    numero: pos.number,
+                    nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim(),
+                    posicion: Number(pos.position) || Number(clavePos)
+                });
             }
+            for (const [clavePos, pos] of Object.entries(court.away?.positions || {})) {
+                formacion.visitante.push({
+                    numero: pos.number,
+                    nombre: pos.name || `${pos.firstName || ''} ${pos.lastName || ''}`.trim(),
+                    posicion: Number(pos.position) || Number(clavePos)
+                });
+            }
+            if (formacion.local.length === 6 && formacion.visitante.length === 6) {
+                for (let s = 1; s <= 5; s++) {
+                    this.formacionInicialPorSet[s] = formacion;
+                    this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${s}`, formacion);
+                }
+                console.log('[formacion] Fallback aplicado: formación del court usada para todos los sets');
+            }
+        } catch (e) {
+            console.warn('[formacion] No se pudo cargar fallback:', e.message);
         }
     }
 
-    obtenerJugadoresEnRotacion(equipo, rotacionNum, setSeleccionado = this.filtroRotaciones) {
+        obtenerJugadoresEnRotacion(equipo, rotacionNum, setSeleccionado = this.filtroRotaciones) {
         const setFormacion = this.resolverSetFormacion(setSeleccionado);
         const claveEquipo = equipo === 'VISITANTE' ? 'visitante' : 'local';
         const formacionInicial = this.formacionInicialPorSet?.[setFormacion]?.[claveEquipo];
@@ -2403,7 +2432,15 @@ export class VolleyballDashboard {
             ? this.jugadoresVisitante
             : this.jugadoresLocal;
 
-        return rotarFormacion(formacionInicial, rotacionNum).map(jugador => {
+        // Normalizar: si el jugador no tiene "posicion", usar el orden del array (index + 1).
+        const formacionConPosicion = Array.isArray(formacionInicial)
+            ? formacionInicial.map((jugador, index) => ({
+                ...jugador,
+                posicion: Number(jugador?.posicion) || (index + 1)
+            }))
+            : formacionInicial;
+
+        return rotarFormacion(formacionConPosicion, rotacionNum).map(jugador => {
             const nombre = jugadoresMap[jugador.numero] || jugador.nombre || `Jugador ${jugador.numero}`;
             return {
                 ...jugador,
@@ -2412,7 +2449,6 @@ export class VolleyballDashboard {
             };
         });
     }
-
     obtenerStatsRotacion(rotacionNum) {
         const equipo = this.obtenerEquipoRotaciones();
         return obtenerStatsRotacionHelper(
