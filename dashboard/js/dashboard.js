@@ -1308,9 +1308,22 @@ export class VolleyballDashboard {
         this.actualizarResumenUltimoSet();
     }
 
-    actualizarResumenUltimoSet() {
+           actualizarResumenUltimoSet() {
         const card = document.getElementById('resumenUltimoSet');
         if (!card) return;
+        
+        // NUEVO: Si Metro no confirmó que el set terminó, no mostramos el resumen.
+        // Esto evita falsos positivos en categorías con reglas raras o de 4 jugadoras.
+        const ultimoSet = this.data && this.data.length > 0 ? this.data[this.data.length - 1].set : null;
+        const setOficialTerminado = this.estadoOficialPartido?.sets?.some(s => 
+            Number(s.number) === Number(ultimoSet) && (s.status === 'final' || s.status === 'finished')
+        );
+
+        if (!setOficialTerminado) {
+            card.classList.add('hidden');
+            return;
+        }
+
         const summary = buildSetSummary({
             officialPoints: this.data,
             manualPoints: this.puntosJugadores,
@@ -1324,13 +1337,6 @@ export class VolleyballDashboard {
             card.classList.add('hidden');
             return;
         }
-        card.classList.remove('hidden');
-        document.getElementById('resumenSetTitulo').textContent = `Resumen automático · Set ${summary.set}`;
-        document.getElementById('resumenSetMarcador').textContent = `${summary.winner} ganó ${summary.home}-${summary.away}`;
-        document.getElementById('resumenSetFigura').textContent = summary.topScorer
-            ? `Figura registrada: ${summary.topScorer.name} · ${summary.topScorer.points} pts`
-            : 'Sin puntos atribuidos a una jugadora o jugador.';
-        document.getElementById('resumenSetCobertura').textContent = `Cobertura manual: ${summary.manualPoints}/${summary.expectedPoints} (${summary.coverage}%)`;
     }
 
     calcularSetsGanados(setsMap) {
@@ -2374,7 +2380,7 @@ export class VolleyballDashboard {
                     );
                     if (!r.ok) return;
                     const p = await r.json();
-                    if (p.data && p.data.local?.length === 6) {
+                    if (p.data && p.data.local?.length > 0) {
                         this.formacionInicialPorSet[set] = p.data;
                         this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${set}`, p.data);
                     }
@@ -2412,7 +2418,7 @@ export class VolleyballDashboard {
                     posicion: Number(pos.position) || Number(clavePos)
                 });
             }
-            if (formacion.local.length === 6 && formacion.visitante.length === 6) {
+                if (formacion.local.length > 0 && formacion.visitante.length > 0) {
                 for (let s = 1; s <= 5; s++) {
                     this.formacionInicialPorSet[s] = formacion;
                     this.guardarCacheJSON(`formacion_inicial_${this.matchId}_set_${s}`, formacion);

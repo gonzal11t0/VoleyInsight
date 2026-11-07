@@ -173,14 +173,14 @@ export function rotarFormacion(formacionInicial, rotacion = 1) {
             .map(jugador => ({ ...jugador, posicion: Number(jugador.posicion) }))
         : [];
 
-    if (jugadores.length !== 6) return [];
+        if (jugadores.length === 0) return [];
 
     const pasos = ((Number(rotacion) || 1) - 1) % 6;
     return jugadores
         .map(jugador => {
             let posicion = jugador.posicion;
             for (let i = 0; i < pasos; i++) {
-                posicion = posicion === 1 ? 6 : posicion - 1;
+                posicion = posicion === 1 ? jugadores.length : posicion - 1;
             }
             return { ...jugador, posicion };
         })
