@@ -86,31 +86,40 @@ class MatchTracker {
     }
 
     async cambiarPartido(nuevoMatchId) {
-        logger.info(`🔄 Cambiando partido de ${this.matchId} a ${nuevoMatchId}`);
-        if (this.repository.snapshots.length > 0) {
-            await this.repository.saveJSON();
-            logger.info(`💾 Datos del partido ${this.matchId} guardados`);
-        }
-        this.matchId = nuevoMatchId;
-        this.isPaused = false;
-        this.api = new MetroVoleyAPI(this.matchId);
-        this.repository = new DataRepository(this.matchId);
-        this.processor.reset();
-        this.activityStatus.reset();
-        await this.crearArchivoPartidoVacio(this.matchId);
-        await this.repository.loadJSON();
-        this.processor.rebuildFromSnapshots(this.repository.getSnapshots());
-        if (this.socket && this.socket.connected) {
-            this.socket.emit('unsubscribe');
-            this.socket.emit('subscribe', this.matchId);
-        }
-        this.consecutiveErrors = 0;
-        this.isReconnecting = false;
-        this.reconnectDelay = 1000;
-        setTimeout(() => this.fetchAndProcess(), 1000);
-        logger.info(`✅ Partido cambiado a ${nuevoMatchId}`);
+    logger.info(`🔄 Cambiando partido de ${this.matchId} a ${nuevoMatchId}`);
+    if (this.repository.snapshots.length > 0) {
+        await this.repository.saveJSON();
+        logger.info(`💾 Datos del partido ${this.matchId} guardados`);
     }
+    this.matchId = nuevoMatchId;
+    this.isPaused = false;
+    this.api = new MetroVoleyAPI(this.matchId);
+    this.repository = new DataRepository(this.matchId);
+    this.processor.reset();
+    this.activityStatus.reset();
 
+    // FIX: resetear roster cacheado (evita usar el del partido anterior)
+    this._rosterMap = null;
+    this._rosterMatchId = null;
+    this._rosterRetryAt = null;
+
+    // FIX CLAVE: forzar reset del archivo del nuevo matchId.
+    // Si el archivo ya existía (intento previo, sesión anterior, basura),
+    // se sobrescribe con INICIO 0-0 limpio. Evita arrastrar el estado del partido anterior.
+    await this.crearArchivoPartidoVacio(this.matchId, { forzar: true });
+    await this.repository.loadJSON();
+    this.processor.rebuildFromSnapshots(this.repository.getSnapshots());
+
+    if (this.socket && this.socket.connected) {
+        this.socket.emit('unsubscribe');
+        this.socket.emit('subscribe', this.matchId);
+    }
+    this.consecutiveErrors = 0;
+    this.isReconnecting = false;
+    this.reconnectDelay = 1000;
+    setTimeout(() => this.fetchAndProcess(), 1000);
+    logger.info(`✅ Partido cambiado a ${nuevoMatchId} (archivo reseteado)`);
+}
     async pausarPartido() {
         if (this.isPaused) return;
         this.isPaused = true;
@@ -138,38 +147,63 @@ class MatchTracker {
         await this.fetchAndProcess();
     }
 
-    async crearArchivoPartidoVacio(matchId) {
-        try {
-            const filePath = path.join('./data', `match_${matchId}.json`);
-            const existe = await fs.access(filePath).then(() => true).catch(() => false);
-            if (!existe) {
-                const estructuraInicial = [{
-                    "timestamp": new Date().toISOString(),
-                    "set": 1,
-                    "homeTeam": "LOCAL",
-                    "awayTeam": "VISITANTE",
-                    "homeScore": 0,
-                    "awayScore": 0,
-                    "scorer": null,
-                    "serving": "HOME",
-                    "homeRun": 0,
-                    "awayRun": 0,
-                    "lead": 0,
-                    "phase": "EARLY",
-                    "event": "INICIO"
-                }];
-                await writeJsonAtomic(filePath, estructuraInicial, { backup: false, validate: Array.isArray });
-                logger.info(`📄 Archivo creado para partido ${matchId}`);
-                const fullPath = path.join('./data', `full_${matchId}.json`);
-                const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
-                if (!fullExiste) {
-                    await writeJsonAtomic(fullPath, { matchId, liveState: { court: null } }, { backup: false });
-                }
-            }
-        } catch (e) {
-            logger.warn('Error creando archivo:', e.message);
+    async obtenerNombresDesdeConfig(matchId) {
+    try {
+        const configPath = path.join('./data', 'config.json');
+        const configData = await fs.readFile(configPath, 'utf-8');
+        const cfg = JSON.parse(configData);
+        if (Number(cfg.matchId) === Number(matchId)) {
+            return {
+                homeTeam: String(cfg.homeTeam || 'LOCAL').trim() || 'LOCAL',
+                awayTeam: String(cfg.awayTeam || 'VISITANTE').trim() || 'VISITANTE'
+            };
         }
+    } catch (e) {
+        logger.debug('No se pudo leer nombres desde config.json:', e.message);
     }
+    return { homeTeam: 'LOCAL', awayTeam: 'VISITANTE' };
+}
+
+    async crearArchivoPartidoVacio(matchId, { forzar = false } = {}) {
+    try {
+        const filePath = path.join('./data', `match_${matchId}.json`);
+        const existe = await fs.access(filePath).then(() => true).catch(() => false);
+
+        if (existe && !forzar) {
+            logger.debug(`📄 Archivo match_${matchId}.json ya existe; se respeta`);
+            return;
+        }
+
+        // FIX: leer nombres reales desde config.json
+        const { homeTeam, awayTeam } = await this.obtenerNombresDesdeConfig(matchId);
+
+        const estructuraInicial = [{
+            "timestamp": new Date().toISOString(),
+            "set": 1,
+            "homeTeam": homeTeam,      // ← FIX (antes "LOCAL")
+            "awayTeam": awayTeam,      // ← FIX (antes "VISITANTE")
+            "homeScore": 0,
+            "awayScore": 0,
+            "scorer": null,
+            "serving": "HOME",
+            "homeRun": 0,
+            "awayRun": 0,
+            "lead": 0,
+            "phase": "EARLY",
+            "event": "INICIO"
+        }];
+        await writeJsonAtomic(filePath, estructuraInicial, { backup: false, validate: Array.isArray });
+        logger.info(`📄 Archivo ${forzar ? 'reseteado' : 'creado'} para partido ${matchId} (${homeTeam} vs ${awayTeam})`);
+
+        const fullPath = path.join('./data', `full_${matchId}.json`);
+        const fullExiste = await fs.access(fullPath).then(() => true).catch(() => false);
+        if (!fullExiste || forzar) {
+            await writeJsonAtomic(fullPath, { matchId, liveState: { court: null } }, { backup: false });
+        }
+    } catch (e) {
+        logger.warn('Error creando archivo:', e.message);
+    }
+}
 
     async iniciarMonitoreoConfig() {
         let ultimoMatchId = this.matchId;

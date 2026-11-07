@@ -1686,8 +1686,8 @@ export class VolleyballDashboard {
             const totalAcesVisitante = Object.values(statsVisitante).reduce((sum, s) => sum + (s.acesServicio || 0), 0);
             const totalErroresServLocal = Object.values(statsLocal).reduce((sum, s) => sum + (s.erroresServicio || 0), 0);
             const totalErroresServVisitante = Object.values(statsVisitante).reduce((sum, s) => sum + (s.erroresServicio || 0), 0);
-            document.getElementById('localTotalPts').innerHTML = `Atribuidos: ${resumenLocal.puntosAtribuidos} · Sin atribuir: ${resumenLocal.sinAtribuir} · Equipo: ${resumenLocal.puntosEquipo}`;
-            document.getElementById('visitanteTotalPts').innerHTML = `Atribuidos: ${resumenVisitante.puntosAtribuidos} · Sin atribuir: ${resumenVisitante.sinAtribuir} · Equipo: ${resumenVisitante.puntosEquipo}`;
+document.getElementById('localTotalPts').innerHTML = `Atribuidos: ${resumenLocal.puntosAtribuidos} · Por error rival / recovery: ${resumenLocal.sinAtribuir} · Equipo: ${resumenLocal.puntosEquipo}`;
+document.getElementById('visitanteTotalPts').innerHTML = `Atribuidos: ${resumenVisitante.puntosAtribuidos} · Por error rival / recovery: ${resumenVisitante.sinAtribuir} · Equipo: ${resumenVisitante.puntosEquipo}`;            document.getElementById('visitanteTotalPts').innerHTML = `Atribuidos: ${resumenVisitante.puntosAtribuidos} · Sin atribuir: ${resumenVisitante.sinAtribuir} · Equipo: ${resumenVisitante.puntosEquipo}`;
             document.getElementById('localTotalAces').innerHTML = `🎯 Aces: ${totalAcesLocal}`;
             document.getElementById('visitanteTotalAces').innerHTML = `🎯 Aces: ${totalAcesVisitante}`;
             document.getElementById('localTotalServErrors').innerHTML = `❌ Err Serv: ${totalErroresServLocal}`;
@@ -1700,8 +1700,8 @@ export class VolleyballDashboard {
         } else {
             renderizarSoloNombres('tablaLocalBody', this.jugadoresLocal, this.jugadoresVisitante, 'LOCAL');
             renderizarSoloNombres('tablaVisitanteBody', this.jugadoresLocal, this.jugadoresVisitante, 'VISITANTE');
-            document.getElementById('localTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
-            document.getElementById('visitanteTotalPts').innerHTML = 'Atribuidos: 0 · Sin atribuir: 0 · Equipo: 0';
+document.getElementById('localTotalPts').innerHTML = 'Atribuidos: 0 · Por error rival / recovery: 0 · Equipo: 0';
+document.getElementById('visitanteTotalPts').innerHTML = 'Atribuidos: 0 · Por error rival / recovery: 0 · Equipo: 0';
             document.getElementById('localTotalAces').innerHTML = '🎯 Aces: 0';
             document.getElementById('visitanteTotalAces').innerHTML = '🎯 Aces: 0';
             document.getElementById('localTotalServErrors').innerHTML = '❌ Err Serv: 0';
@@ -1944,33 +1944,36 @@ export class VolleyballDashboard {
     }
 
     updateInsightsList(homeEfficiency, homeBreaks) {
-        const c = document.getElementById('insightsList');
-        if (!c) return;
-        const equipoAnalisis = this.obtenerEquipoAnalisis();
-        const nombreEquipo = escaparHtml(equipoAnalisis.nombre);
-        const eficiencia = equipoAnalisis.equipo === 'HOME' ? homeEfficiency : this.awayEfficiency;
-        const breaks = equipoAnalisis.equipo === 'HOME' ? homeBreaks : this.awayBreaks;
-        const i = [];
-        if (eficiencia > 60) i.push(`🏆 DOMINIO TOTAL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
-        else if (eficiencia > 55) i.push(`✅ CONTROL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
-        else if (eficiencia > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${nombreEquipo} ganó ${eficiencia}% vs rival.`);
-        else if (eficiencia < 45 && eficiencia > 0) i.push(`⚠️ SUPERADO: ${nombreEquipo} solo ganó ${eficiencia}% de los puntos.`);
-        if (breaks > 12) i.push(`⚡ EFECTIVO CON SAQUE PROPIO: ganó ${breaks} breakpoints.`);
-        else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS BREAKPOINTS: ganó ${breaks} puntos con saque propio. Revisar presión de saque y bloqueo-defensa.`);
-        const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
-        const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
-        const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
-        const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
-        if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%). Ganó con frecuencia los rallies en los que recibió el saque rival.`);
-        else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Revisar recepción y salida de ataque.`);
-        if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). El saque propio genera puntos.`);
-        else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Falta presión con saque propio.`);
-        const clutch = parseFloat(document.getElementById('clutchHome')?.textContent) || 0;
-        if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${clutch}% bajo presión.`);
-        else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: Solo ${clutch}% en momentos críticos.`);
-        if (i.length === 0) i.push('📊 Esperando más datos para generar insights...');
-        c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
-    }
+    const c = document.getElementById('insightsList');
+    if (!c) return;
+    const equipoAnalisis = this.obtenerEquipoAnalisis();
+    const nombreEquipo = escaparHtml(equipoAnalisis.nombre);
+    const eficiencia = equipoAnalisis.equipo === 'HOME' ? homeEfficiency : this.awayEfficiency;
+    const breaks = equipoAnalisis.equipo === 'HOME' ? homeBreaks : this.awayBreaks;
+    const i = [];
+    if (eficiencia > 60) i.push(`🏆 DOMINIO TOTAL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
+    else if (eficiencia > 55) i.push(`✅ CONTROL: ${nombreEquipo} ganó ${eficiencia}% de los puntos.`);
+    else if (eficiencia > 50) i.push(`⚖️ VENTAJA MÍNIMA: ${nombreEquipo} ganó ${eficiencia}% vs rival.`);
+    else if (eficiencia < 45 && eficiencia > 0) i.push(`⚠️ SUPERADO: ${nombreEquipo} solo ganó ${eficiencia}% de los puntos.`);
+    if (breaks > 12) i.push(`⚡ EFECTIVO CON SAQUE PROPIO: ${nombreEquipo} ganó ${breaks} breakpoints.`);
+    else if (breaks < 6 && breaks > 0) i.push(`🔻 POCOS BREAKPOINTS: ${nombreEquipo} ganó ${breaks} puntos con saque propio. Revisar presión de saque y bloqueo-defensa.`);
+    const sideout = parseFloat(document.getElementById('sideoutLocalLabel')?.textContent) || 0;
+    const breakpoint = parseFloat(document.getElementById('breakpointLocalLabel')?.textContent) || 0;
+    const sideoutEquipo = equipoAnalisis.equipo === 'HOME' ? sideout : parseFloat(document.getElementById('sideoutVisitanteLabel')?.textContent) || 0;
+    const breakpointEquipo = equipoAnalisis.equipo === 'HOME' ? breakpoint : parseFloat(document.getElementById('breakpointVisitanteLabel')?.textContent) || 0;
+    if (sideoutEquipo > 60) i.push(`🎯 EXCELENTE SIDEOUT% (${sideoutEquipo}%). ${nombreEquipo} ganó con frecuencia los rallies en los que recibió el saque rival.`);
+    else if (sideoutEquipo < 45 && sideoutEquipo > 0) i.push(`⚠️ BAJO SIDEOUT% (${sideoutEquipo}%). Revisar recepción y salida de ataque de ${nombreEquipo}.`);
+    if (breakpointEquipo > 45) i.push(`⚡ EXCELENTE BREAKPOINT% (${breakpointEquipo}%). El saque propio de ${nombreEquipo} genera puntos.`);
+    else if (breakpointEquipo < 25 && breakpointEquipo > 0) i.push(`🔻 BAJO BREAKPOINT% (${breakpointEquipo}%). Falta presión con saque propio de ${nombreEquipo}.`);
+    // CORREGIDO: usar el clutch del equipo analizado, no siempre el local
+    const clutch = equipoAnalisis.equipo === 'HOME'
+        ? (Number(this.homeClutchPct) || 0)
+        : (Number(this.awayClutchPct) || 0);
+    if (clutch > 65) i.push(`🧠 FORTALEZA MENTAL: ${nombreEquipo} ganó ${clutch.toFixed(1)}% bajo presión.`);
+    else if (clutch < 35 && clutch > 0) i.push(`😰 DEBILIDAD BAJO PRESIÓN: ${nombreEquipo} solo ganó ${clutch.toFixed(1)}% en momentos críticos.`);
+    if (i.length === 0) i.push('📊 Esperando más datos para generar insights...');
+    c.innerHTML = i.map(x => `<div class="bg-dark/50 rounded-lg p-3 border-l-4 border-primary text-xs md:text-sm">${x}</div>`).join('');
+}
 
     calcularRotaciones(setSeleccionado = this.filtroRotaciones) {
         const puntos = seleccionarPuntosParaRotaciones(
@@ -2577,167 +2580,186 @@ export class VolleyballDashboard {
     }
 
     updateInterpretations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
-        const c = document.getElementById('metricInterpretations');
-        if (!c) return;
-        const effH = homeEff || 0;
-        const effA = awayEff || 0;
-        const maxAR = maxAwayRun || 0;
-        const maxHR = maxHomeRun || 0;
-        const brH = homeBreaks || 0;
-        const brA = awayBreaks || 0;
-        const clutch = homeClutchPct || 0;
-        const sideout = sideoutPct || 0;
-        const breakpoint = breakpointPct || 0;
-        const serviceEff = serviceEffHome || 0;
-        const lateEff = phaseHomeEff?.late || 0;
-        const earlyEff = phaseHomeEff?.early || 0;
-        const midEff = phaseHomeEff?.mid || 0;
-        const interpretaciones = [];
-        if (effH > 60) {
-            interpretaciones.push({ titulo: '🏆 DOMINIO ABSOLUTO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El sistema funciona. Mantener la estrategia y buscar perfeccionar detalles.' });
-        } else if (effH > 55) {
-            interpretaciones.push({ titulo: '✅ CONTROL DEL PARTIDO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% de los puntos. Ventaja clara pero el rival compitió.`, accion: 'Analizar los momentos donde el rival descontó. ¿Fueron errores propios o méritos rivales?' });
-        } else if (effH > 50) {
-            interpretaciones.push({ titulo: '⚖️ VENTAJA MÍNIMA', descripcion: `${this.homeTeamHtml} solo ganó el ${effH}% de los puntos. Diferencia de ${(effH - effA).toFixed(1)}% sobre el rival.`, accion: 'El partido se definió por detalles. Revisar puntos de quiebre y momentos clutch.' });
-        } else if (effH > 45) {
-            interpretaciones.push({ titulo: '⚠️ PARTIDO PAREDO', descripcion: `${this.homeTeamHtml} ganó el ${effH}% vs ${effA}% del rival. Prácticamente empatados en eficiencia.`, accion: 'El resultado pudo ser para cualquiera. ¿En qué fase del set el equipo rindió peor?' });
-        } else if (effH > 0) {
-            interpretaciones.push({ titulo: '🔴 SUPERADO EN EFICIENCIA', descripcion: `${this.homeTeamHtml} solo ganó el ${effH}% de los puntos. El rival dominó el ${effA}%.`, accion: 'Trabajar en: reducción de errores no forzados y mayor eficacia en ataque.' });
-        }
-        if (maxHR > 5 && maxHR > maxAR + 2) {
-            interpretaciones.push({ titulo: '💪 FUERZA EN RACHAS OFENSIVAS', descripcion: `${this.homeTeamHtml} encadenó ${maxHR} puntos seguidos, superando ampliamente la mejor racha rival (${maxAR}).`, accion: '¿Qué generó esas rachas? Saque agresivo, bloqueo efectivo o errores rivales? Identificar y replicar.' });
-        } else if (maxAR > 5 && maxAR > maxHR + 2) {
-            interpretaciones.push({ titulo: '🔥 DEBILIDAD ANTE RACHAS RIVALES', descripcion: `${this.awayTeamHtml} tuvo una racha de ${maxAR} puntos consecutivos, ${maxAR - maxHR} más que la mejor racha propia.`, accion: 'Ajustar: pedir tiempo muerto ANTES de que la racha crezca, cambiar la rotación de saque.' });
-        } else if (maxAR > 5 || maxHR > 5) {
-            interpretaciones.push({ titulo: '⚡ RACHAS MOMENTÁNEAS', descripcion: `Ambos equipos tuvieron rachas (${this.homeTeamHtml}: ${maxHR}, ${this.awayTeamHtml}: ${maxAR}). El partido fue de altibajos.`, accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.' });
-        }
-        if (brH > brA + 4) {
-            interpretaciones.push({ titulo: '💪 PRESIÓN EFECTIVA CON SAQUE PROPIO', descripcion: `${this.homeTeamHtml} ganó ${brH} breakpoints, ${brH - brA} más que el rival.`, accion: 'Mantener la combinación de saque, bloqueo y defensa que produjo esos puntos.' });
-        } else if (brA > brH + 4) {
-            interpretaciones.push({ titulo: '⚠️ POCA PRODUCCIÓN CON SAQUE PROPIO', descripcion: `${this.awayTeamHtml} ganó ${brA} breakpoints y ${this.homeTeamHtml} ${brH}.`, accion: 'Trabajar presión de saque, organización de bloqueo y transición defensiva.' });
-        } else if (brH + brA > 15) {
-            interpretaciones.push({ titulo: '⚡ MUCHOS BREAKPOINTS', descripcion: `Hubo ${brH + brA} puntos ganados por el equipo que sacaba.`, accion: 'Revisar qué zonas de saque y sistemas de bloqueo generaron mayor ventaja.' });
-        }
-        if (clutch > 65) {
-            interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${this.homeTeamHtml} ganó ${clutch}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });
-        } else if (clutch < 35 && clutch > 0) {
-            interpretaciones.push({ titulo: '😰 DEBILIDAD BAJO PRESIÓN', descripcion: `${this.homeTeamHtml} solo ganó ${clutch}% de los puntos en situaciones críticas.`, accion: 'Entrenar ejercicios específicos: set point en contra, partidos empatados al final del set.' });
-        } else if (clutch > 0) {
-            const evaluacion = clutch > 55 ? 'aceptable' : (clutch > 45 ? 'regular' : 'bajo');
-            interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${this.homeTeamHtml} ganó ${clutch}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutch > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
-        }
-        if (sideout > 65) {
-            interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${this.homeTeamHtml} ganó ${sideout}% de los rallies en los que recibió el saque rival.`, accion: 'Es un buen resultado de sideout. Para identificar la causa, revisar por separado recepción, distribución y primer ataque.' });
-        } else if (sideout < 45 && sideout > 0) {
-            interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${this.homeTeamHtml} solo ganó ${sideout}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
-        }
-        if (breakpoint > 45) {
-            interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${this.homeTeamHtml} ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'El saque propio y el sistema de bloqueo-defensa están generando ventaja.' });
-        } else if (breakpoint < 25 && breakpoint > 0) {
-            interpretaciones.push({ titulo: '🔻 BAJA PRODUCCIÓN CON SAQUE', descripcion: `${this.homeTeamHtml} solo ganó ${breakpoint}% de los puntos mientras sacaba.`, accion: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
-        }
-        if (serviceEff > 15) {
-            interpretaciones.push({ titulo: '🏐 SAQUE MUY EFECTIVO', descripcion: `Eficiencia de servicio del ${serviceEff}% (Aces - Errores). El saque es un arma ofensiva.`, accion: 'Mantener la agresividad controlada. Seguir variando zonas y velocidades.' });
-        } else if (serviceEff < -5) {
-            interpretaciones.push({ titulo: '❌ ERRORES DE SERVICIO', descripcion: `Eficiencia de servicio negativa (${serviceEff}%). Muchos errores no forzados.`, accion: 'Priorizar efectividad sobre potencia. Reducir los errores de saque como primer objetivo.' });
-        } else if (serviceEff > 0 && serviceEff < 10) {
-            interpretaciones.push({ titulo: '📊 SERVICIO NEUTRO', descripcion: `Eficiencia de servicio del ${serviceEff}%. No fue determinante en el resultado.`, accion: 'Buscar mayor agresividad sin aumentar errores. Entrenar saques flotantes y saltados a zonas clave.' });
-        }
-        if (earlyEff < 40 && earlyEff > 0) {
-            interpretaciones.push({ titulo: '⏰ ARRANQUES LENTOS', descripcion: `${this.homeTeamHtml} tuvo solo ${earlyEff}% de efectividad en los primeros 10 puntos de cada set.`, accion: 'Trabajar la concentración desde el inicio. Calentamiento más intenso, entrada en calor efectiva.' });
-        }
-        if (lateEff < 40 && lateEff > 0) {
-            interpretaciones.push({ titulo: '⏱️ CIERRE DE SETS DÉBIL', descripcion: `${this.homeTeamHtml} tuvo solo ${lateEff}% de efectividad en la fase final (puntos 21+).`, accion: 'Ejercicios de definición de sets. Entrenar con marcador 20-20, set point en contra, etc.' });
-        }
-        if (earlyEff > 60 && midEff > 60 && lateEff > 60) {
-            interpretaciones.push({ titulo: '📊 CONSISTENCIA TOTAL', descripcion: `El equipo rindió por encima del 60% en TODAS las fases del set. Muy difícil de vencer.`, accion: 'Felicitaciones. Mantener el nivel y trabajar detalles tácticos.' });
-        }
-        if (interpretaciones.length === 0) {
-            c.innerHTML = '<div class="text-center text-gray-400 py-6">Esperando más datos para generar análisis detallado...</div>';
-            return;
-        }
-        c.innerHTML = interpretaciones.map(i =>
-            `<div class="bg-dark/50 rounded-lg p-3 mb-2 border-l-4 border-primary hover:bg-dark/70 transition-all">
-                <div class="font-bold text-primary text-xs md:text-sm mb-1 flex items-center gap-2"><span>📌</span> ${i.titulo}</div>
-                <div class="text-gray-300 text-xs md:text-sm mb-2 pl-2">${i.descripcion}</div>
-                <div class="text-amber-400 text-xs pl-2 border-t border-gray-700 pt-1 mt-1">💡 ${i.accion}</div>
-            </div>`
-        ).join('');
+    const c = document.getElementById('metricInterpretations');
+    if (!c) return;
+    const analisis = this.obtenerEquipoAnalisis();
+    const esLocal = analisis.equipo === 'HOME';
+    const nombreEquipo = escaparHtml(analisis.nombre);
+    const nombreRival = escaparHtml(esLocal ? this.awayTeamName : this.homeTeamName);
+
+    const effAnalizado = Number(esLocal ? homeEff : awayEff) || 0;
+    const effRival = Number(esLocal ? awayEff : homeEff) || 0;
+    const maxRunAnalizado = Number(esLocal ? maxHomeRun : maxAwayRun) || 0;
+    const maxRunRival = Number(esLocal ? maxAwayRun : maxHomeRun) || 0;
+    const breaksAnalizado = Number(esLocal ? homeBreaks : awayBreaks) || 0;
+    const breaksRival = Number(esLocal ? awayBreaks : homeBreaks) || 0;
+    const clutchAnalizado = Number(esLocal
+        ? (this.homeClutchPct ?? homeClutchPct ?? 0)
+        : (this.awayClutchPct ?? 0)) || 0;
+    const sideoutAnalizado = Number(esLocal ? (sideoutPct || 0) : (this.sideoutAwayPct || 0)) || 0;
+    const breakpointAnalizado = Number(esLocal ? (breakpointPct || 0) : (this.breakpointAwayPct || 0)) || 0;
+    const serviceEffAnalizado = Number(esLocal ? (serviceEffHome || 0) : (serviceEffAway || 0)) || 0;
+    const fasesAnalizado = esLocal ? phaseHomeEff : (this.awayPhaseEff || { early: 0, mid: 0, late: 0 });
+    const lateEff = Number(fasesAnalizado?.late) || 0;
+    const earlyEff = Number(fasesAnalizado?.early) || 0;
+    const midEff = Number(fasesAnalizado?.mid) || 0;
+
+    const interpretaciones = [];
+
+    if (effAnalizado > 60) {
+        interpretaciones.push({ titulo: '🏆 DOMINIO ABSOLUTO', descripcion: `${nombreEquipo} ganó el ${effAnalizado}% de los puntos. Diferencia de ${(effAnalizado - effRival).toFixed(1)}% sobre ${nombreRival}.`, accion: 'El sistema funciona. Mantener la estrategia y buscar perfeccionar detalles.' });
+    } else if (effAnalizado > 55) {
+        interpretaciones.push({ titulo: '✅ CONTROL DEL PARTIDO', descripcion: `${nombreEquipo} ganó el ${effAnalizado}% de los puntos. Ventaja clara pero ${nombreRival} compitió.`, accion: 'Analizar los momentos donde el rival descontó. ¿Fueron errores propios o méritos rivales?' });
+    } else if (effAnalizado > 50) {
+        interpretaciones.push({ titulo: '⚖️ VENTAJA MÍNIMA', descripcion: `${nombreEquipo} solo ganó el ${effAnalizado}% de los puntos. Diferencia de ${(effAnalizado - effRival).toFixed(1)}% sobre ${nombreRival}.`, accion: 'El partido se definió por detalles. Revisar puntos de quiebre y momentos clutch.' });
+    } else if (effAnalizado > 45) {
+        interpretaciones.push({ titulo: '⚠️ PARTIDO PAREJO', descripcion: `${nombreEquipo} ganó el ${effAnalizado}% vs ${effRival}% de ${nombreRival}. Prácticamente empatados en eficiencia.`, accion: 'El resultado pudo ser para cualquiera. ¿En qué fase del set el equipo rindió peor?' });
+    } else if (effAnalizado > 0) {
+        interpretaciones.push({ titulo: '🔴 SUPERADO EN EFICIENCIA', descripcion: `${nombreEquipo} solo ganó el ${effAnalizado}% de los puntos. ${nombreRival} dominó el ${effRival}%.`, accion: 'Trabajar en: reducción de errores no forzados y mayor eficacia en ataque.' });
     }
+    if (maxRunAnalizado > 5 && maxRunAnalizado > maxRunRival + 2) {
+        interpretaciones.push({ titulo: '💪 FUERZA EN RACHAS OFENSIVAS', descripcion: `${nombreEquipo} encadenó ${maxRunAnalizado} puntos seguidos, superando ampliamente la mejor racha de ${nombreRival} (${maxRunRival}).`, accion: '¿Qué generó esas rachas? Saque agresivo, bloqueo efectivo o errores rivales? Identificar y replicar.' });
+    } else if (maxRunRival > 5 && maxRunRival > maxRunAnalizado + 2) {
+        interpretaciones.push({ titulo: '🔥 DEBILIDAD ANTE RACHAS RIVALES', descripcion: `${nombreRival} tuvo una racha de ${maxRunRival} puntos consecutivos, ${maxRunRival - maxRunAnalizado} más que la mejor racha de ${nombreEquipo}.`, accion: 'Ajustar: pedir tiempo muerto ANTES de que la racha crezca, cambiar la rotación de saque.' });
+    } else if (maxRunRival > 5 || maxRunAnalizado > 5) {
+        interpretaciones.push({ titulo: '⚡ RACHAS MOMENTÁNEAS', descripcion: `Ambos equipos tuvieron rachas (${nombreEquipo}: ${maxRunAnalizado}, ${nombreRival}: ${maxRunRival}). El partido fue de altibajos.`, accion: 'Trabajar la consistencia. Los equipos que mantienen el nivel por más tiempo suelen ganar.' });
+    }
+    if (breaksAnalizado > breaksRival + 4) {
+        interpretaciones.push({ titulo: '💪 PRESIÓN EFECTIVA CON SAQUE PROPIO', descripcion: `${nombreEquipo} ganó ${breaksAnalizado} breakpoints, ${breaksAnalizado - breaksRival} más que ${nombreRival}.`, accion: 'Mantener la combinación de saque, bloqueo y defensa que produjo esos puntos.' });
+    } else if (breaksRival > breaksAnalizado + 4) {
+        interpretaciones.push({ titulo: '⚠️ POCA PRODUCCIÓN CON SAQUE PROPIO', descripcion: `${nombreRival} ganó ${breaksRival} breakpoints y ${nombreEquipo} ${breaksAnalizado}.`, accion: 'Trabajar presión de saque, organización de bloqueo y transición defensiva.' });
+    } else if (breaksAnalizado + breaksRival > 15) {
+        interpretaciones.push({ titulo: '⚡ MUCHOS BREAKPOINTS', descripcion: `Hubo ${breaksAnalizado + breaksRival} puntos ganados por el equipo que sacaba.`, accion: 'Revisar qué zonas de saque y sistemas de bloqueo generaron mayor ventaja.' });
+    }
+    if (clutchAnalizado > 65) {
+        interpretaciones.push({ titulo: '🧠 FORTALEZA MENTAL DESTACADA', descripcion: `${nombreEquipo} ganó ${clutchAnalizado.toFixed(1)}% de los puntos en momentos críticos (set point o diferencia ≤2).`, accion: 'El equipo no se achica. Entrenar situaciones de presión para mantener este nivel.' });
+    } else if (clutchAnalizado < 35 && clutchAnalizado > 0) {
+        interpretaciones.push({ titulo: '😰 DEBILIDAD BAJO PRESIÓN', descripcion: `${nombreEquipo} solo ganó ${clutchAnalizado.toFixed(1)}% de los puntos en situaciones críticas.`, accion: 'Entrenar ejercicios específicos: set point en contra, partidos empatados al final del set.' });
+    } else if (clutchAnalizado > 0) {
+        const evaluacion = clutchAnalizado > 55 ? 'aceptable' : (clutchAnalizado > 45 ? 'regular' : 'bajo');
+        interpretaciones.push({ titulo: '🎭 RENDIMIENTO BAJO PRESIÓN', descripcion: `${nombreEquipo} ganó ${clutchAnalizado.toFixed(1)}% de los puntos críticos. Rendimiento ${evaluacion}.`, accion: clutchAnalizado > 55 ? 'Mantener la calma en momentos clave.' : 'Incorporar ejercicios de presión en los entrenamientos.' });
+    }
+    if (sideoutAnalizado > 65) {
+        interpretaciones.push({ titulo: '🎯 EXCELENTE SIDEOUT', descripcion: `${nombreEquipo} ganó ${sideoutAnalizado}% de los rallies en los que recibió el saque rival.`, accion: 'Es un buen resultado de sideout. Para identificar la causa, revisar por separado recepción, distribución y primer ataque.' });
+    } else if (sideoutAnalizado < 45 && sideoutAnalizado > 0) {
+        interpretaciones.push({ titulo: '⚠️ PROBLEMAS DE SIDEOUT', descripcion: `${nombreEquipo} solo ganó ${sideoutAnalizado}% de los puntos cuando recibía.`, accion: 'Revisar recepción, disponibilidad de atacantes y eficacia del primer ataque.' });
+    }
+    if (breakpointAnalizado > 45) {
+        interpretaciones.push({ titulo: '⚡ EXCELENTE BREAKPOINT', descripcion: `${nombreEquipo} ganó ${breakpointAnalizado}% de los puntos mientras sacaba.`, accion: 'El saque propio y el sistema de bloqueo-defensa están generando ventaja.' });
+    } else if (breakpointAnalizado < 25 && breakpointAnalizado > 0) {
+        interpretaciones.push({ titulo: '🔻 BAJA PRODUCCIÓN CON SAQUE', descripcion: `${nombreEquipo} solo ganó ${breakpointAnalizado}% de los puntos mientras sacaba.`, accion: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
+    }
+    if (serviceEffAnalizado > 15) {
+        interpretaciones.push({ titulo: '🏐 SAQUE MUY EFECTIVO', descripcion: `Eficiencia de servicio de ${nombreEquipo} del ${serviceEffAnalizado}% (Aces - Errores). El saque es un arma ofensiva.`, accion: 'Mantener la agresividad controlada. Seguir variando zonas y velocidades.' });
+    } else if (serviceEffAnalizado < -5) {
+        interpretaciones.push({ titulo: '❌ ERRORES DE SERVICIO', descripcion: `Eficiencia de servicio de ${nombreEquipo} negativa (${serviceEffAnalizado}%). Muchos errores no forzados.`, accion: 'Priorizar efectividad sobre potencia. Reducir los errores de saque como primer objetivo.' });
+    } else if (serviceEffAnalizado > 0 && serviceEffAnalizado < 10) {
+        interpretaciones.push({ titulo: '📊 SERVICIO NEUTRO', descripcion: `Eficiencia de servicio de ${nombreEquipo} del ${serviceEffAnalizado}%. No fue determinante en el resultado.`, accion: 'Buscar mayor agresividad sin aumentar errores. Entrenar saques flotantes y saltados a zonas clave.' });
+    }
+    if (earlyEff < 40 && earlyEff > 0) {
+        interpretaciones.push({ titulo: '⏰ ARRANQUES LENTOS', descripcion: `${nombreEquipo} tuvo solo ${earlyEff}% de efectividad en los primeros 10 puntos de cada set.`, accion: 'Trabajar la concentración desde el inicio. Calentamiento más intenso, entrada en calor efectiva.' });
+    }
+    if (lateEff < 40 && lateEff > 0) {
+        interpretaciones.push({ titulo: '⏱️ CIERRE DE SETS DÉBIL', descripcion: `${nombreEquipo} tuvo solo ${lateEff}% de efectividad en la fase final (puntos 21+).`, accion: 'Ejercicios de definición de sets. Entrenar con marcador 20-20, set point en contra, etc.' });
+    }
+    if (earlyEff > 60 && midEff > 60 && lateEff > 60) {
+        interpretaciones.push({ titulo: '📊 CONSISTENCIA TOTAL', descripcion: `${nombreEquipo} rindió por encima del 60% en TODAS las fases del set. Muy difícil de vencer.`, accion: 'Felicitaciones. Mantener el nivel y trabajar detalles tácticos.' });
+    }
+    if (interpretaciones.length === 0) {
+        c.innerHTML = '<div class="text-center text-gray-400 py-6">Esperando más datos para generar análisis detallado...</div>';
+        return;
+    }
+    c.innerHTML = interpretaciones.map(i =>
+        `<div class="bg-dark/50 rounded-lg p-3 mb-2 border-l-4 border-primary hover:bg-dark/70 transition-all">
+            <div class="font-bold text-primary text-xs md:text-sm mb-1 flex items-center gap-2"><span>📌</span> ${i.titulo}</div>
+            <div class="text-gray-300 text-xs md:text-sm mb-2 pl-2">${i.descripcion}</div>
+            <div class="text-amber-400 text-xs pl-2 border-t border-gray-700 pt-1 mt-1">💡 ${i.accion}</div>
+        </div>`
+    ).join('');
+}
 
     updateRecommendations(homeEff, awayEff, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, sideoutPct, breakpointPct, serviceEffHome, serviceEffAway) {
-        const c = document.getElementById('actionableRecommendations');
-        if (!c) return;
-        const effH = homeEff || 0;
-        const maxAR = maxAwayRun || 0;
-        const maxHR = maxHomeRun || 0;
-        const brH = homeBreaks || 0;
-        const brA = awayBreaks || 0;
-        const clutch = homeClutchPct || 0;
-        const sideout = sideoutPct || 0;
-        const breakpoint = breakpointPct || 0;
-        const serviceEff = serviceEffHome || 0;
-        const lateEff = phaseHomeEff?.late || 0;
-        const earlyEff = phaseHomeEff?.early || 0;
-        const recomendaciones = [];
-        if (effH < 48 && effH > 0) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'EFICIENCIA GENERAL', texto: `Ganaste solo el ${effH}% de los puntos jugados.`, detalle: 'El rival dominó la mayor parte del partido. Hay que trabajar la eficiencia ofensiva y reducir errores.', tarea: 'Entrenar: reducción de errores no forzados, aumento del porcentaje de ataque.' });
-        }
-        if (maxAR > 6) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'RACHAS RIVALES', texto: `${this.awayTeamHtml} tuvo una racha de ${maxAR} puntos consecutivos.`, detalle: 'Cuando el rival encadenó puntos, el equipo no pudo cortar la racha a tiempo.', tarea: 'Pedir tiempo muerto ANTES de que la racha crezca (al 3er o 4to punto seguido). Revisar rotación de saque.' });
-        }
-        if (clutch < 40 && clutch > 0) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'MANEJO DE LA PRESIÓN', texto: `Solo convertiste ${clutch}% de los puntos en momentos críticos.`, detalle: 'El equipo se achica cuando el partido está parejo o hay set point en contra.', tarea: 'Ejercicios específicos: definir sets con marcador 20-20, 23-23, set point en contra.' });
-        }
-        if (breakpoint < 28 && breakpoint > 0) {
-            recomendaciones.push({ prioridad: 'ALTA', area: 'SAQUE Y BLOQUEO-DEFENSA', texto: `Breakpoint% del ${breakpoint}% (muy bajo).`, detalle: 'El equipo produce pocos puntos mientras tiene el saque.', tarea: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
-        }
-        if (sideout < 48 && sideout > 0) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'RECEPCIÓN Y PRIMER ATAQUE', texto: `Sideout% del ${sideout}% (por debajo del ideal 55%).`, detalle: 'Cuando recibe el saque rival, el equipo no recupera el servicio con suficiente frecuencia.', tarea: 'Ajustar recepción, distribución y definición del primer ataque.' });
-        }
-        if (brA > brH + 4) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'SISTEMA DE SAQUE/BLOQUEO', texto: `El rival ganó ${brA} breakpoints y el equipo ${brH}.`, detalle: 'El rival produjo más puntos mientras sacaba.', tarea: 'Revisar posicionamiento defensivo, relación saque-bloqueo y agresividad controlada.' });
-        }
-        if (lateEff < 45 && lateEff > 0 && effH > 0) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'CIERRE DE SETS', texto: `Solo ${lateEff}% de efectividad en puntos 21+ (fase Late).`, detalle: 'El equipo baja su rendimiento en la parte final de los sets.', tarea: 'Entrenar la definición: concentración en los últimos puntos, saque agresivo, manejo de tiempos.' });
-        }
-        if (serviceEff < -3) {
-            recomendaciones.push({ prioridad: 'MEDIA', area: 'ERRORES DE SERVICIO', texto: `Eficiencia de servicio negativa (${serviceEff}%).`, detalle: 'Muchos puntos regalados por errores de saque no forzados.', tarea: 'Priorizar efectividad: saque flotante bien colocado en lugar de salto sin control.' });
-        }
-        if (earlyEff < 45 && earlyEff > 0) {
-            recomendaciones.push({ prioridad: 'BAJA', area: 'ARRANQUE DE PARTIDO', texto: `Solo ${earlyEff}% de efectividad en los primeros 10 puntos.`, detalle: 'El equipo tarda en entrar en ritmo de competencia.', tarea: 'Mejorar la entrada en calor. Simular inicios de set en entrenamientos.' });
-        }
-        if (maxHR < 3 && effH > 0) {
-            recomendaciones.push({ prioridad: 'BAJA', area: 'CONSISTENCIA OFENSIVA', texto: `Máxima racha de solo ${maxHR} puntos consecutivos.`, detalle: 'El equipo no logra encadenar puntos seguidos para tomar ventaja.', tarea: 'Trabajar la continuidad en ataque. Buscar sistemas ofensivos que generen puntos seguidos.' });
-        }
-        if (recomendaciones.length === 0 && effH > 0) {
-            if (effH > 60) {
-                recomendaciones.push({ prioridad: 'BAJA', area: '¡EXCELENTE PARTIDO!', texto: `Ganaste el ${effH}% de los puntos. Dominio claro.`, detalle: 'El equipo jugó a un nivel muy alto. Seguir por este camino.', tarea: 'Revisar los pequeños detalles que pueden marcar la diferencia en partidos más parejos.' });
-            } else {
-                recomendaciones.push({ prioridad: 'BAJA', area: 'BUEN PARTIDO', texto: `Ganaste el ${effH}% de los puntos.`, detalle: 'El equipo compitió bien. Con pequeños ajustes se puede mejorar.', tarea: 'Foco en: mayor eficacia en ataque y reducción de errores no forzados.' });
-            }
-        }
-        c.innerHTML = recomendaciones.map(r => {
-            const prioridadConfig = {
-                'ALTA': { color: 'border-red-500 bg-red-500/10', icono: '🔴' },
-                'MEDIA': { color: 'border-yellow-500 bg-yellow-500/10', icono: '🟡' },
-                'BAJA': { color: 'border-blue-500 bg-blue-500/10', icono: '🔵' }
-            };
-            const config = prioridadConfig[r.prioridad];
-            return `<div class="rounded-lg p-3 mb-2 border-l-4 ${config.color} transition-all hover:scale-[1.01]">
-                <div class="flex items-center justify-between mb-1 flex-wrap gap-1">
-                    <div class="flex items-center gap-2">
-                        <span class="text-sm font-bold">${config.icono} ${r.prioridad}</span>
-                        <span class="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded-full">${r.area}</span>
-                    </div>
-                </div>
-                <div class="text-white text-sm font-semibold mb-1">🎯 ${r.texto}</div>
-                <div class="text-gray-400 text-xs mb-2">📊 ${r.detalle}</div>
-                <div class="text-amber-400 text-xs border-t border-gray-700 pt-1 mt-1">⚡ ${r.tarea}</div>
-            </div>`;
-        }).join('');
-    }
+    const c = document.getElementById('actionableRecommendations');
+    if (!c) return;
+    const analisis = this.obtenerEquipoAnalisis();
+    const esLocal = analisis.equipo === 'HOME';
+    const nombreEquipo = escaparHtml(analisis.nombre);
+    const nombreRival = escaparHtml(esLocal ? this.awayTeamName : this.homeTeamName);
 
+    const effAnalizado = Number(esLocal ? homeEff : awayEff) || 0;
+    const maxRunAnalizado = Number(esLocal ? maxHomeRun : maxAwayRun) || 0;
+    const maxRunRival = Number(esLocal ? maxAwayRun : maxHomeRun) || 0;
+    const breaksAnalizado = Number(esLocal ? homeBreaks : awayBreaks) || 0;
+    const breaksRival = Number(esLocal ? awayBreaks : homeBreaks) || 0;
+    const clutchAnalizado = Number(esLocal
+        ? (this.homeClutchPct ?? homeClutchPct ?? 0)
+        : (this.awayClutchPct ?? 0)) || 0;
+    const sideoutAnalizado = Number(esLocal ? (sideoutPct || 0) : (this.sideoutAwayPct || 0)) || 0;
+    const breakpointAnalizado = Number(esLocal ? (breakpointPct || 0) : (this.breakpointAwayPct || 0)) || 0;
+    const serviceEffAnalizado = Number(esLocal ? (serviceEffHome || 0) : (serviceEffAway || 0)) || 0;
+    const fasesAnalizado = esLocal ? phaseHomeEff : (this.awayPhaseEff || { early: 0, mid: 0, late: 0 });
+    const lateEff = Number(fasesAnalizado?.late) || 0;
+    const earlyEff = Number(fasesAnalizado?.early) || 0;
+
+    const recomendaciones = [];
+
+    if (effAnalizado < 48 && effAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'ALTA', area: 'EFICIENCIA GENERAL', texto: `${nombreEquipo} ganó solo el ${effAnalizado}% de los puntos jugados.`, detalle: `${nombreRival} dominó la mayor parte del partido. Hay que trabajar la eficiencia ofensiva y reducir errores.`, tarea: 'Entrenar: reducción de errores no forzados, aumento del porcentaje de ataque.' });
+    }
+    if (maxRunRival > 6) {
+        recomendaciones.push({ prioridad: 'ALTA', area: 'RACHAS RIVALES', texto: `${nombreRival} tuvo una racha de ${maxRunRival} puntos consecutivos.`, detalle: 'Cuando el rival encadenó puntos, el equipo no pudo cortar la racha a tiempo.', tarea: 'Pedir tiempo muerto ANTES de que la racha crezca (al 3er o 4to punto seguido). Revisar rotación de saque.' });
+    }
+    if (clutchAnalizado < 40 && clutchAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'ALTA', area: 'MANEJO DE LA PRESIÓN', texto: `${nombreEquipo} solo convirtió ${clutchAnalizado.toFixed(1)}% de los puntos en momentos críticos.`, detalle: 'El equipo se achica cuando el partido está parejo o hay set point en contra.', tarea: 'Ejercicios específicos: definir sets con marcador 20-20, 23-23, set point en contra.' });
+    }
+    if (breakpointAnalizado < 28 && breakpointAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'ALTA', area: 'SAQUE Y BLOQUEO-DEFENSA', texto: `Breakpoint% de ${nombreEquipo} del ${breakpointAnalizado}% (muy bajo).`, detalle: 'El equipo produce pocos puntos mientras tiene el saque.', tarea: 'Trabajar zonas de saque, relación saque-bloqueo y transición defensiva.' });
+    }
+    if (sideoutAnalizado < 48 && sideoutAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'MEDIA', area: 'RECEPCIÓN Y PRIMER ATAQUE', texto: `Sideout% de ${nombreEquipo} del ${sideoutAnalizado}% (por debajo del ideal 55%).`, detalle: 'Cuando recibe el saque rival, el equipo no recupera el servicio con suficiente frecuencia.', tarea: 'Ajustar recepción, distribución y definición del primer ataque.' });
+    }
+    if (breaksRival > breaksAnalizado + 4) {
+        recomendaciones.push({ prioridad: 'MEDIA', area: 'SISTEMA DE SAQUE/BLOQUEO', texto: `${nombreRival} ganó ${breaksRival} breakpoints y ${nombreEquipo} ${breaksAnalizado}.`, detalle: 'El rival produjo más puntos mientras sacaba.', tarea: 'Revisar posicionamiento defensivo, relación saque-bloqueo y agresividad controlada.' });
+    }
+    if (lateEff < 45 && lateEff > 0 && effAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'MEDIA', area: 'CIERRE DE SETS', texto: `Solo ${lateEff}% de efectividad de ${nombreEquipo} en puntos 21+ (fase Late).`, detalle: `${nombreEquipo} baja su rendimiento en la parte final de los sets.`, tarea: 'Entrenar la definición: concentración en los últimos puntos, saque agresivo, manejo de tiempos.' });
+    }
+    if (serviceEffAnalizado < -3) {
+        recomendaciones.push({ prioridad: 'MEDIA', area: 'ERRORES DE SERVICIO', texto: `Eficiencia de servicio de ${nombreEquipo} negativa (${serviceEffAnalizado}%).`, detalle: 'Muchos puntos regalados por errores de saque no forzados.', tarea: 'Priorizar efectividad: saque flotante bien colocado en lugar de salto sin control.' });
+    }
+    if (earlyEff < 45 && earlyEff > 0) {
+        recomendaciones.push({ prioridad: 'BAJA', area: 'ARRANQUE DE PARTIDO', texto: `Solo ${earlyEff}% de efectividad de ${nombreEquipo} en los primeros 10 puntos.`, detalle: 'El equipo tarda en entrar en ritmo de competencia.', tarea: 'Mejorar la entrada en calor. Simular inicios de set en entrenamientos.' });
+    }
+    if (maxRunAnalizado < 3 && effAnalizado > 0) {
+        recomendaciones.push({ prioridad: 'BAJA', area: 'CONSISTENCIA OFENSIVA', texto: `Máxima racha de ${nombreEquipo} de solo ${maxRunAnalizado} puntos consecutivos.`, detalle: 'El equipo no logra encadenar puntos seguidos para tomar ventaja.', tarea: 'Trabajar la continuidad en ataque. Buscar sistemas ofensivos que generen puntos seguidos.' });
+    }
+    if (recomendaciones.length === 0 && effAnalizado > 0) {
+        if (effAnalizado > 60) {
+            recomendaciones.push({ prioridad: 'BAJA', area: '¡EXCELENTE PARTIDO!', texto: `${nombreEquipo} ganó el ${effAnalizado}% de los puntos. Dominio claro.`, detalle: 'El equipo jugó a un nivel muy alto. Seguir por este camino.', tarea: 'Revisar los pequeños detalles que pueden marcar la diferencia en partidos más parejos.' });
+        } else {
+            recomendaciones.push({ prioridad: 'BAJA', area: 'BUEN PARTIDO', texto: `${nombreEquipo} ganó el ${effAnalizado}% de los puntos.`, detalle: 'El equipo compitió bien. Con pequeños ajustes se puede mejorar.', tarea: 'Foco en: mayor eficacia en ataque y reducción de errores no forzados.' });
+        }
+    }
+    c.innerHTML = recomendaciones.map(r => {
+        const prioridadConfig = {
+            'ALTA': { color: 'border-red-500 bg-red-500/10', icono: '🔴' },
+            'MEDIA': { color: 'border-yellow-500 bg-yellow-500/10', icono: '🟡' },
+            'BAJA': { color: 'border-blue-500 bg-blue-500/10', icono: '🔵' }
+        };
+        const config = prioridadConfig[r.prioridad];
+        return `<div class="rounded-lg p-3 mb-2 border-l-4 ${config.color} transition-all hover:scale-[1.01]">
+            <div class="flex items-center justify-between mb-1 flex-wrap gap-1">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold">${config.icono} ${r.prioridad}</span>
+                    <span class="text-xs font-mono bg-gray-800 px-2 py-0.5 rounded-full">${r.area}</span>
+                </div>
+            </div>
+            <div class="text-white text-sm font-semibold mb-1">🎯 ${r.texto}</div>
+            <div class="text-gray-400 text-xs mb-2">📊 ${r.detalle}</div>
+            <div class="text-amber-400 text-xs border-t border-gray-700 pt-1 mt-1">⚡ ${r.tarea}</div>
+        </div>`;
+    }).join('');
+}
     updateSetDominance() {
         const sets = new Map();
         this.data.forEach(s => {
@@ -2792,119 +2814,135 @@ export class VolleyballDashboard {
     }
 
     updateDashboard() {
-        if (!this.data?.length) {
-            const clutchInsight = document.getElementById('clutchInsight');
-            const breakPointsList = document.getElementById('breakPointsList');
-            const setDominance = document.getElementById('setDominance');
-            if (clutchInsight) clutchInsight.textContent = 'Todavía no hay puntos suficientes para analizar presión.';
-            if (breakPointsList) breakPointsList.innerHTML = '<div class="text-center text-gray-400 py-4">Esperando puntos del partido...</div>';
-            if (setDominance) setDominance.innerHTML = '<div class="text-center text-gray-400 py-6 text-sm">Esperando el inicio del partido...</div>';
-            return;
-        }
-        const last = this.data[this.data.length - 1];
-        document.getElementById('homeTeamName').textContent = this.homeTeamName;
-        document.getElementById('awayTeamName').textContent = this.awayTeamName;
-        document.getElementById('homeScore').textContent = last.homeScore;
-        document.getElementById('awayScore').textContent = last.awayScore;
-        const points = this.data.filter(s => s.scorer);
-        const homePoints = points.filter(p => p.scorer === 'HOME').length;
-        const awayPoints = points.filter(p => p.scorer === 'AWAY').length;
-        const total = points.length;
-        const maxHomeRun = Math.max(...this.data.map(s => s.homeRun), 0);
-        const maxAwayRun = Math.max(...this.data.map(s => s.awayRun), 0);
-        const metricasRally = calcularMetricasRally(this.data);
-        const homeBreaks = metricasRally.equipos.HOME.breakpoint.exitos;
-        const awayBreaks = metricasRally.equipos.AWAY.breakpoint.exitos;
-        const homeEfficiency = total ? ((homePoints / total) * 100).toFixed(1) : 0;
-        const awayEfficiency = total ? ((awayPoints / total) * 100).toFixed(1) : 0;
-        const phases = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
-        this.data.forEach(s => {
-            if (s.scorer && phases[s.phase]) {
-                phases[s.phase][s.scorer === 'HOME' ? 'home' : 'away']++;
-                phases[s.phase].total++;
-            }
-        });
-        const clutchPoints = this.data.filter(s => {
-            const isSetPoint = (s.homeScore >= 24 && s.homeScore > s.awayScore) || (s.awayScore >= 24 && s.awayScore > s.homeScore);
-            const isCloseGame = Math.abs(s.lead) <= 2;
-            return (isSetPoint || isCloseGame) && s.scorer;
-        });
-        const homeClutch = clutchPoints.filter(c => c.scorer === 'HOME').length;
-        const totalClutch = clutchPoints.length;
-        const homeClutchPct = totalClutch ? ((homeClutch / totalClutch) * 100).toFixed(1) : 0;
-        const solPct = metricasRally.equipos.HOME.sideout.porcentaje;
-        const sovPct = metricasRally.equipos.AWAY.sideout.porcentaje;
-        const bplPct = metricasRally.equipos.HOME.breakpoint.porcentaje;
-        const bpvPct = metricasRally.equipos.AWAY.breakpoint.porcentaje;
-        this.awayEfficiency = awayEfficiency;
-        this.awayBreaks = awayBreaks;
-        document.getElementById('maxRunHome').textContent = maxHomeRun;
-        document.getElementById('maxRunAway').textContent = maxAwayRun;
-        document.getElementById('breaksHome').textContent = homeBreaks;
-        document.getElementById('breaksAway').textContent = awayBreaks;
-        document.getElementById('efficiencyHome').textContent = `${homeEfficiency}%`;
-        document.getElementById('efficiencyAway').textContent = `${awayEfficiency}%`;
-        document.getElementById('totalPoints').textContent = total;
-        document.getElementById('clutchHome').textContent = `${homeClutchPct}%`;
-        const sel = document.getElementById('sideoutLocalLabel');
-        if (sel) {
-            sel.textContent = `${solPct}%`;
-            document.getElementById('sideoutVisitanteLabel').textContent = `${sovPct}%`;
-            const bar = document.getElementById('sideoutBarLocal');
-            if (bar) { bar.style.width = `${solPct}%`;
-                bar.textContent = `${solPct}%`; }
-        }
-        const bel = document.getElementById('breakpointLocalLabel');
-        if (bel) {
-            bel.textContent = `${bplPct}%`;
-            document.getElementById('breakpointVisitanteLabel').textContent = `${bpvPct}%`;
-            const bar = document.getElementById('breakpointBarLocal');
-            if (bar) { bar.style.width = `${bplPct}%`;
-                bar.textContent = `${bplPct}%`; }
-        }
-        if (totalClutch > 0) {
-            const hw = (homeClutch / totalClutch) * 100;
-            const hb = document.getElementById('clutchBarHome');
-            const ab = document.getElementById('clutchBarAway');
-            if (hb) { hb.style.width = `${hw}%`; hb.textContent = `${hw.toFixed(1)}%`; }
-            if (ab) { ab.style.width = `${100 - hw}%`; ab.textContent = `${(100 - hw).toFixed(1)}%`; }
-        }
+    if (!this.data?.length) {
         const clutchInsight = document.getElementById('clutchInsight');
-        if (clutchInsight) {
-            clutchInsight.textContent = totalClutch
-                ? `${this.homeTeamName} ${homeClutchPct}% · ${this.awayTeamName} ${(100 - Number(homeClutchPct)).toFixed(1)}% sobre ${totalClutch} puntos críticos.`
-                : 'Todavía no hubo suficientes puntos críticos para comparar.';
-        }
-        if (last?.servingAfter || last?.serving) {
-            this.actualizarBadgeSaque(last.servingAfter || last.serving);
-        }
-        this.updateCharts();
-        this.updateSetDominance();
-        this.updateBreakPointsList();
-        this.updateTimeline();
-        this.updateInsightsList(homeEfficiency, homeBreaks);
-        this.actualizarEstadisticasServicio();
-        this.actualizarHoraUltimoPunto();
-        const phaseHomeEff = {
-            early: phases.EARLY.total ? ((phases.EARLY.home / phases.EARLY.total) * 100).toFixed(1) : 0,
-            mid: phases.MID.total ? ((phases.MID.home / phases.MID.total) * 100).toFixed(1) : 0,
-            late: phases.LATE.total ? ((phases.LATE.home / phases.LATE.total) * 100).toFixed(1) : 0
-        };
-        this.updateInterpretations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
-        this.updateRecommendations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
-        const ultimoPunto = [...this.data].reverse().find(p => p.scorer);
-        const timestamp = ultimoPunto ? new Date(ultimoPunto.timestamp) : new Date();
-        const segundos = Math.floor((new Date() - timestamp) / 1000);
-        if (segundos <= 5 && ultimoPunto && this.ultimoPuntoSonido !== ultimoPunto.timestamp) {
-            this.ultimoPuntoSonido = ultimoPunto.timestamp;
-            if (ultimoPunto.scorer === 'HOME') this.soundManager.playLocalPoint();
-            else if (ultimoPunto.scorer === 'AWAY') this.soundManager.playAwayPoint();
-        }
-        if (this.partidoTerminado && !this.matchEnded) {
-            this.matchEnded = true;
-            this.soundManager.playEndMatch();
-        }
+        const breakPointsList = document.getElementById('breakPointsList');
+        const setDominance = document.getElementById('setDominance');
+        if (clutchInsight) clutchInsight.textContent = 'Todavía no hay puntos suficientes para analizar presión.';
+        if (breakPointsList) breakPointsList.innerHTML = '<div class="text-center text-gray-400 py-4">Esperando puntos del partido...</div>';
+        if (setDominance) setDominance.innerHTML = '<div class="text-center text-gray-400 py-6 text-sm">Esperando el inicio del partido...</div>';
+        return;
     }
+    const last = this.data[this.data.length - 1];
+    document.getElementById('homeTeamName').textContent = this.homeTeamName;
+    document.getElementById('awayTeamName').textContent = this.awayTeamName;
+    document.getElementById('homeScore').textContent = last.homeScore;
+    document.getElementById('awayScore').textContent = last.awayScore;
+    const points = this.data.filter(s => s.scorer);
+    const homePoints = points.filter(p => p.scorer === 'HOME').length;
+    const awayPoints = points.filter(p => p.scorer === 'AWAY').length;
+    const total = points.length;
+    const maxHomeRun = Math.max(...this.data.map(s => s.homeRun), 0);
+    const maxAwayRun = Math.max(...this.data.map(s => s.awayRun), 0);
+    const metricasRally = calcularMetricasRally(this.data);
+    const homeBreaks = metricasRally.equipos.HOME.breakpoint.exitos;
+    const awayBreaks = metricasRally.equipos.AWAY.breakpoint.exitos;
+    const homeEfficiency = total ? ((homePoints / total) * 100).toFixed(1) : 0;
+    const awayEfficiency = total ? ((awayPoints / total) * 100).toFixed(1) : 0;
+    const phases = { EARLY: { home: 0, away: 0, total: 0 }, MID: { home: 0, away: 0, total: 0 }, LATE: { home: 0, away: 0, total: 0 } };
+    this.data.forEach(s => {
+        if (s.scorer && phases[s.phase]) {
+            phases[s.phase][s.scorer === 'HOME' ? 'home' : 'away']++;
+            phases[s.phase].total++;
+        }
+    });
+    const clutchPoints = this.data.filter(s => {
+        const isSetPoint = (s.homeScore >= 24 && s.homeScore > s.awayScore) || (s.awayScore >= 24 && s.awayScore > s.homeScore);
+        const isCloseGame = Math.abs(s.lead) <= 2;
+        return (isSetPoint || isCloseGame) && s.scorer;
+    });
+    const homeClutch = clutchPoints.filter(c => c.scorer === 'HOME').length;
+    const totalClutch = clutchPoints.length;
+    const homeClutchPct = totalClutch ? ((homeClutch / totalClutch) * 100).toFixed(1) : 0;
+    const solPct = metricasRally.equipos.HOME.sideout.porcentaje;
+    const sovPct = metricasRally.equipos.AWAY.sideout.porcentaje;
+    const bplPct = metricasRally.equipos.HOME.breakpoint.porcentaje;
+    const bpvPct = metricasRally.equipos.AWAY.breakpoint.porcentaje;
+    this.awayEfficiency = awayEfficiency;
+    this.awayBreaks = awayBreaks;
+    // NUEVO: guardar clutch, sideout y breakpoint de ambos equipos
+    // para que Insights, Interpretaciones y Recomendaciones sigan al equipo analizado
+    this.homeClutchPct = totalClutch ? Number(homeClutchPct) : 0;
+    this.awayClutchPct = totalClutch ? Number((100 - Number(homeClutchPct)).toFixed(1)) : 0;
+    this.sideoutHomePct = solPct;
+    this.sideoutAwayPct = sovPct;
+    this.breakpointHomePct = bplPct;
+    this.breakpointAwayPct = bpvPct;
+    document.getElementById('maxRunHome').textContent = maxHomeRun;
+    document.getElementById('maxRunAway').textContent = maxAwayRun;
+    document.getElementById('breaksHome').textContent = homeBreaks;
+    document.getElementById('breaksAway').textContent = awayBreaks;
+    document.getElementById('efficiencyHome').textContent = `${homeEfficiency}%`;
+    document.getElementById('efficiencyAway').textContent = `${awayEfficiency}%`;
+    document.getElementById('totalPoints').textContent = total;
+    document.getElementById('clutchHome').textContent = `${homeClutchPct}%`;
+    const sel = document.getElementById('sideoutLocalLabel');
+    if (sel) {
+        sel.textContent = `${solPct}%`;
+        document.getElementById('sideoutVisitanteLabel').textContent = `${sovPct}%`;
+        const bar = document.getElementById('sideoutBarLocal');
+        if (bar) { bar.style.width = `${solPct}%`;
+            bar.textContent = `${solPct}%`; }
+    }
+    const bel = document.getElementById('breakpointLocalLabel');
+    if (bel) {
+        bel.textContent = `${bplPct}%`;
+        document.getElementById('breakpointVisitanteLabel').textContent = `${bpvPct}%`;
+        const bar = document.getElementById('breakpointBarLocal');
+        if (bar) { bar.style.width = `${bplPct}%`;
+            bar.textContent = `${bplPct}%`; }
+    }
+    if (totalClutch > 0) {
+        const hw = (homeClutch / totalClutch) * 100;
+        const hb = document.getElementById('clutchBarHome');
+        const ab = document.getElementById('clutchBarAway');
+        if (hb) { hb.style.width = `${hw}%`; hb.textContent = `${hw.toFixed(1)}%`; }
+        if (ab) { ab.style.width = `${100 - hw}%`; ab.textContent = `${(100 - hw).toFixed(1)}%`; }
+    }
+    const clutchInsight = document.getElementById('clutchInsight');
+    if (clutchInsight) {
+        clutchInsight.textContent = totalClutch
+            ? `${this.homeTeamName} ${homeClutchPct}% · ${this.awayTeamName} ${(100 - Number(homeClutchPct)).toFixed(1)}% sobre ${totalClutch} puntos críticos.`
+            : 'Todavía no hubo suficientes puntos críticos para comparar.';
+    }
+    if (last?.servingAfter || last?.serving) {
+        this.actualizarBadgeSaque(last.servingAfter || last.serving);
+    }
+    this.updateCharts();
+    this.updateSetDominance();
+    this.updateBreakPointsList();
+    this.updateTimeline();
+    this.updateInsightsList(homeEfficiency, homeBreaks);
+    this.actualizarEstadisticasServicio();
+    this.actualizarHoraUltimoPunto();
+    const phaseHomeEff = {
+        early: phases.EARLY.total ? ((phases.EARLY.home / phases.EARLY.total) * 100).toFixed(1) : 0,
+        mid: phases.MID.total ? ((phases.MID.home / phases.MID.total) * 100).toFixed(1) : 0,
+        late: phases.LATE.total ? ((phases.LATE.home / phases.LATE.total) * 100).toFixed(1) : 0
+    };
+    const phaseAwayEff = {
+        early: phases.EARLY.total ? ((phases.EARLY.away / phases.EARLY.total) * 100).toFixed(1) : 0,
+        mid: phases.MID.total ? ((phases.MID.away / phases.MID.total) * 100).toFixed(1) : 0,
+        late: phases.LATE.total ? ((phases.LATE.away / phases.LATE.total) * 100).toFixed(1) : 0
+    };
+    // NUEVO: guardar las fases de ambos equipos para que interpretaciones y recomendaciones del visitante funcionen
+    this.homePhaseEff = phaseHomeEff;
+    this.awayPhaseEff = phaseAwayEff;
+    this.updateInterpretations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
+    this.updateRecommendations(homeEfficiency, awayEfficiency, maxHomeRun, maxAwayRun, homeBreaks, awayBreaks, homeClutchPct, phaseHomeEff, solPct, bplPct, parseFloat(document.getElementById('serviceEfficiencyHome')?.textContent) || 0, parseFloat(document.getElementById('serviceEfficiencyAway')?.textContent) || 0);
+    const ultimoPunto = [...this.data].reverse().find(p => p.scorer);
+    const timestamp = ultimoPunto ? new Date(ultimoPunto.timestamp) : new Date();
+    const segundos = Math.floor((new Date() - timestamp) / 1000);
+    if (segundos <= 5 && ultimoPunto && this.ultimoPuntoSonido !== ultimoPunto.timestamp) {
+        this.ultimoPuntoSonido = ultimoPunto.timestamp;
+        if (ultimoPunto.scorer === 'HOME') this.soundManager.playLocalPoint();
+        else if (ultimoPunto.scorer === 'AWAY') this.soundManager.playAwayPoint();
+    }
+    if (this.partidoTerminado && !this.matchEnded) {
+        this.matchEnded = true;
+        this.soundManager.playEndMatch();
+    }
+}
 
     async saveAsHTML() {
         try {
@@ -3087,23 +3125,47 @@ export class VolleyballDashboard {
                     <div style="font-size: 12px; color: #6b7280; margin-top: 12px;">${text}</div>
                 </div>`;
             } else { timelineHtml = '<div style="text-align: center; padding: 30px; color: #6b7280;">Esperando más datos...</div>'; }
-            let interpretationsHtml = '';
-            if (homeEfficiency > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${homeEfficiency}%) → ${homeTeamH} dominó el partido.</div>`;
-            else if (homeEfficiency < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${homeEfficiency}%) → ${awayTeamH} dominó el partido.</div>`;
-            else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${homeEfficiency}%) → Partido parejo.</div>`;
-            if (maxAwayRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxAwayRun} pts) → ${awayTeamH} tuvo una racha larga.</div>`;
-            if (maxHomeRun > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxHomeRun} pts) → ${homeTeamH} encadenó puntos.</div>`;
-            if (homeBreaks > awayBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${homeTeamH} produjo más puntos con saque propio.</div>`;
-            else if (awayBreaks > homeBreaks + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${homeBreaks} vs ${awayBreaks}) → ${awayTeamH} produjo más puntos con saque propio.</div>`;
-            if (homeClutchPct > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeamH} demostró temple.</div>`;
-            else if (homeClutchPct < 35 && homeClutchPct > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${homeClutchPct}%) → ${homeTeamH} mostró debilidad.</div>`;
-            let recommendationsHtml = '';
-            if (homeEfficiency < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${homeTeamH} solo ganó el ${homeEfficiency}% de los puntos</div>`;
-            if (maxAwayRun > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${awayTeamH} tuvo una racha de ${maxAwayRun} puntos. Ajustar bloqueo y recepción.</div>`;
-            if (awayBreaks > homeBreaks + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${awayTeamH} ganó ${awayBreaks} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
-            if (homeClutchPct < 40 && homeClutchPct > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${homeTeamH} solo convirtió ${homeClutchPct}% en momentos críticos.</div>`;
-            if (homePhaseEff.late < 40 && homePhaseEff.late > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Débil en el cierre (${homePhaseEff.late}% en Late Game). Trabajar definición.</div>`;
-            if (!recommendationsHtml) recommendationsHtml = '<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido! Mantener la estrategia.</div>';
+            const analisisReporte = this.obtenerEquipoAnalisis();
+            const esLocalReporte = analisisReporte.equipo === 'HOME';
+            const nombreAnalizadoH = esLocalReporte ? homeTeamH : awayTeamH;
+            const nombreRivalH = esLocalReporte ? awayTeamH : homeTeamH;
+            const effAnalizado = Number(esLocalReporte ? homeEfficiency : awayEfficiency) || 0;
+            const effRival = Number(esLocalReporte ? awayEfficiency : homeEfficiency) || 0;
+            const maxRunAnalizado = esLocalReporte ? maxHomeRun : maxAwayRun;
+            const maxRunRival = esLocalReporte ? maxAwayRun : maxHomeRun;
+            const breaksAnalizado = esLocalReporte ? homeBreaks : awayBreaks;
+            const breaksRival = esLocalReporte ? awayBreaks : homeBreaks;
+            const clutchAnalizado = totalClutch > 0
+                ? (esLocalReporte ? Number(homeClutchPct) : Number((100 - Number(homeClutchPct)).toFixed(1)))
+                : 0;
+            const sideoutAnalizado = Number(esLocalReporte ? sideoutHome : sideoutAway) || 0;
+            const breakpointAnalizado = Number(esLocalReporte ? breakpointHome : breakpointAway) || 0;
+            const fasesAnalizado = esLocalReporte ? homePhaseEff : awayPhaseEff;
+            const lateEffAnalizado = Number(fasesAnalizado?.late) || 0;
+            const earlyEffAnalizado = Number(fasesAnalizado?.early) || 0;
+
+           let interpretationsHtml = '';
+interpretationsHtml += `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(102,126,234,0.15);border-radius:10px;font-size:13px;color:#cbd5e1;">Análisis enfocado en <strong style="color:#93c5fd;">${nombreAnalizadoH}</strong></div>`;
+if (effAnalizado > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${effAnalizado}%) → ${nombreAnalizadoH} dominó el partido.</div>`;
+else if (effAnalizado < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${effAnalizado}%) → ${nombreRivalH} dominó el partido.</div>`;
+else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${effAnalizado}%) → Partido parejo.</div>`;
+if (maxRunRival > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxRunRival} pts) → ${nombreRivalH} tuvo una racha larga.</div>`;
+if (maxRunAnalizado > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxRunAnalizado} pts) → ${nombreAnalizadoH} encadenó puntos.</div>`;
+if (breaksAnalizado > breaksRival + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreAnalizadoH} produjo más puntos con saque propio.</div>`;
+else if (breaksRival > breaksAnalizado + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreRivalH} produjo más puntos con saque propio.</div>`;
+if (clutchAnalizado > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} demostró temple.</div>`;
+else if (clutchAnalizado < 35 && clutchAnalizado > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} mostró debilidad.</div>`;
+if (sideoutAnalizado > 60) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">🎯 SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} ganó con frecuencia los rallies al recibir.</div>`;
+else if (sideoutAnalizado < 45 && sideoutAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} tuvo problemas al recibir.</div>`;
+if (breakpointAnalizado > 45) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">⚡ BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce puntos con saque propio.</div>`;
+else if (breakpointAnalizado < 25 && breakpointAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">🔻 BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce pocos puntos con saque propio.</div>`;
+let recommendationsHtml = '';
+if (effAnalizado < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${nombreAnalizadoH} solo ganó el ${effAnalizado}% de los puntos</div>`;
+if (maxRunRival > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreRivalH} tuvo una racha de ${maxRunRival} puntos. Ajustar bloqueo y recepción.</div>`;
+if (breaksRival > breaksAnalizado + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${nombreRivalH} ganó ${breaksRival} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
+if (clutchAnalizado < 40 && clutchAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${nombreAnalizadoH} solo convirtió ${Number(clutchAnalizado).toFixed(1)}% en momentos críticos.</div>`;
+if (lateEffAnalizado < 40 && lateEffAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreAnalizadoH} débil en el cierre (${lateEffAnalizado}% en Late Game). Trabajar definición.</div>`;
+if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido de ${nombreAnalizadoH}. Mantener la estrategia.</div>`;
             const eficienciaPorSet = [];
             const puntosPorSet = [];
             let datosParaEficiencia = null;

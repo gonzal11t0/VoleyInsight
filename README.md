@@ -6,12 +6,15 @@
 
 Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido o tira, acompaña la anotación durante el juego y genera un informe descargable al finalizar.
 
+**Versión actual:** v3.2.1 (Actualizado: 7 de noviembre de 2026)
+
 ## Funciones principales
 
 - Dashboard en vivo con marcador, rachas, momentum y evolución por set.
 - Anotador manual optimizado para notebook y celular.
+- **Soporte para categorías de 4 o 5 jugadoras** (ej. Sub-11, Sub-12) y formación estándar de 6.
 - Estadísticas individuales acumuladas y separadas por set.
-- Rotaciones 1 a 6, acumuladas o filtradas por set, con formación histórica.
+- Rotaciones adaptativas (1 a 6 o según cantidad de jugadoras), acumuladas o filtradas por set, con formación histórica.
 - Sideout%: puntos ganados cuando el equipo recibe el saque rival.
 - Breakpoint%: puntos ganados mientras el equipo tiene el saque.
 - Clutch%: rendimiento en puntos críticos.
@@ -23,6 +26,7 @@ Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido
 - Persistencia atómica con respaldo automático para puntos manuales e historial oficial.
 - Comparación de hasta cinco informes siguiendo automáticamente al equipo principal.
 - Gestión de partidos activos y próximos sin editar archivos JSON.
+- **Resumen de sets oficial:** El sistema solo canta el ganador de un set cuando Metro Vóley confirma el cierre oficial.
 - Soporte offline para recursos ya cargados.
 
 ## Uso operativo
@@ -38,38 +42,36 @@ Requisitos: Node.js 18 o superior, Cloudflared y Windows 10/11.
 ```bash
 npm install
 npm test
-```
+Luego se ejecuta iniciar-partido.bat. La pantalla inicial permite verificar y seleccionar el partido sin editar data/config.json. Si Metro todavía no habilitó la planilla en vivo, el partido puede prepararse anticipadamente ingresando el ID, los dos equipos y una categoría válida.
 
-Luego se ejecuta `iniciar-partido.bat`. La pantalla inicial permite verificar y
-seleccionar el partido sin editar `data/config.json`. Si Metro todavía no habilitó
-la planilla en vivo, el partido puede prepararse anticipadamente ingresando el ID,
-los dos equipos y una categoría válida.
+Antes del primer inicio, copiá .env.example como .env y configurá allí las variables requeridas:
 
-Antes del primer inicio, copiá `.env.example` como `.env` y configurá allí las
-contraseña privada de Operador (VOLEY_OPERATOR_PASSWORD). VOLEY_PUBLIC_PASSWORD sigue siendo requerida al arrancar, pero ya no se usa para ingresar
-. El archivo `.env` queda únicamente en
-el equipo de trabajo y Git no lo publica. Las claves distinguen mayúsculas de
-minúsculas.
+VOLEY_OPERATOR_PASSWORD: contraseña privada del operador (obligatoria).
 
-## Reportes
+VOLEY_PUBLIC_PASSWORD: requerida al arrancar por compatibilidad, pero ya no se usa para ingresar.
 
-Al finalizar, el botón **Guardar** genera un archivo independiente que conserva:
+El archivo .env queda únicamente en el equipo de trabajo y Git no lo publica. Las claves distinguen mayúsculas de minúsculas.
 
-- marcador y sets;
-- estadísticas del equipo e individuales;
-- acumulado y detalle por set;
-- Sideout, Breakpoint, Clutch y servicio;
-- rotaciones y formaciones disponibles;
-- gráficos e interpretación de métricas.
+Reportes
+Al finalizar, el botón Guardar genera un archivo independiente que conserva:
 
-## Pruebas
+marcador y sets;
 
-```bash
+estadísticas del equipo e individuales;
+
+acumulado y detalle por set;
+
+Sideout, Breakpoint, Clutch y servicio;
+
+rotaciones y formaciones disponibles;
+
+gráficos e interpretación de métricas.
+
+Pruebas
+bash
 npm test
-```
-
 Las pruebas cubren autenticación, eventos, persistencia y respaldos, recuperación, comparativas, resúmenes de set, formaciones, filtros, rotaciones, Sideout/Breakpoint y reconstrucción de saltos de marcador.
 
-## Contacto
-
+Contacto
 Gonzalo · 11 5136-4852
+

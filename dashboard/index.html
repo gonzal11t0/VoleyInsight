@@ -3254,27 +3254,51 @@
                 // SELECTOR DE SET
                 // ============================================================
                 const selectorSet = document.getElementById('selectorSet');
-                if (selectorSet) {
-                    selectorSet.onchange = function() {
-                        const nuevoSet = parseInt(this.value);
-                        if (nuevoSet !== estado.set) {
-                            estado.set = nuevoSet;
-                            estado.local.score = 0;
-                            estado.visitante.score = 0;
-                            estado.punto = 0;
-                            estado.historial = [];
-                            estado.puntosApi = [];
-                            estado.equipoQueSacaba = 'LOCAL';
-                            estado.rotacionLocal = 1;
-                            estado.rotacionVisitante = 1;
-                            actualizarMarcador();
-                            renderizarCancha();
-                            renderizarHistorial();
-                            renderizarPuntosApi();
-                            mostrarFeedback(`📊 Cambiado a Set ${nuevoSet} - Marcador 0-0`, 'info');
-                        }
-                    };
-                }
+if (selectorSet) {
+    selectorSet.onchange = function() {
+        const nuevoSet = parseInt(this.value);
+        if (nuevoSet === estado.set) return;
+
+        // Filtrar todos los eventos del set seleccionado (incluye manuales y recuperados)
+        const eventosDelSet = (estado.puntosApi || []).filter(p => Number(p.set) === nuevoSet);
+
+        estado.set = nuevoSet;
+
+        if (eventosDelSet.length > 0) {
+            // Cargar el estado real del set seleccionado
+            const ultimo = eventosDelSet[eventosDelSet.length - 1];
+            const partes = String(ultimo.marcadorDespues || '0-0').split('-');
+            estado.local.score = parseInt(partes[0]) || 0;
+            estado.visitante.score = parseInt(partes[1]) || 0;
+            estado.punto = eventosDelSet.length;
+            estado.rotacionLocal = ultimo.rotacionLocalDespues || ultimo.rotacionLocal || 1;
+            estado.rotacionVisitante = ultimo.rotacionVisitanteDespues || ultimo.rotacionVisitante || 1;
+            estado.equipoQueSacaba = ultimo.equipoSacaDespues || ultimo.equipoSacaba || 'LOCAL';
+        } else {
+            // Set nuevo sin eventos: arranque limpio
+            estado.local.score = 0;
+            estado.visitante.score = 0;
+            estado.punto = 0;
+            estado.rotacionLocal = 1;
+            estado.rotacionVisitante = 1;
+            estado.equipoQueSacaba = 'LOCAL';
+        }
+
+        estado.historial = eventosDelSet;
+
+        actualizarMarcador();
+        renderizarCancha();
+        renderizarHistorial();
+        renderizarPuntosApi();
+
+        mostrarFeedback(
+            eventosDelSet.length > 0
+                ? `📊 Set ${nuevoSet} cargado · ${estado.local.score}-${estado.visitante.score} · ${estado.punto} puntos`
+                : `📊 Set ${nuevoSet} · marcador 0-0`,
+            'info'
+        );
+    };
+}
 
                 window.anotador = {
                     async cambiarPartido(nuevoId) {
