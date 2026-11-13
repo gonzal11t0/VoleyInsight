@@ -1,12 +1,11 @@
 ---
 
-### 2. `documentacion.md` (Completo y actualizado)
+# 📚 documentacion.md actualizado
 
-```markdown
-# 📚 DOCUMENTACIÓN TÉCNICA COMPLETA — VOLEYINSIGHT v3.2.1
+````markdown
+# 📚 DOCUMENTACIÓN TÉCNICA COMPLETA — VOLEYINSIGHT v3.2.2
 
-**Última actualización:** 7 de noviembre de 2026
-**Commit vigente:** `HEAD` (Último commit del 7/11/2026)
+**Última actualización:** 12 de noviembre de 2026
 **Estado:** Producción
 
 ---
@@ -25,22 +24,27 @@ VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real q
 - Analiza tiempos muertos con registro manual y cálculo de efectividad.
 - Calcula Sideout%, Breakpoint%, Clutch%, fases del set y rachas.
 - Estadísticas de servicio, recepción y defensa por jugador.
-- **Selector de partidos** para cambiar entre partidos históricos, activos y preparados desde el dashboard (funciona en PC y celular).
+- **Selector de partidos** para cambiar entre partidos históricos, activos y preparados desde el dashboard.
 - **Resuscripción WebSocket** automática al cambiar de partido.
 - **Túnel único** de Cloudflare publica Dashboard, API y WebSocket desde el puerto 5501.
-- **Autenticación por roles** con selector Público/Operador. Público entra sin contraseña (solo lectura); Operador requiere contraseña.
+- **Autenticación por roles** con selector Público/Operador.
 - **Soporte multiformato**: Adaptado para categorías de 4 o 5 jugadoras (Sub-11, Sub-12) y 6 jugadoras.
+- **Análisis centrado en el equipo principal**: detecta automáticamente ATTITUDE como local o visitante y cae a LOCAL si no participa.
 
-### Novedades v3.2.1
+### Novedades v3.2.2
 
-- **Soporte para categorías reducidas**: El anotador y las rotaciones aceptan formaciones de 4, 5 o 6 jugadoras.
-- **Reglamento dinámico**: El resumen de sets solo se muestra cuando Metro Vóley marca oficialmente el set como finalizado.
-- El operador puede quitar partidos del **HISTORIAL** del selector de partido: uno por uno con "QUITAR DEL HISTORIAL" o todos con "LIMPIAR HISTORIAL".
-- El rol **Público** ya no recibe `partidosPreparados` en `/api/config`.
-- **Validación estricta de `matchId` y `set`** en todos los endpoints que construyen rutas de archivo (path traversal cerrado).
-- **Timeout de 5 segundos** en la descarga del HTML de Metro Vóley desde el tracker.
-- **Cacheo robusto del roster**: si Metro devuelve el roster vacío, el tracker reintenta cada 30 segundos sin bloquear el polling.
-- **Auditoría de dependencias**: `npm audit` sin vulnerabilidades `high` ni `moderate` en producción (`minimatch` queda en `nodemon`, que es dev-only).
+- **Análisis consistente del equipo principal (ATTITUDE).** El clutch, las interpretaciones y las recomendaciones ahora siguen al equipo analizado en todos los bloques del dashboard. Antes el clutch y los textos de interpretación/recomendaciones estaban fijados al equipo LOCAL, lo que mezclaba métricas cuando ATTITUDE jugaba como visitante.
+- **Reporte HTML alineado con el dashboard.** El informe descargable incluye el badge "Análisis enfocado en ATTITUDE" y suma interpretaciones de sideout y breakpoint del equipo analizado, además de las de eficiencia, rachas, breakpoints, clutch y fases.
+- **Mensaje "Sin atribuir" clarificado.** Se reemplazó por **"Por error rival / recovery"**. El nuevo texto refleja que esos puntos son puntos que el equipo recibe sin acción propia: errores del rival (ataque, saque, etc.) o puntos recuperados con el botón RECUPERAR. No son errores de anotación.
+- **Tracker: reset correcto al cambiar de partido.** `crearArchivoPartidoVacio()` acepta un parámetro `{ forzar: true }`. Cuando el operador activa un partido nuevo, `cambiarPartido()` lo invoca con `forzar: true` para recrear `match_NUEVOID.json` desde cero. Antes, si el archivo ya existía (de una sesión previa o intento anterior), no se sobrescribía y arrastraba el último score del partido anterior.
+- **Tracker: nombres reales desde `config.json`.** Nuevo helper `obtenerNombresDesdeConfig(matchId)` que lee `homeTeam`/`awayTeam` de `data/config.json`. El archivo inicial del partido ahora se crea con `"MORON C"` / `"ATTITUDE"` en lugar de `"LOCAL"` / `"VISITANTE"`. Esto también evita que `stateProcessor.js` caiga al fallback de nombres genéricos.
+- **Tracker: cache de roster reiniciado al cambiar de partido.** Se limpian `_rosterMap`, `_rosterMatchId` y `_rosterRetryAt` al cambiar de partido para no reutilizar nombres de jugadoras del partido anterior.
+- **Anotador: cambiar de set ya no resetea a 0-0.** El selector de set ahora:
+  - Filtra los eventos guardados del set seleccionado.
+  - Reconstruye el marcador, punto, rotaciones y saque reales desde el último evento del set.
+  - Al volver al set anterior, recupera sus datos.
+  - Los sets nuevos sin eventos arrancan en 0-0 con rotaciones 1|1.
+  - El historial visible corresponde siempre al set seleccionado.
 
 ---
 
@@ -53,7 +57,8 @@ VoleyInsight es un sistema de análisis de partidos de voleibol en tiempo real q
 │                                                                             │
 │   ┌─────────────────────┐      ┌─────────────────────┐                      │
 │   │   API Metro Vóley   │      │   App de Anotación  │                      │
-│   │   (fuente externa)  │      │   (anotador.html)   │                      │
+│   │   (fuente externa)  │      │ (vistaAnotador en   │                      │
+│   │                     │      │  index.html)        │                      │
 │   └──────────┬──────────┘      └──────────┬──────────┘                      │
 │              │                            │                                 │
 │              ▼                            ▼                                 │
@@ -115,8 +120,8 @@ VoleyInsight/
 ├── .gitignore
 │
 ├── dashboard/
-│   ├── index.html                    # Dashboard principal (4 pestañas + selector)
-│   ├── anotador.html                 # App de anotación manual
+│   ├── index.html                    # Dashboard principal (4 pestañas + anotador integrado)
+│   ├── anotador.html                 # (legacy, no usado por el dashboard actual)
 │   ├── logo-horizontal.png
 │   ├── logo.png
 │   ├── logo-icon-192.png
@@ -125,7 +130,7 @@ VoleyInsight/
 │   ├── site.webmanifest
 │   └── js/
 │       ├── dashboard.js              # Lógica principal (selector, resuscripción WS, métricas)
-│       ├── anotador.js               # Lógica del anotador manual
+│       ├── anotador.js               # (legacy, no usado por el dashboard actual)
 │       ├── reporteGenerator.js       # Generación de reportes HTML
 │       ├── StatsHelper.js            # Estadísticas por jugador
 │       ├── rotacionHelper.js         # Cálculo de rotaciones 1-6
@@ -134,6 +139,7 @@ VoleyInsight/
 │       ├── comparativaHelper.js      # Comparación de informes
 │       ├── setSummaryHelper.js       # Resumen automático de sets
 │       ├── timeoutHelper.js          # Deduplicación de timeouts
+│       ├── formacionHelper.js        # Normalización de posiciones y firma de formación
 │       ├── utils.js                  # OfflineManager, SoundManager
 │       └── sw.js                     # Service Worker para modo offline
 │
@@ -148,7 +154,8 @@ VoleyInsight/
 │   │   ├── authConfig.js             # Lectura de contraseñas de .env
 │   │   ├── rosterHistory.js          # Fusión de planteles
 │   │   ├── rotationHistory.js        # Historial de rotaciones
-│   │   └── activityStatus.js         # Detección de inactividad
+│   │   ├── activityStatus.js         # Detección de inactividad
+│   │   └── trackerActiveState.js     # Lectura de matchId activo desde config
 │   ├── services/
 │   │   ├── api.js                    # Conexión con Metro Vóley (timeout + retry)
 │   │   └── websocket.js              # Stub (no usado)
@@ -210,9 +217,17 @@ Monitoreo de config.json cada 5 segundos (configMonitorInterval).
 
 Cambio automático de partido al detectar nuevo matchId.
 
-Método crearArchivoPartidoVacio() para inicializar archivos JSON.
+crearArchivoPartidoVacio(matchId, { forzar }) para inicializar archivos JSON:
+
+forzar: false (default): no sobrescribe si el archivo existe.
+
+forzar: true: borra y recrea el archivo. Usado por cambiarPartido() para garantizar un arranque limpio.
+
+obtenerNombresDesdeConfig(matchId): helper que lee homeTeam/awayTeam de data/config.json y los usa al crear el archivo inicial. Evita dejar "LOCAL"/"VISITANTE" genéricos.
 
 Escucha evento WebSocket cambiar_partido y pausar_partido.
+
+Reset de cache de roster (_rosterMap, _rosterMatchId, _rosterRetryAt) al cambiar de partido.
 
 Descarga del HTML de Metro /matches/{id}/players para extraer nombres reales (vía data-page embebido de Inertia.js).
 
@@ -233,9 +248,11 @@ Vista PARTIDO	Stats grid, gráficos, dominancia por set, breakpoints, insights, 
 Vista INDIVIDUALES	Filtros por set, tablas de jugadores, TOP 5, gráfico de puntos, tiempos muertos
 Vista ROTACIONES	Eficiencia por rotación. Adaptativo a 4, 5 o 6 jugadoras.
 Vista ANOTADOR	Anotación manual: ATAQUE, BLOQUEO, SAQUE, SAQUE MALO, ERROR, REC+, REC-, DEF+, DEF-
+El anotador está integrado dentro del index.html en <div id="vistaAnotador"> y su lógica está en el script inline dentro de inicializarCancha(). El archivo dashboard/js/anotador.js es código legacy que no se ejecuta.
+
 Funciones clave en dashboard.js:
 
-obtenerUrlApi(): usa el mismo origen desde el que se abrió el dashboard.
+obtenerEquipoAnalisis(): detecta ATTITUDE como local o visitante, o cae a LOCAL si no participa. Es el punto único que define a quién se analiza.
 
 setupSelectorPartido(): maneja el cambio de partido con resuscripción WebSocket.
 
@@ -245,42 +262,41 @@ verificarConsistenciaYLimpiar(): detecta y corrige mezcla de datos.
 
 Ping keepalive cada 25 segundos (para mantener túneles activos).
 
-obtenerEquipoAnalisis(): detecta ATTITUDE y analiza siempre a ese equipo (o LOCAL).
+updateDashboard(): además de calcular y renderizar métricas, guarda en la instancia homeClutchPct, awayClutchPct, sideoutHomePct, sideoutAwayPct, breakpointHomePct, breakpointAwayPct, homePhaseEff y awayPhaseEff para que los métodos de interpretación puedan consultarlos sin recalcular.
 
-cargarRosterDesdeHTML(): descarga el HTML de Metro, extrae data-page, cruza por matchTeamPlayerId, y enriquece el court antes de procesar.
+updateInsightsList(): usa el clutch del equipo analizado (this.homeClutchPct o this.awayClutchPct) según obtenerEquipoAnalisis().
 
-actualizarResumenUltimoSet(): Nuevo. Solo muestra el cartel de ganador cuando Metro confirma el fin del set.
+updateInterpretations(): pivotea todo sobre esLocal y usa las métricas del equipo analizado (eficiencia, rachas, breakpoints, clutch, sideout, breakpoint, fases, servicio).
 
-4.3 App de Anotación (anotador.html)
-Pantalla	Función
-Configuración	Armar equipos (agregar/eliminar números, marcar líberos)
-Anotación	Seleccionar equipo → jugador → acción → confirmar punto. Soporta plantillas de 4, 5 o 6 jugadoras.
-Acciones disponibles:
+updateRecommendations(): mismo patrón que interpretaciones.
 
-Acción	¿Necesita jugador?	Qué pasa
-ATAQUE	✅ Sí	Punto para tu equipo
-BLOQUEO	✅ Sí	Punto para tu equipo
-SAQUE	✅ Sí	Punto para tu equipo (stats de servicio)
-SAQUE MALO	✅ Sí	Punto para el otro equipo (error de saque)
-ERROR	✅ Sí	Punto para el otro equipo (error de ataque/genérico)
-REC+	✅ Sí	Registra recepción positiva (NO suma punto)
-REC-	✅ Sí	Registra recepción negativa (NO suma punto)
-DEF+	✅ Sí	Registra defensa positiva (NO suma punto)
-DEF-	✅ Sí	Registra defensa negativa (NO suma punto)
-TIMEOUT	❌ No	Registra tiempo muerto
-MARCAR CLAVE	❌ No	Guarda observación manual sin alterar métricas automáticas
-Atajos de teclado:
+saveAsHTML(): genera el reporte HTML siguiendo al equipo analizado, incluye badge "Análisis enfocado en ATTITUDE" y suma interpretaciones de sideout y breakpoint.
 
-Tecla	Acción	Tecla	Acción
-Q	LOCAL	W	VISITANTE
-1	ATAQUE	2	BLOQUEO
-3	SAQUE	4	SAQUE MALO
-5	REC+	6	REC-
-7	DEF+	8	DEF-
-9	ERROR	B	MARCAR CLAVE
-T	TIMEOUT	Enter	Confirmar
-Z	Deshacer	0-9	Seleccionar jugador
-4.4 API REST Propia
+actualizarVistaIndividuales(): el resumen por equipo muestra Atribuidos: X · Por error rival / recovery: Y · Equipo: Z.
+
+cargarFormacionDesdeBackend(): descarga el HTML de Metro, extrae data-page, cruza por matchTeamPlayerId, y enriquece el court antes de procesar.
+
+actualizarResumenUltimoSet(): solo muestra el cartel de ganador cuando Metro confirma el fin del set.
+
+Funciones clave en el script inline del index.html (inicializarCancha()):
+
+cargarConfiguracion(): lee config.json y aplica nombres reales.
+
+cargarJugadoresDesdeAPI(): consulta full_*.json, extrae posiciones y normaliza.
+
+cargarPuntosDesdeAPI(): carga los eventos manuales del partido.
+
+guardarPuntoEnAPI(punto): envía el evento a /api/puntos.
+
+renderizarCancha(): dibuja los 6 jugadores por lado con posiciones.
+
+renderizarHistorial() / renderizarPuntosApi(): muestran los últimos puntos del set actual.
+
+Selector de set corregido: al cambiar de set filtra los eventos del set seleccionado y reconstruye marcador, punto, rotaciones y saque desde el último evento. Si el set no tiene eventos, arranca en 0-0 con rotaciones 1|1.
+
+revisarRecuperacion() / recuperarPuntosPendientes(): cartel de "Hay puntos sin registrar" con botón RECUPERAR.
+
+4.3 API REST Propia
 Todos los endpoints requieren sesión válida excepto los marcados con ❌.
 
 Endpoint	Método	Auth	Descripción
@@ -316,7 +332,7 @@ Endpoint	Método	Auth	Descripción
 /api/preparation/history/:id	DELETE	operator	Quitar partido del historial
 /api/preparation/active	DELETE	operator	Finalizar partido activo
 /api/webhook/point	POST	local only	Webhook del tracker
-4.5 WebSocket en Tiempo Real
+4.4 WebSocket en Tiempo Real
 Característica	Descripción
 Conexión	Persistente entre dashboard y servidor
 Auth	Requiere sesión válida o internalTracker: true desde localhost
@@ -324,7 +340,7 @@ Eventos	new_point, punto_manual, punto_actualizado, punto_anulado, partido_termi
 Suscripción	Por matchId (subscribe / unsubscribe)
 Ping keepalive	Evento ping_keepalive cada 25 segundos
 Fallback	Vuelve a polling (3s) si WebSocket falla
-4.6 Túnel para acceso remoto
+4.5 Túnel para acceso remoto
 Servicio	Puerto	Comando	URL
 Cloudflare	5501 (sistema completo)	cloudflared tunnel --url http://localhost:5501	https://xxxx.trycloudflare.com
 El dashboard, la API REST y el WebSocket comparten la misma URL.
@@ -353,6 +369,7 @@ text
    ├── Conecta WebSocket a localhost:5501
    ├── Lee data/config.json, match_*.json, full_*.json
    ├── Calcula Sideout% y Breakpoint%
+   ├── Detecta equipo analizado (ATTITUDE o LOCAL)
    └── Selector de partidos: cambia ID, nombres y datos
 
 4. DASHBOARD (Celular - remoto)
@@ -361,10 +378,12 @@ text
    ├── Selector: envía POST a la API y resuscribe WebSocket
    └── Ping keepalive cada 25 segundos
 
-5. APP DE ANOTACIÓN
+5. APP DE ANOTACIÓN (integrada en index.html)
    ├── Configura equipos (números, líberos)
    ├── Anota puntos (jugador, acción, asistencia)
    ├── Registra tiempos muertos y marcas manuales
+   ├── Persiste en /api/puntos
+   ├── Cambiar de set: carga el estado real del set seleccionado
    └── Guarda en localStorage y exporta a JSON
 
 6. ANÁLISIS EVOLUTIVO
@@ -375,10 +394,10 @@ text
 6.1 Archivo data/config.json
 json
 {
-  "matchId": 260314,
-  "homeTeam": "L.HERAS B",
+  "matchId": 260045,
+  "homeTeam": "MORON C",
   "awayTeam": "ATTITUDE",
-  "categoria": "sub-16",
+  "categoria": "sub_16",
   "metroStatus": "verified",
   "partidos": [
     { "id": 77702, "homeTeam": "L.HERAS B", "awayTeam": "ATTITUDE", "categoria": "sub-16" }
@@ -439,6 +458,8 @@ Sideout%	(Puntos ganados al recibir / Total recepciones) × 100	Recepción y pri
 Breakpoint%	(Puntos ganados con saque propio / Total saques) × 100	Presión de saque y bloqueo-defensa
 Eficiencia Recepción	(REC+ / Total Recepciones) × 100	Calidad de recepción de saque
 Eficiencia Defensa	(DEF+ / Total Defensas) × 100	Calidad defensiva
+Nota sobre el equipo analizado: todas las métricas se calculan para ambos equipos, pero los bloques de insights, interpretaciones y recomendaciones muestran las del equipo analizado (obtenerEquipoAnalisis()): ATTITUDE si juega de local o visitante, o LOCAL si ATTITUDE no participa.
+
 8. EVENTOS Y SONIDOS
 Evento	Sonido	Frecuencia
 Punto LOCAL	Tono agudo	880 Hz
@@ -518,6 +539,8 @@ El celular no ve la formación	Caché del navegador o falta de datos	Recargar co
 El tracker no cambia de partido	No monitorea config.json	tracker.js incluye configMonitorInterval cada 5s.
 findstr no encuentra tildes	Code page de CMD no coincide con UTF-8	Buscar sin tildes: findstr /C:"ID inv".
 Los cambios no se aplican	El servidor sigue con el código viejo en memoria	Ctrl+C + reiniciar node server-api.js o npm run tracker.
+Al cambiar de partido, el marcador arrastra datos del anterior	Archivo match_NUEVOID.json existía de una sesión previa	En v3.2.2, cambiarPartido() lo resetea con forzar: true. Si ves el problema en una versión anterior, borrá el match_*.json del nuevo partido manualmente antes de activarlo.
+El anotador muestra 0-0 al cambiar de set	Bug de v3.2.1 y anteriores	En v3.2.2, el selector de set reconstruye el estado real. Si persistís en la versión vieja, evitá cambiar de set durante el partido.
 13. CONTACTO Y SOPORTE
 Contacto: Gonzalo · 11 5136-4852
 
@@ -530,16 +553,31 @@ Logs: tracker.log (en carpeta raíz).
 API Docs: http://localhost:5501/api/status
 
 14. ESTADO ACTUAL Y NOVEDADES RECIENTES
-Base vigente: v3.2.1 · Commit actual (7/11/2026)
+Base vigente: v3.2.2 · Commit actual (12 de noviembre de 2026)
+
+Cerrado (12 de noviembre de 2026)
+✅ Análisis consistente de ATTITUDE como local o visitante. Se corrigieron updateInsightsList, updateInterpretations y updateRecommendations en dashboard.js. Antes el clutch y los bloques de interpretación/recomendaciones estaban fijados al equipo LOCAL. Ahora todas las métricas siguen a obtenerEquipoAnalisis(). updateDashboard guarda homeClutchPct/awayClutchPct/sideoutHomePct/sideoutAwayPct/breakpointHomePct/breakpointAwayPct/homePhaseEff/awayPhaseEff en la instancia para que los métodos de render puedan consultarlos.
+
+✅ Reporte HTML alineado. saveAsHTML() incluye el badge "Análisis enfocado en ATTITUDE" y suma interpretaciones de sideout y breakpoint del equipo analizado.
+
+✅ Mensaje "Sin atribuir" clarificado. En la pestaña INDIVIDUALES se reemplazó por "Por error rival / recovery". El texto refleja dos casos legítimos que no son errores de anotación: errores del rival (el equipo recibe el punto sin acción propia) y recovery (puntos oficiales de Metro recuperados sin jugador).
+
+✅ Tracker: reset correcto al cambiar de partido. crearArchivoPartidoVacio(matchId, { forzar }) con forzar: true desde cambiarPartido(). Garantiza que el archivo del nuevo partido arranca limpio.
+
+✅ Tracker: nombres reales desde config. Nuevo helper obtenerNombresDesdeConfig(matchId). El INICIO del archivo se crea con "MORON C" / "ATTITUDE" en lugar de "LOCAL" / "VISITANTE".
+
+✅ Tracker: reset de cache de roster al cambiar de partido. Se limpian _rosterMap, _rosterMatchId, _rosterRetryAt.
+
+✅ Anotador: cambiar de set ya no resetea a 0-0. El selector de set filtra los eventos del set seleccionado y reconstruye marcador, punto, rotaciones y saque desde el último evento. Si el set no tiene eventos, arranca en 0-0.
 
 Cerrado (7 de noviembre de 2026)
-✅ Soporte para Sub-12 y categorías de 4/5 jugadoras. Se modificó cargarFormacionDesdeBackend en dashboard.js y rotarFormacion en rotacionHelper.js para aceptar plantillas con length > 0 en lugar de exigir estrictamente 6 jugadoras. El anotador y las rotaciones ahora funcionan perfecto en Sub-12.
+✅ Soporte para Sub-12 y categorías de 4/5 jugadoras.
 
-✅ Corrección del resumen de sets (falsos positivos). Se modificó actualizarResumenUltimoSet en dashboard.js para que solo muestre el cartel de "Ganador" cuando la API oficial de Metro (full_XXXXX.json) confirme el estado final del set. Antes, el sistema asumía el cierre por lógica propia y se confundía con categorías que juegan a 15 o 25 puntos.
+✅ Corrección del resumen de sets (falsos positivos).
 
-✅ Actualización de reglamento.json. Se ajustaron las categorías (Sub-11 a Sub-13 a 25 puntos, y corrección de Sub-18 a 3 sets ganadores) y se limpiaron las categorías que no se usan.
+✅ Actualización de reglamento.json.
 
 Cerrado (6 de noviembre de 2026)
-✅ Formación por rotación visible en PC y celular. Se normalizó el campo posicion en obtenerJugadoresEnRotacion, se agregó guardarCacheJSON, y se mejoró cargarFormacionDesdeBackend con Promise.all y AbortSignal.timeout.
+✅ Formación por rotación visible en PC y celular.
 
 ✅ "Últimos 10 puntos" verificado en el partido del 5/11.
