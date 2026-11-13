@@ -612,7 +612,7 @@ class MatchTracker {
         this.startWebSocket();
     }
 
-    async generateAnalysisReport() {
+        async generateAnalysisReport() {
         if (this.repository.snapshots.length === 0) return;
         const analyzer = new PerformanceAnalyzer(this.repository.snapshots);
         const report = analyzer.exportForDashboard();
@@ -623,14 +623,6 @@ class MatchTracker {
             insights: report.insights?.length || 0,
             recommendations: report.recommendations?.length || 0
         });
-        if (report.executiveSummary) console.log(`\n${report.executiveSummary}\n`);
-        if (report.insights && report.insights.length > 0) {
-            report.insights.forEach(i => console.log(`   ${i}`));
-        }
-        if (report.recommendations && report.recommendations.length > 0) {
-            report.recommendations.forEach(r => console.log(`   ${r}`));
-        }
-        console.log('\n' + '='.repeat(60));
     }
 
     async generateFinalReport() {

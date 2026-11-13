@@ -6,7 +6,7 @@
 
 Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido o tira, acompaña la anotación durante el juego y genera un informe descargable al finalizar.
 
-**Versión actual:** v3.2.1 (Actualizado: 7 de noviembre de 2026)
+**Versión actual:** v3.2.3 (Actualizado: 13 de noviembre de 2026)
 
 ## Funciones principales
 
@@ -21,17 +21,37 @@ Sistema de análisis de voleibol en tiempo real. Se activa antes de cada partido
 - Servicio: aces, errores y eficiencia real, sin confundir errores de ataque.
 - Reporte HTML/PDF con gráficos, tablas por set y acumulado, rotaciones y glosario.
 - Sincronización entre dispositivos y acceso remoto mediante Cloudflare.
-- Pantalla de ingreso con selector Público/Operador y sesión de 30 días. Público entra sin contraseña (solo lectura); Operador requiere contraseña.
+- Pantalla de ingreso con selector Público/Operador y sesión de 30 días.
 - Recuperación exacta de puntos omitidos, corrección individual y protección contra duplicados.
-- Persistencia atómica con respaldo automático para puntos manuales e historial oficial.
-- Comparación de hasta cinco informes siguiendo automáticamente al equipo principal.
-- Gestión de partidos activos y próximos sin editar archivos JSON.
-- **Resumen de sets oficial:** El sistema solo canta el ganador de un set cuando Metro Vóley confirma el cierre oficial.
-- Soporte offline para recursos ya cargados.
+- Persistencia atómica con respaldo automático.
+- **Comparación avanzada de hasta 5 informes** con análisis de evolución por partido, rotaciones y rendimiento individual.
+
+## Análisis centrado en el equipo del club
+
+El dashboard detecta automáticamente al equipo principal (por defecto **ATTITUDE**):
+
+- Si ATTITUDE juega como **local**, todas las interpretaciones, insights y recomendaciones se refieren a ATTITUDE.
+- Si ATTITUDE juega como **visitante**, el análisis sigue siendo de ATTITUDE, no del local.
+- Si ATTITUDE **no participa** del partido, el sistema cae al equipo **LOCAL**.
+
+Esto aplica a:
+- Insights automáticos (incluye el clutch del equipo analizado).
+- Bloque "Qué significan estos números".
+- Bloque "Qué cambiar para el próximo partido".
+- Reporte HTML descargable.
+- **Comparación de informes** (métricas de equipo y jugadoras).
+
+## Comparación de Informes
+
+La pestaña **COMPARAR** permite cargar hasta 5 informes HTML generados por el sistema. 
+
+- **Selección automática de equipo:** Sigue a ATTITUDE como local o visitante. Si no participa, analiza al equipo local.
+- **Inclusión de parciales:** Un checkbox permite incluir informes de partidos que no han finalizado, para no perder datos en análisis en curso.
+- **Métricas comparadas:** Sideout%, Breakpoint%, Clutch%, Eficiencia de Servicio, Puntos Ganados, **Errores Totales**, **Eficiencia de Ataque** y **Recepción Positiva**.
+- **Análisis de Rotaciones:** Detecta automáticamente si alguna rotación específica perdió eficiencia entre partidos, advirtiendo que puede deberse a cambios de alineación.
+- **Comparación individual (Jugadoras):** Cruza los nombres de las jugadoras que participaron en al menos dos de los informes cargados y muestra una tabla con su evolución en Puntos, Errores, Ataques, Bloqueos, Aces y Recepción.
 
 ## Uso operativo
-
-La instalación, configuración de Node.js, puertos, Cloudflare y archivos técnicos forman parte de la preparación del sistema y pueden quedar a cargo del operador de VoleyInsight. El entrenador o club no necesita editar código para usar el servicio durante un partido.
 
 El dashboard puede abrirse desde notebook o celular. El modo Público entra sin contraseña, muestra el análisis completo, pero oculta el anotador, la comparación, la descarga y la administración del partido.
 
@@ -42,36 +62,28 @@ Requisitos: Node.js 18 o superior, Cloudflared y Windows 10/11.
 ```bash
 npm install
 npm test
-Luego se ejecuta iniciar-partido.bat. La pantalla inicial permite verificar y seleccionar el partido sin editar data/config.json. Si Metro todavía no habilitó la planilla en vivo, el partido puede prepararse anticipadamente ingresando el ID, los dos equipos y una categoría válida.
+Luego se ejecuta iniciar-partido.bat. La pantalla inicial permite verificar y seleccionar el partido sin editar data/config.json.
 
-Antes del primer inicio, copiá .env.example como .env y configurá allí las variables requeridas:
-
-VOLEY_OPERATOR_PASSWORD: contraseña privada del operador (obligatoria).
-
-VOLEY_PUBLIC_PASSWORD: requerida al arrancar por compatibilidad, pero ya no se usa para ingresar.
-
-El archivo .env queda únicamente en el equipo de trabajo y Git no lo publica. Las claves distinguen mayúsculas de minúsculas.
+Antes del primer inicio, copiá .env.example como .env y configurá las variables requeridas.
 
 Reportes
-Al finalizar, el botón Guardar genera un archivo independiente que conserva:
-
-marcador y sets;
-
-estadísticas del equipo e individuales;
-
-acumulado y detalle por set;
-
-Sideout, Breakpoint, Clutch y servicio;
-
-rotaciones y formaciones disponibles;
-
-gráficos e interpretación de métricas.
+Al finalizar, el botón Guardar genera un archivo HTML independiente que conserva el marcador, sets, estadísticas de equipo e individuales. El reporte incluye un bloque de metadatos oculto (#voleyInsightReportData) que permite que ese mismo archivo sea subido a la pestaña de comparación en el futuro.
 
 Pruebas
 bash
 npm test
-Las pruebas cubren autenticación, eventos, persistencia y respaldos, recuperación, comparativas, resúmenes de set, formaciones, filtros, rotaciones, Sideout/Breakpoint y reconstrucción de saltos de marcador.
+Las pruebas cubren autenticación, eventos, persistencia, recuperación, comparativas, resúmenes de set, formaciones, rotaciones y métricas avanzadas.
+
+Novedades v3.2.3 (13 de noviembre de 2026)
+Comparación mejorada: Se agregó soporte para informes parciales (checkbox), lectura de formatos legacy y selector manual de equipo.
+
+Nuevas métricas comparativas: Errores totales, Eficiencia de Ataque y Recepción Positiva, además del análisis de eficiencia por rotación.
+
+Comparación individual: Nueva tabla que cruza los datos de las jugadoras (PTS, ERR, ATA, BLO, ACE, REC%) presentes en 2 o más informes.
+
+Carga acumulativa: Los archivos ya no se reemplazan al subir un nuevo lote, se acumulan hasta un máximo de 5.
+
+Tracker: Se corrigió un error al cerrar el proceso (generateAnalysisReport) y se silenciaron los logs de análisis en consola para mantener limpio el entorno de ejecución.
 
 Contacto
 Gonzalo · 11 5136-4852
-

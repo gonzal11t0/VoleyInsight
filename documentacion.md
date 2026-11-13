@@ -581,3 +581,14 @@ Cerrado (6 de noviembre de 2026)
 ✅ Formación por rotación visible en PC y celular.
 
 ✅ "Últimos 10 puntos" verificado en el partido del 5/11.
+
+✅ Novedades v3.2.3
+
+- **Comparativa: Nuevas métricas.** Se agregaron `Errores Totales` (donde bajar es mejor), `Eficiencia de Ataque%` y `Recepción Positiva%` al análisis de equipo.
+- **Comparativa: Rotaciones.** El sistema guarda la eficiencia por rotación en el JSON oculto del informe. La comparativa detecta caídas de más de 10 puntos en rotaciones específicas y lo advierte en las conclusiones.
+- **Comparativa: Jugadoras.** Se agregó la tabla de `COMPARACIÓN INDIVIDUAL`, que cruza los nombres de las jugadoras en los informes cargados y compara PTS, ERR, ATA, BLO, ACE y REC%.
+- **Comparativa: Inclusión de parciales.** Se agregó el checkbox `incluirParcialesCheck` para forzar la comparación de partidos que aún no finalizaron.
+- **Comparativa: Acumulación de archivos.** `procesarReportes()` ya no resetea la lista al cargar un archivo nuevo; ahora acumula hasta 5.
+- **Comparativa: Legacy y sin equipo común.** Se permite leer informes legacy con al menos una métrica válida, y se muestra un selector manual de equipo si no hay coincidencias automáticas.
+- **Tracker: Fix de cierre.** Se corrigió el error `this.generateAnalysisReport is not a function` al presionar `Ctrl+C`. El método fue restaurado correctamente dentro de la clase.
+- **Tracker: Consola limpia.** Se silenciaron los `console.log` de `generateAnalysisReport()` para evitar ruido en la terminal.

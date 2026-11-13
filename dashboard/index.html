@@ -1274,6 +1274,10 @@
                     </div>
                 </div>
                 <div id="reportList" class="mt-4 space-y-2 max-h-40 overflow-y-auto"></div>
+                <label class="flex items-center gap-2 mt-3 text-xs text-gray-400 cursor-pointer">
+                    <input type="checkbox" id="incluirParcialesCheck" class="rounded">
+                    Incluir informes parciales (partidos sin finalizar)
+                </label>
                 <div id="comparativaEstado" class="mt-3 text-xs text-gray-500">Cargá dos o más informes para comenzar.</div>
                 <div id="equipoCompararContenedor" class="hidden mt-3">
                     <label for="equipoCompararSelector" class="block text-xs text-gray-400 mb-1">Equipo a comparar</label>
@@ -1301,12 +1305,15 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-xs md:text-sm">
                             <thead class="text-gray-400 border-b border-gray-700">
-                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Bajo presión</th><th class="text-center">Efi. Servicio</th><th class="text-center">Puntos ganados</th></tr>
+                                <tr><th class="text-left py-2">Partido</th><th class="text-center">Sideout%</th><th class="text-center">Breakpoint%</th><th class="text-center">Bajo presión</th><th class="text-center">Efi. Servicio</th><th class="text-center">Puntos ganados</th><th class="text-center">Errores</th>
+                                <th class="text-center">Efi. Ataque%</th>
+                                <th class="text-center">Rec. Positiva%</th></tr>
                             </thead>
-                            <tbody id="evolucionTablaBody"><tr><td colspan="6" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
+                            <tbody id="evolucionTablaBody"><tr><td colspan="9" class="text-center py-8 text-gray-500">Cargá reportes para ver la evolución</td></tr></tbody>
                         </table>
                     </div>
                 </div>
+                <div id="comparativaJugadores" class="mt-6"></div>
                 <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5">
                     <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">📈 TENDENCIA</h3>
                     <canvas id="evolucionChart" class="w-full h-64 md:h-80"></canvas>
@@ -2638,12 +2645,6 @@
 
                         if (cambio || cambioSaque) {
                             renderizarCancha();
-                        }
-                        if (cambio) {
-                            console.log('✅ Formación actualizada desde court.positions:', {
-                                local: jugadores.local.map(j => `P${j.posicion}: #${j.numero}`),
-                                visitante: jugadores.visitante.map(j => `P${j.posicion}: #${j.numero}`)
-                            });
                         }
                         return true;
                     } catch (e) {

@@ -2,8 +2,11 @@ const METRICAS = [
     { clave: 'sideout', etiqueta: 'Sideout%' },
     { clave: 'breakpoint', etiqueta: 'Breakpoint%' },
     { clave: 'clutch', etiqueta: 'Bajo presión' },
-    { clave: 'service', etiqueta: 'Eficiencia de servicio' },
-    { clave: 'efficiency', etiqueta: 'Puntos ganados' }
+    { clave: 'service', etiqueta: 'Efi. Servicio' },
+    { clave: 'efficiency', etiqueta: 'Puntos ganados' },
+    { clave: 'errors', etiqueta: 'Errores Totales', mejorEsBajar: true },
+    { clave: 'attackEff', etiqueta: 'Efi. Ataque%' },
+    { clave: 'receptionPos', etiqueta: 'Rec. Positiva%' }
 ];
 
 export function numeroONull(valor) {
@@ -59,6 +62,10 @@ function metricasDesdeMetadata(metricas = {}) {
         clutch: valorMetrica(metricas.clutch),
         service: valorMetrica(metricas.service),
         efficiency: valorMetrica(metricas.efficiency),
+        errors: numeroONull(metricas.errors),
+        attackEff: numeroONull(metricas.attackEff),
+        receptionPos: numeroONull(metricas.receptionPos),
+        rotations: Array.isArray(metricas.rotations) ? metricas.rotations : [],
         muestras: {
             sideout: muestrasMetrica(metricas.sideout),
             breakpoint: muestrasMetrica(metricas.breakpoint),
@@ -95,8 +102,13 @@ export function reporteDesdeMetadata(metadata, nombreArchivo = '') {
         metrics: {
             home: metricasDesdeMetadata(metadata.metrics?.home),
             away: metricasDesdeMetadata(metadata.metrics?.away)
+        },
+        players: {
+            home: Array.isArray(metadata.players?.home) ? metadata.players.home : [],
+            away: Array.isArray(metadata.players?.away) ? metadata.players.away : []
         }
     };
+    
 }
 
 export function crearReporteLegacy({
@@ -146,7 +158,8 @@ export function crearReporteLegacy({
 }
 
 export function detectarEquiposComunes(reportes) {
-    const elegibles = reportes.filter(reporte => reporte.metricasCompatibles && reporte.estado !== 'partial');
+    // FIX: el estado se filtra en prepararComparativa; acá solo importa compatibilidad.
+    const elegibles = reportes.filter(reporte => reporte.metricasCompatibles);
     if (!elegibles.length) return [];
     let comunes = new Set([
         normalizarNombreEquipo(elegibles[0].homeTeam),
@@ -195,6 +208,7 @@ function claveReporte(reporte) {
     ].join('|');
 }
 
+
 function deduplicarReportes(reportes) {
     const unicos = new Map();
     reportes.forEach(reporte => {
@@ -212,50 +226,79 @@ function orientarReporte(reporte, equipoNormalizado) {
     const lado = homeNormalizado === equipoNormalizado ? 'home' : 'away';
     const rival = lado === 'home' ? reporte.awayTeam : reporte.homeTeam;
     return {
-        ...reporte,
+         ...reporte,
         equipo: lado === 'home' ? reporte.homeTeam : reporte.awayTeam,
         rival,
         lado,
         metricas: reporte.metrics?.[lado] || {},
+        jugadores: reporte.players?.[lado] || [],
         etiqueta: rival ? `vs ${rival}` : reporte.nombrePartido
+    
     };
 }
 
-export function prepararComparativa(reportes, equipoPreferido = null) {
+export function prepararComparativa(reportes, equipoPreferido = null, opciones = {}) {
+    const { incluirParciales = false } = opciones;
     const limite = Array.isArray(reportes) ? reportes.slice(0, 5) : [];
-    const descartados = limite.filter(reporte => !reporte.metricasCompatibles || reporte.estado === 'partial');
-    const elegibles = deduplicarReportes(
-        limite.filter(reporte => reporte.metricasCompatibles && reporte.estado !== 'partial')
+
+    // FIX: aceptar unknown siempre (solo advierte) y partial si el usuario lo fuerza.
+    const candidatos = limite.filter(reporte => {
+        if (!reporte.metricasCompatibles) return false;
+        if (reporte.estado === 'partial' && !incluirParciales) return false;
+        return true;
+    });
+
+    const descartados = limite.filter(reporte =>
+        !reporte.metricasCompatibles || (reporte.estado === 'partial' && !incluirParciales)
     );
+
+    const elegibles = deduplicarReportes(candidatos);
+
     if (elegibles.length < 2) {
         return {
             ok: false,
             codigo: 'insufficient',
-            mensaje: 'Necesitás al menos dos informes completos y compatibles.',
+            mensaje: incluirParciales
+                ? 'Necesitás al menos dos informes compatibles (incluso parciales).'
+                : 'Necesitás al menos dos informes compatibles. Probá con "Incluir parciales" si uno no está finalizado.',
             descartados,
-            equiposComunes: detectarEquiposComunes(elegibles)
+            equiposComunes: detectarEquiposComunes(elegibles),
+            equiposDisponibles: [...contarPresenciasEquipos(elegibles).entries()]
+                .filter(([, cantidad]) => cantidad >= 2)
+                .map(([equipo]) => equipo),
+            incluirParciales
         };
     }
+
     const presencias = contarPresenciasEquipos(elegibles);
     const equiposComunes = [...presencias.entries()]
         .filter(([, cantidad]) => cantidad >= 2)
         .map(([equipo]) => equipo);
     const preferido = normalizarNombreEquipo(equipoPreferido);
     const equipo = seleccionarEquipoObjetivo(elegibles, preferido || 'ATTITUDE');
+
     if (!equipo) {
         return {
             ok: false,
             codigo: 'no-common-team',
-            mensaje: 'No hay un mismo equipo presente en al menos dos informes.',
+            mensaje: 'No hay un mismo equipo presente en al menos dos informes. Revisá que los equipos tengan el mismo nombre en ambos archivos.',
             descartados,
-            equiposComunes
+            equiposComunes,
+            equiposDisponibles: equiposComunes,
+            incluirParciales
         };
     }
+
     const relacionados = elegibles.filter(reporte => [reporte.homeTeam, reporte.awayTeam]
         .map(normalizarNombreEquipo)
         .includes(equipo));
-    descartados.push(...elegibles.filter(reporte => !relacionados.includes(reporte)));
+
+    // FIX: no descartar como "ajeno" los partial si el usuario los forzó.
+    const noRelacionados = elegibles.filter(reporte => !relacionados.includes(reporte));
+    descartados.push(...noRelacionados);
+
     const categorias = [...new Set(relacionados.map(reporte => reporte.categoria).filter(Boolean))];
+
     const serie = relacionados
         .map(reporte => orientarReporte(reporte, equipo))
         .sort((a, b) => {
@@ -266,9 +309,13 @@ export function prepararComparativa(reportes, equipoPreferido = null) {
             if (Number.isFinite(fechaB)) return 1;
             return 0;
         });
+
     const advertencias = [];
     if (serie.some(reporte => reporte.estado === 'unknown')) {
-        advertencias.push('Algunos informes anteriores no permiten confirmar si el partido había finalizado.');
+        advertencias.push('Algunos informes no permiten confirmar si el partido había finalizado.');
+    }
+    if (serie.some(reporte => reporte.estado === 'partial')) {
+        advertencias.push('Se incluyeron informes parciales por pedido explícito.');
     }
     if (serie.some(reporte => !reporte.categoria)) {
         advertencias.push('Algunos informes anteriores no incluyen categoría.');
@@ -279,6 +326,7 @@ export function prepararComparativa(reportes, equipoPreferido = null) {
     if (Array.isArray(reportes) && reportes.length > 5) {
         advertencias.push('Se analizaron los primeros 5 informes seleccionados.');
     }
+
     return {
         ok: true,
         serie,
@@ -287,22 +335,30 @@ export function prepararComparativa(reportes, equipoPreferido = null) {
         categoria: categorias.length === 1 ? categorias[0] : null,
         descartados,
         equiposComunes,
-        advertencias
+        equiposDisponibles: equiposComunes,
+        advertencias,
+        incluirParciales
     };
 }
-
 export function calcularTendencias(serie) {
     if (!Array.isArray(serie) || serie.length < 2) return [];
     const primero = serie[0];
     const ultimo = serie[serie.length - 1];
-    return METRICAS.map(({ clave, etiqueta }) => {
+    return METRICAS.map(({ clave, etiqueta, mejorEsBajar }) => {
         const inicial = numeroONull(primero.metricas?.[clave]);
         const final = numeroONull(ultimo.metricas?.[clave]);
         if (inicial === null || final === null) {
             return { clave, etiqueta, inicial, final, delta: null, estado: 'unavailable' };
         }
         const delta = Number((final - inicial).toFixed(1));
-        const estado = delta > 2 ? 'improved' : delta < -2 ? 'worsened' : 'stable';
+        let estado = 'stable';
+        if (Math.abs(delta) > 2) {
+            if (mejorEsBajar) {
+                estado = delta < 0 ? 'improved' : 'worsened';
+            } else {
+                estado = delta > 0 ? 'improved' : 'worsened';
+            }
+        }
         return { clave, etiqueta, inicial, final, delta, estado };
     });
 }

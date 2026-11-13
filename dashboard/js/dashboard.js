@@ -333,7 +333,6 @@ export class VolleyballDashboard {
             });
 
             this.socket.on('punto_manual', (punto) => {
-                console.log('📝 Punto manual recibido:', punto);
                 this.recargarPuntosManuales();
             });
             
@@ -677,47 +676,41 @@ export class VolleyballDashboard {
         });
         analizarBtn.addEventListener('click', () => this.generarAnalisisComparativo());
         equipoSelector?.addEventListener('change', () => this.actualizarEstadoComparativa());
+        document.getElementById('incluirParcialesCheck')
+            ?.addEventListener('change', () => this.actualizarEstadoComparativa());
     }
 
     async procesarReportes(files) {
-        const reportList = document.getElementById('reportList');
-        if (!reportList) return;
-        this.reportesCargados = [];
-        reportList.innerHTML = '';
-        document.getElementById('analisisResultados')?.classList.add('hidden');
-        if (!files.length) {
-            const vacio = document.createElement('div');
-            vacio.className = 'text-sm text-amber-400';
-            vacio.textContent = 'Seleccioná archivos HTML de informes VoleyInsight.';
-            reportList.appendChild(vacio);
-        }
-        const seleccionados = files.slice(0, 5);
-        if (files.length > 5) {
+    const reportList = document.getElementById('reportList');
+    if (!reportList) return;
+    if (!files.length) return;
+
+    for (const file of files) {
+        if (this.reportesCargados.length >= 5) {
             const aviso = document.createElement('div');
             aviso.className = 'text-xs text-amber-300 rounded-lg bg-amber-900/20 p-2';
-            aviso.textContent = 'Se usarán los primeros 5 informes seleccionados.';
+            aviso.textContent = 'Máximo 5 informes. Se ignoraron los archivos restantes.';
             reportList.appendChild(aviso);
+            break;
         }
-        for (const file of seleccionados) {
-            try {
-                const text = await file.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const datos = this.extraerDatosDeReporte(doc, file.name);
-                if (datos) {
-                    this.reportesCargados.push(datos);
-                    this.agregarItemReporte(reportList, datos, file.name);
-                } else {
-                    this.agregarItemReporte(reportList, null, file.name, '❌ No es un informe VoleyInsight compatible.');
-                }
-            } catch (e) {
-                console.error('Error procesando archivo:', file.name, e);
-                this.agregarItemReporte(reportList, null, file.name, '❌ No se pudo leer el archivo.');
+        try {
+            const text = await file.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+            const datos = this.extraerDatosDeReporte(doc, file.name);
+            if (datos) {
+                this.reportesCargados.push(datos);
+                this.agregarItemReporte(reportList, datos, file.name);
+            } else {
+                this.agregarItemReporte(reportList, null, file.name, '❌ No es un informe VoleyInsight compatible.');
             }
+        } catch (e) {
+            console.error('Error procesando archivo:', file.name, e);
+            this.agregarItemReporte(reportList, null, file.name, '❌ No se pudo leer el archivo.');
         }
-        this.actualizarEstadoComparativa();
     }
-
+    this.actualizarEstadoComparativa();
+}
     agregarItemReporte(contenedor, reporte, nombreArchivo, error = '') {
         const item = document.createElement('div');
         item.className = `flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 rounded-lg p-2 ${error ? 'bg-red-900/30' : 'bg-gray-800'}`;
@@ -803,8 +796,8 @@ export class VolleyballDashboard {
                 'data-breakpoint-home', 'data-breakpoint-away',
                 'data-service-home', 'data-service-away'
             ];
-            const esquemaValido = esquema === 'standard-v1'
-                && atributosRequeridos.every(atributo => contenedorReporte.hasAttribute(atributo));
+            const tieneAlgunaMetrica = atributosRequeridos.some(atributo => contenedorReporte.hasAttribute(atributo));
+            const esquemaValido = esquema === 'standard-v1' && tieneAlgunaMetrica;
             const leerDataset = (clave) => contenedorReporte.hasAttribute(`data-${clave.replace(/[A-Z]/g, letra => `-${letra.toLowerCase()}`)}`)
                 ? numeroONull(contenedorReporte.dataset[clave])
                 : null;
@@ -843,8 +836,9 @@ export class VolleyballDashboard {
         const selectorContenedor = document.getElementById('equipoCompararContenedor');
         const selector = document.getElementById('equipoCompararSelector');
         if (!analizarBtn || !estadoElem || !selector || !selectorContenedor) return;
+        const incluirParciales = document.getElementById('incluirParcialesCheck')?.checked || false;
         const preferido = selector.value || this.clubProfile?.mainTeam || 'ATTITUDE';
-        let comparativa = prepararComparativa(this.reportesCargados, preferido);
+        let comparativa = prepararComparativa(this.reportesCargados, preferido, { incluirParciales });
         const opcionesAnteriores = Array.from(selector.options).map(opcion => opcion.value).filter(Boolean);
         if (comparativa.equiposComunes?.length > 1) {
             selectorContenedor.classList.remove('hidden');
@@ -855,8 +849,7 @@ export class VolleyballDashboard {
                 comparativa.equiposComunes.forEach(equipo => selector.add(new Option(equipo, equipo)));
                 if (comparativa.equipo) selector.value = comparativa.equipo;
             }
-            comparativa = prepararComparativa(this.reportesCargados, selector.value || preferido);
-        } else {
+            comparativa = prepararComparativa(this.reportesCargados, selector.value || preferido, { incluirParciales });        } else {
             selectorContenedor.classList.add('hidden');
             selector.replaceChildren(new Option('', ''));
         }
@@ -878,9 +871,11 @@ export class VolleyballDashboard {
         const equipoSelector = document.getElementById('equipoCompararSelector');
         if (!resultados || this.reportesCargados.length === 0) return;
         resultados.classList.remove('hidden');
+        const incluirParciales = document.getElementById('incluirParcialesCheck')?.checked || false;
         const comparativa = prepararComparativa(
             this.reportesCargados,
-            equipoSelector?.value || this.clubProfile?.mainTeam || 'ATTITUDE'
+            equipoSelector?.value || this.clubProfile?.mainTeam || 'ATTITUDE',
+            { incluirParciales }
         );
         if (!comparativa.ok) {
             resumenElem.textContent = comparativa.mensaje;
@@ -896,6 +891,31 @@ export class VolleyballDashboard {
         }
         const tendencias = calcularTendencias(comparativa.serie);
         const conclusiones = generarConclusiones(tendencias, 3);
+        if (comparativa.serie.length >= 2) {
+            const primera = comparativa.serie[0].metricas.rotations || [];
+            const ultima = comparativa.serie[comparativa.serie.length - 1].metricas.rotations || [];
+            if (primera.length && ultima.length) {
+                let peorRotacion = null;
+                let mayorCaida = 0;
+                for (let i = 1; i <= 6; i++) {
+                    const r1 = primera.find(r => r.rotation === i)?.efficiency || 0;
+                    const r2 = ultima.find(r => r.rotation === i)?.efficiency || 0;
+                    const caida = r1 - r2;
+                    if (caida > mayorCaida && caida > 10) {
+                        mayorCaida = caida;
+                        peorRotacion = i;
+                    }
+                }
+                if (peorRotacion) {
+                    const r1 = primera.find(r => r.rotation === peorRotacion)?.efficiency || 0;
+                    const r2 = ultima.find(r => r.rotation === peorRotacion)?.efficiency || 0;
+                    conclusiones.push({
+                        tipo: 'revisar',
+                        texto: `La Rotación ${peorRotacion} bajó ${mayorCaida.toFixed(1)} puntos (${r1}% → ${r2}%). Revisar si la alineación en esa rotación fue la misma en ambos partidos.`
+                    });
+                }
+            }
+        }
         const primero = comparativa.serie[0];
         const ultimo = comparativa.serie.at(-1);
         const periodo = `${this.formatearFechaComparativa(primero)} → ${this.formatearFechaComparativa(ultimo)}`;
@@ -920,14 +940,16 @@ export class VolleyballDashboard {
             detalle.className = 'text-xs text-gray-500';
             detalle.textContent = `${this.formatearFechaComparativa(reporte)}${reporte.resultado ? ` · ${reporte.resultado}` : ''}`;
             partido.append(titulo, detalle);
-            ['sideout', 'breakpoint', 'clutch', 'service', 'efficiency'].forEach(clave => {
-                const celda = fila.insertCell();
+            ['sideout', 'breakpoint', 'clutch', 'service', 'efficiency', 'errors', 'attackEff', 'receptionPos'].forEach(clave => {
+            const celda = fila.insertCell();
                 const valor = numeroONull(reporte.metricas?.[clave]);
                 celda.className = `text-center font-bold ${this.colorMetricaComparativa(clave, valor)}`;
                 celda.textContent = valor === null ? '—' : `${valor}%`;
             });
         });
         this.renderEvolucionChart(comparativa.serie);
+        this.renderEvolucionChart(comparativa.serie);
+        this.renderizarComparativaJugadores(comparativa.serie);
     }
 
     renderizarConclusionesComparativa(contenedor, conclusiones, vacio, tipo) {
@@ -948,12 +970,15 @@ export class VolleyballDashboard {
         return reporte.fecha || 'Fecha desconocida';
     }
 
-    colorMetricaComparativa(clave, valor) {
+        colorMetricaComparativa(clave, valor) {
         if (valor === null) return 'text-gray-500';
         if (clave === 'sideout') return valor >= 60 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
         if (clave === 'breakpoint') return valor >= 40 ? 'text-green-400' : valor >= 25 ? 'text-yellow-400' : 'text-red-400';
         if (clave === 'clutch') return valor >= 60 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
         if (clave === 'service') return valor >= 10 ? 'text-green-400' : valor >= 0 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'errors') return valor <= 5 ? 'text-green-400' : valor <= 10 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'attackEff') return valor >= 40 ? 'text-green-400' : valor >= 30 ? 'text-yellow-400' : 'text-red-400';
+        if (clave === 'receptionPos') return valor >= 60 ? 'text-green-400' : valor >= 50 ? 'text-yellow-400' : 'text-red-400';
         return valor >= 55 ? 'text-green-400' : valor >= 45 ? 'text-yellow-400' : 'text-red-400';
     }
 
@@ -3144,28 +3169,28 @@ document.getElementById('visitanteTotalPts').innerHTML = 'Atribuidos: 0 · Por e
             const lateEffAnalizado = Number(fasesAnalizado?.late) || 0;
             const earlyEffAnalizado = Number(fasesAnalizado?.early) || 0;
 
-           let interpretationsHtml = '';
-interpretationsHtml += `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(102,126,234,0.15);border-radius:10px;font-size:13px;color:#cbd5e1;">Análisis enfocado en <strong style="color:#93c5fd;">${nombreAnalizadoH}</strong></div>`;
-if (effAnalizado > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${effAnalizado}%) → ${nombreAnalizadoH} dominó el partido.</div>`;
-else if (effAnalizado < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${effAnalizado}%) → ${nombreRivalH} dominó el partido.</div>`;
-else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${effAnalizado}%) → Partido parejo.</div>`;
-if (maxRunRival > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxRunRival} pts) → ${nombreRivalH} tuvo una racha larga.</div>`;
-if (maxRunAnalizado > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxRunAnalizado} pts) → ${nombreAnalizadoH} encadenó puntos.</div>`;
-if (breaksAnalizado > breaksRival + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreAnalizadoH} produjo más puntos con saque propio.</div>`;
-else if (breaksRival > breaksAnalizado + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreRivalH} produjo más puntos con saque propio.</div>`;
-if (clutchAnalizado > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} demostró temple.</div>`;
-else if (clutchAnalizado < 35 && clutchAnalizado > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} mostró debilidad.</div>`;
-if (sideoutAnalizado > 60) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">🎯 SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} ganó con frecuencia los rallies al recibir.</div>`;
-else if (sideoutAnalizado < 45 && sideoutAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} tuvo problemas al recibir.</div>`;
-if (breakpointAnalizado > 45) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">⚡ BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce puntos con saque propio.</div>`;
-else if (breakpointAnalizado < 25 && breakpointAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">🔻 BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce pocos puntos con saque propio.</div>`;
-let recommendationsHtml = '';
-if (effAnalizado < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${nombreAnalizadoH} solo ganó el ${effAnalizado}% de los puntos</div>`;
-if (maxRunRival > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreRivalH} tuvo una racha de ${maxRunRival} puntos. Ajustar bloqueo y recepción.</div>`;
-if (breaksRival > breaksAnalizado + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${nombreRivalH} ganó ${breaksRival} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
-if (clutchAnalizado < 40 && clutchAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${nombreAnalizadoH} solo convirtió ${Number(clutchAnalizado).toFixed(1)}% en momentos críticos.</div>`;
-if (lateEffAnalizado < 40 && lateEffAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreAnalizadoH} débil en el cierre (${lateEffAnalizado}% en Late Game). Trabajar definición.</div>`;
-if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido de ${nombreAnalizadoH}. Mantener la estrategia.</div>`;
+        let interpretationsHtml = '';
+            interpretationsHtml += `<div style="margin-bottom:12px;padding:10px 14px;background:rgba(102,126,234,0.15);border-radius:10px;font-size:13px;color:#cbd5e1;">Análisis enfocado en <strong style="color:#93c5fd;">${nombreAnalizadoH}</strong></div>`;
+            if (effAnalizado > 55) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">📊 EFICIENCIA (${effAnalizado}%) → ${nombreAnalizadoH} dominó el partido.</div>`;
+            else if (effAnalizado < 45) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ EFICIENCIA (${effAnalizado}%) → ${nombreRivalH} dominó el partido.</div>`;
+            else interpretationsHtml += `<div style="border-left: 3px solid #f59e0b; padding: 12px; margin-bottom: 10px;">⚖️ EFICIENCIA (${effAnalizado}%) → Partido parejo.</div>`;
+            if (maxRunRival > 5) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">🔥 RACHA RIVAL (${maxRunRival} pts) → ${nombreRivalH} tuvo una racha larga.</div>`;
+            if (maxRunAnalizado > 5) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">💪 RACHA PROPIA (${maxRunAnalizado} pts) → ${nombreAnalizadoH} encadenó puntos.</div>`;
+            if (breaksAnalizado > breaksRival + 5) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">💪 BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreAnalizadoH} produjo más puntos con saque propio.</div>`;
+            else if (breaksRival > breaksAnalizado + 5) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ BREAKPOINTS (${breaksAnalizado} vs ${breaksRival}) → ${nombreRivalH} produjo más puntos con saque propio.</div>`;
+            if (clutchAnalizado > 60) interpretationsHtml += `<div style="border-left: 3px solid #10b981; padding: 12px; margin-bottom: 10px;">🏆 BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} demostró temple.</div>`;
+            else if (clutchAnalizado < 35 && clutchAnalizado > 0) interpretationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">⚠️ BAJO PRESIÓN (${Number(clutchAnalizado).toFixed(1)}%) → ${nombreAnalizadoH} mostró debilidad.</div>`;
+            if (sideoutAnalizado > 60) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">🎯 SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} ganó con frecuencia los rallies al recibir.</div>`;
+            else if (sideoutAnalizado < 45 && sideoutAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">⚠️ SIDEOUT (${sideoutAnalizado}%) → ${nombreAnalizadoH} tuvo problemas al recibir.</div>`;
+            if (breakpointAnalizado > 45) interpretationsHtml += `<div style="border-left:3px solid #10b981;padding:12px;margin-bottom:10px;">⚡ BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce puntos con saque propio.</div>`;
+            else if (breakpointAnalizado < 25 && breakpointAnalizado > 0) interpretationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">🔻 BREAKPOINT (${breakpointAnalizado}%) → ${nombreAnalizadoH} produce pocos puntos con saque propio.</div>`;
+            let recommendationsHtml = '';
+            if (effAnalizado < 45) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Mejorar eficiencia en ataque - ${nombreAnalizadoH} solo ganó el ${effAnalizado}% de los puntos</div>`;
+            if (maxRunRival > 5) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreRivalH} tuvo una racha de ${maxRunRival} puntos. Ajustar bloqueo y recepción.</div>`;
+            if (breaksRival > breaksAnalizado + 5) recommendationsHtml += `<div style="border-left:3px solid #ef4444;padding:12px;margin-bottom:10px;">📌 ${nombreRivalH} ganó ${breaksRival} breakpoints. Revisar presión de saque y relación saque-bloqueo.</div>`;
+            if (clutchAnalizado < 40 && clutchAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 Entrenar presión: ${nombreAnalizadoH} solo convirtió ${Number(clutchAnalizado).toFixed(1)}% en momentos críticos.</div>`;
+            if (lateEffAnalizado < 40 && lateEffAnalizado > 0) recommendationsHtml += `<div style="border-left: 3px solid #ef4444; padding: 12px; margin-bottom: 10px;">📌 ${nombreAnalizadoH} débil en el cierre (${lateEffAnalizado}% en Late Game). Trabajar definición.</div>`;
+            if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px solid #10b981; padding: 12px;">🏆 Buen partido de ${nombreAnalizadoH}. Mantener la estrategia.</div>`;
             const eficienciaPorSet = [];
             const puntosPorSet = [];
             let datosParaEficiencia = null;
@@ -3211,6 +3236,28 @@ if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px so
                     visitantePorSet[setNum] = generarTablaHTMLSimple(statsVisitanteSet, this.jugadoresVisitante);
                 }
             }
+                        const calcularTotalesEquipo = (stats) => {
+                let err = 0, atqPts = 0, atqErr = 0, atqBlq = 0, atqTot = 0, recPos = 0, recTot = 0;
+                Object.values(stats || {}).forEach(j => {
+                    err += (j.errores || 0);
+                    atqPts += (j.ataquesPuntos || 0);
+                    atqErr += (j.ataquesErrores || 0);
+                    atqBlq += (j.ataquesBloqueados || 0);
+                    atqTot += (j.ataquesTotales || 0);
+                    recPos += (j.recepcionesPositivas || 0);
+                    recTot += (j.recepcionesTotales || 0);
+                });
+                return {
+                    errors: err,
+                    attackEff: atqTot > 0 ? Number((((atqPts - atqErr - atqBlq) / atqTot) * 100).toFixed(1)) : 0,
+                    receptionPos: recTot > 0 ? Number(((recPos / recTot) * 100).toFixed(1)) : 0
+                };
+            };
+            const totalesLocal = calcularTotalesEquipo(statsLocalCalculadas);
+            const totalesVisitante = calcularTotalesEquipo(statsVisitanteCalculadas);
+            
+            const rotacionesDataLocal = this.calcularRotaciones() ? Object.values(this.calcularRotaciones()).map((r, i) => ({ rotation: i + 1, efficiency: r.eficiencia })) : [];
+            const rotacionesDataVisitante = this.calcularRotaciones('VISITANTE') ? Object.values(this.calcularRotaciones('VISITANTE')).map((r, i) => ({ rotation: i + 1, efficiency: r.eficiencia })) : [];
             const resumenLocal = resumirPuntosEquipo(puntosJugadoresRaw || [], 'LOCAL', statsLocalCalculadas || {});
             const resumenVisitante = resumirPuntosEquipo(puntosJugadoresRaw || [], 'VISITANTE', statsVisitanteCalculadas || {});
             const coberturaAnalisis = obtenerCoberturaAnalisis(this.data, puntosJugadoresRaw || []);
@@ -3228,6 +3275,23 @@ if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px so
                 ? marcas.map(marca => `<div style="display:flex;justify-content:space-between;padding:10px;background:rgba(124,58,237,.1);border-radius:8px;margin-bottom:6px;"><span>⭐ Momento clave · Set ${escaparHtml(marca.set || '-')}</span><strong>${escaparHtml(marca.equipo || '-')}</strong><span>${escaparHtml(marca.marcador || '-')}</span></div>`).join('')
                 : '<div style="color:#6b7280;text-align:center;">Sin marcas manuales</div>';
             const generadoEn = new Date();
+            const extraerJugadores = (stats, nombres) => {
+                if (!stats) return [];
+                return Object.entries(stats).map(([dorsal, s]) => {
+                    const num = Number(dorsal);
+                    return {
+                        dorsal: num,
+                        nombre: nombres[num] || `Jugador #${num}`,
+                        pts: s.puntos || 0,
+                        ata: s.ataquesPuntos || 0,
+                        blo: s.bloqueos || 0,
+                        ace: s.acesServicio || 0,
+                        err: s.errores || 0,
+                        recPos: s.recepcionesPositivas || 0,
+                        recTot: s.recepcionesTotales || 0
+                    };
+                });
+            };
             const datosReporte = {
                 homeTeam,
                 awayTeam,
@@ -3280,6 +3344,10 @@ if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px so
                     homeSets: estadoReporte.setsGanadosLocal,
                     awaySets: estadoReporte.setsGanadosVisitante,
                     sets: setsReporte,
+                    players: {
+                        home: extraerJugadores(statsLocalCalculadas, this.jugadoresLocal),
+                        away: extraerJugadores(statsVisitanteCalculadas, this.jugadoresVisitante)
+                    },
                     coverage: coberturaAnalisis,
                     metrics: {
                         home: {
@@ -3287,14 +3355,22 @@ if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px so
                             sideout: { percentage: sideoutHome, successes: metricasRally.equipos.HOME.sideout.exitos, attempts: metricasRally.equipos.HOME.sideout.oportunidades },
                             breakpoint: { percentage: breakpointHome, successes: metricasRally.equipos.HOME.breakpoint.exitos, attempts: metricasRally.equipos.HOME.breakpoint.oportunidades },
                             clutch: { percentage: Number(homeClutchPct), successes: homeClutch, attempts: totalClutch },
-                            service: { percentage: servicioReporte.home.eficiencia, aces: servicioReporte.home.aces, errors: servicioReporte.home.errores, attempts: servicioReporte.home.totalSaques }
+                            service: { percentage: servicioReporte.home.eficiencia, aces: servicioReporte.home.aces, errors: servicioReporte.home.errores, attempts: servicioReporte.home.totalSaques },
+                            errors: totalesLocal.errors,
+                            attackEff: totalesLocal.attackEff,
+                            receptionPos: totalesLocal.receptionPos,
+                            rotations: rotacionesDataLocal
                         },
                         away: {
                             efficiency: { percentage: Number(awayEfficiency), successes: awayPoints, attempts: total },
                             sideout: { percentage: sideoutAway, successes: metricasRally.equipos.AWAY.sideout.exitos, attempts: metricasRally.equipos.AWAY.sideout.oportunidades },
                             breakpoint: { percentage: breakpointAway, successes: metricasRally.equipos.AWAY.breakpoint.exitos, attempts: metricasRally.equipos.AWAY.breakpoint.oportunidades },
                             clutch: { percentage: totalClutch ? Number((((totalClutch - homeClutch) / totalClutch) * 100).toFixed(1)) : 0, successes: totalClutch - homeClutch, attempts: totalClutch },
-                            service: { percentage: servicioReporte.away.eficiencia, aces: servicioReporte.away.aces, errors: servicioReporte.away.errores, attempts: servicioReporte.away.totalSaques }
+                            service: { percentage: servicioReporte.away.eficiencia, aces: servicioReporte.away.aces, errors: servicioReporte.away.errores, attempts: servicioReporte.away.totalSaques },
+                            errors: totalesVisitante.errors,
+                            attackEff: totalesVisitante.attackEff,
+                            receptionPos: totalesVisitante.receptionPos,
+                            rotations: rotacionesDataVisitante
                         }
                     }
                 }
@@ -3312,5 +3388,66 @@ if (!recommendationsHtml) recommendationsHtml = `<div style="border-left: 3px so
             console.error('Error al guardar HTML:', e);
             this.mostrarFeedbackPartido('❌ Error al generar el reporte: ' + e.message);
         }
+    }
+    renderizarComparativaJugadores(serie) {
+        const container = document.getElementById('comparativaJugadores');
+        if (!container) return;
+        
+        const normalizarNombre = (nombre) => String(nombre || '').trim().toUpperCase();
+        const jugadorasMap = new Map(); 
+        
+        serie.forEach(reporte => {
+            (reporte.jugadores || []).forEach(j => {
+                const key = normalizarNombre(j.nombre);
+                if (!jugadorasMap.has(key)) jugadorasMap.set(key, { nombre: j.nombre, partidos: [] });
+                jugadorasMap.get(key).partidos.push({ reporte, stats: j });
+            });
+        });
+
+        const jugadorasComparables = [...jugadorasMap.values()].filter(j => j.partidos.length >= 2);
+        
+        if (!jugadorasComparables.length) {
+            container.innerHTML = '<div class="text-center text-gray-500 text-sm py-4">No hay jugadoras con datos en 2 o más informes comparados.</div>';
+            return;
+        }
+
+        let html = `
+            <div class="bg-card rounded-2xl p-4 md:p-6 border border-white/5 mt-6">
+                <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4">👕 COMPARACIÓN INDIVIDUAL (JUGADORAS EN COMÚN)</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs md:text-sm">
+                        <thead class="text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="text-left py-2">Jugadora</th>
+                                <th class="text-center">Partido</th>
+                                <th class="text-center">PTS</th>
+                                <th class="text-center">ERR</th>
+                                <th class="text-center">ATA</th>
+                                <th class="text-center">BLO</th>
+                                <th class="text-center">ACE</th>
+                                <th class="text-center">REC%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        jugadorasComparables.forEach(jugadora => {
+            jugadora.partidos.forEach((p, index) => {
+                const s = p.stats;
+                const recPct = s.recTot > 0 ? ((s.recPos / s.recTot) * 100).toFixed(0) + '%' : '—';
+                html += `<tr class="border-b border-gray-700/50 hover:bg-dark/50">
+                    ${index === 0 ? `<td class="py-2 font-medium" rowspan="${jugadora.partidos.length}">#${s.dorsal} ${escaparHtml(jugadora.nombre)}</td>` : ''}
+                    <td class="text-center text-gray-400">${this.formatearFechaComparativa(p.reporte)}</td>
+                    <td class="text-center font-bold text-primary">${s.pts}</td>
+                    <td class="text-center text-red-400">${s.err}</td>
+                    <td class="text-center text-green-400">${s.ata}</td>
+                    <td class="text-center text-blue-400">${s.blo}</td>
+                    <td class="text-center text-yellow-400">${s.ace}</td>
+                    <td class="text-center text-gray-300">${recPct}</td>
+                </tr>`;
+            });
+        });
+        html += `</tbody></table></div></div>`;
+        container.innerHTML = html;
     }
 }
